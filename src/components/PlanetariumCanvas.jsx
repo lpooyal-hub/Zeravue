@@ -19,6 +19,76 @@ function buildStarTexture(color) {
   return texture;
 }
 
+function buildPlanetTexture(planet) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const context = canvas.getContext("2d");
+  const gradient = context.createRadialGradient(104, 96, 18, 128, 128, 118);
+  gradient.addColorStop(0, "#ffffff");
+  gradient.addColorStop(0.18, lightenColor(planet.color, 0.28));
+  gradient.addColorStop(0.72, planet.color);
+  gradient.addColorStop(1, darkenColor(planet.color, 0.32));
+  context.fillStyle = "rgba(0,0,0,0)";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.save();
+  context.beginPath();
+  context.arc(128, 128, 94, 0, Math.PI * 2);
+  context.clip();
+  context.fillStyle = gradient;
+  context.fillRect(24, 24, 208, 208);
+
+  if (planet.name === "Jupiter" || planet.name === "Saturn") {
+    for (let index = 0; index < 8; index += 1) {
+      const y = 52 + index * 20;
+      context.fillStyle = index % 2 === 0 ? "rgba(255,245,220,0.16)" : "rgba(120,80,40,0.14)";
+      context.fillRect(26, y, 204, 11);
+    }
+  }
+
+  if (planet.name === "Mars" || planet.name === "Mercury") {
+    for (let index = 0; index < 10; index += 1) {
+      context.fillStyle = index % 2 === 0 ? "rgba(255,255,255,0.06)" : "rgba(40,20,10,0.08)";
+      context.beginPath();
+      context.arc(64 + Math.random() * 130, 64 + Math.random() * 130, 8 + Math.random() * 18, 0, Math.PI * 2);
+      context.fill();
+    }
+  }
+
+  if (planet.name === "Earth" || planet.name === "Neptune" || planet.name === "Uranus") {
+    context.fillStyle = planet.name === "Earth" ? "rgba(108, 182, 102, 0.34)" : "rgba(255,255,255,0.12)";
+    context.beginPath();
+    context.ellipse(112, 120, 42, 28, 0.4, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.ellipse(150, 152, 34, 22, -0.6, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  if (planet.name === "Venus") {
+    for (let index = 0; index < 5; index += 1) {
+      context.strokeStyle = "rgba(255,255,255,0.13)";
+      context.lineWidth = 10;
+      context.beginPath();
+      context.arc(128, 128, 34 + index * 10, -1.2, 1.1);
+      context.stroke();
+    }
+  }
+
+  if (planet.name === "Jupiter") {
+    context.fillStyle = "rgba(188, 78, 58, 0.34)";
+    context.beginPath();
+    context.ellipse(166, 146, 18, 12, 0.1, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  context.restore();
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export function PlanetariumCanvas({
   scene,
   planets,
@@ -82,10 +152,11 @@ function SceneContents({
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0 });
   const { camera, pointer } = useThree();
+  const projectedStars = useMemo(() => scene.stars.map((star) => ({ ...star, ...projectSkyPosition(star) })), [scene.stars]);
 
   const featuredStars = useMemo(
     () =>
-      scene.stars.filter((star) => {
+      projectedStars.filter((star) => {
         if (!star.visible) {
           return false;
         }
@@ -100,10 +171,10 @@ function SceneContents({
         }
         return star.magnitude <= 2.35;
       }),
-    [customSketchStarIds, focusedConstellation, scene.stars, selectedTarget]
+    [customSketchStarIds, focusedConstellation, projectedStars, selectedTarget]
   );
 
-  const constellationCenters = useMemo(() => buildConstellationCenters(scene.stars), [scene.stars]);
+  const constellationCenters = useMemo(() => buildConstellationCenters(projectedStars), [projectedStars]);
   const labelData = useMemo(() => {
     const starLabels = [];
     const constellationLabels = [];
@@ -147,16 +218,16 @@ function SceneContents({
   useFrame((_, delta) => {
     if (groupRef.current) {
       if (autoRotate) {
-        groupRef.current.rotation.y += delta * 0.022;
+        groupRef.current.rotation.y += delta * 0.016;
       }
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -pointer.y * 0.12, 0.035);
-      cameraAnchor.current.x = THREE.MathUtils.lerp(cameraAnchor.current.x, pointer.x * 1.35, 0.035);
-      cameraAnchor.current.y = THREE.MathUtils.lerp(cameraAnchor.current.y, pointer.y * 0.65, 0.035);
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -pointer.y * 0.045, 0.03);
+      cameraAnchor.current.x = THREE.MathUtils.lerp(cameraAnchor.current.x, pointer.x * 0.92, 0.03);
+      cameraAnchor.current.y = THREE.MathUtils.lerp(cameraAnchor.current.y, pointer.y * 0.34, 0.03);
     }
 
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraAnchor.current.x, 0.035);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraAnchor.current.y, 0.035);
-    camera.lookAt(0, 0.15, 0);
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraAnchor.current.x, 0.03);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraAnchor.current.y, 0.03);
+    camera.lookAt(0, 1.25, -8.2);
   });
 
   return (
@@ -167,11 +238,11 @@ function SceneContents({
       <group ref={groupRef}>
         <MilkyWayBand />
         <DeepSkyField />
-        <BackgroundStarField stars={scene.stars} focusedConstellation={focusedConstellation} />
+        <BackgroundStarField stars={projectedStars} focusedConstellation={focusedConstellation} />
         {showGuides ? <GuideGrid /> : null}
         {showGuides ? <HorizonRing dictionary={dictionary} language={language} /> : null}
-        {showConstellations ? <ConstellationLines lines={scene.lines} stars={scene.stars} focusedConstellation={focusedConstellation} /> : null}
-        {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={scene.stars} starIds={customSketchStarIds} /> : null}
+        {showConstellations ? <ConstellationLines lines={scene.lines} stars={projectedStars} focusedConstellation={focusedConstellation} /> : null}
+        {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={projectedStars} starIds={customSketchStarIds} /> : null}
         {featuredStars.map((star) => (
           <StarMarker
             key={star.id}
@@ -333,40 +404,56 @@ function StarMarker({ star, selected, onSelectTarget, dimmed, sketched, drawMode
 
 function PlanetMarker({ planet, index, selected, onSelectTarget, dimmed }) {
   const groupRef = useRef(null);
+  const auraRef = useRef(null);
   const position = planetPosition(index, planet.orbit);
-  const radius = 0.28 + planet.radius * 0.035;
+  const radius = 0.42 + planet.radius * 0.032;
   const opacity = dimmed ? 0.24 : 1;
-  const ringTilt = planet.name === "Saturn" ? 0.62 : 0;
+  const spriteMaterial = useMemo(
+    () =>
+      new THREE.SpriteMaterial({
+        map: buildPlanetTexture(planet),
+        transparent: true,
+        depthWrite: false
+      }),
+    [planet]
+  );
+  const auraMaterial = useMemo(
+    () =>
+      new THREE.SpriteMaterial({
+        map: buildStarTexture(planet.color),
+        transparent: true,
+        depthWrite: false
+      }),
+    [planet.color]
+  );
+  const ringTilt = planet.name === "Saturn" ? 0.5 : 0;
 
   useFrame(({ clock }) => {
     if (!groupRef.current) {
       return;
     }
 
-    groupRef.current.position.y = position[1] + Math.sin(clock.elapsedTime * 0.5 + index) * 0.08;
-    groupRef.current.rotation.y += 0.003 + index * 0.0002;
+    groupRef.current.position.y = position[1] + Math.sin(clock.elapsedTime * 0.34 + index) * 0.06;
+    if (auraRef.current) {
+      const pulse = 1 + Math.sin(clock.elapsedTime * 0.8 + index) * 0.06;
+      auraRef.current.scale.setScalar(pulse);
+      auraRef.current.material.opacity = (dimmed ? 0.06 : 0.13) + (selected ? 0.05 : 0);
+    }
   });
 
   return (
     <group ref={groupRef} position={position}>
-      {selected ? (
-        <mesh>
-          <sphereGeometry args={[radius * 2.2, 18, 18]} />
-          <meshBasicMaterial color={planet.color} transparent opacity={0.12} />
-        </mesh>
-      ) : null}
-      <mesh>
-        <sphereGeometry args={[radius * 1.9, 18, 18]} />
-        <meshBasicMaterial color={planet.color} transparent opacity={dimmed ? 0.08 : 0.16} depthWrite={false} />
-      </mesh>
+      <sprite ref={auraRef} material={auraMaterial} scale={[radius * 6.6, radius * 6.6, 1]} />
+      {selected ? <sprite material={auraMaterial} scale={[radius * 8.6, radius * 8.6, 1]} /> : null}
+      <sprite material={spriteMaterial} scale={[radius * 3.8, radius * 3.8, 1]} />
       <mesh onClick={() => onSelectTarget({ kind: "planet", id: planet.name })}>
-        <sphereGeometry args={[radius, 20, 20]} />
-        <meshStandardMaterial color={planet.color} emissive={planet.color} emissiveIntensity={0.35} roughness={0.5} transparent opacity={opacity} />
+        <sphereGeometry args={[radius * 1.15, 18, 18]} />
+        <meshBasicMaterial color={planet.color} transparent opacity={Math.max(opacity * 0.04, 0.02)} depthWrite={false} />
       </mesh>
       {planet.name === "Saturn" ? (
         <mesh rotation={[ringTilt, 0.2, 0]}>
-          <ringGeometry args={[radius * 1.45, radius * 2.3, 64]} />
-          <meshBasicMaterial color="#d9c28a" transparent opacity={dimmed ? 0.12 : 0.4} side={THREE.DoubleSide} />
+          <ringGeometry args={[radius * 1.6, radius * 2.55, 64]} />
+          <meshBasicMaterial color="#d9c28a" transparent opacity={dimmed ? 0.12 : 0.46} side={THREE.DoubleSide} />
         </mesh>
       ) : null}
     </group>
@@ -375,8 +462,8 @@ function PlanetMarker({ planet, index, selected, onSelectTarget, dimmed }) {
 
 function planetPosition(index, orbit, labelOffset = false) {
   const angle = -1.4 + index * 0.43;
-  const distance = 6.2 + orbit * 0.012;
-  const y = -5.2 + (labelOffset ? 0.7 : 0);
+  const distance = 5.2 + orbit * 0.01;
+  const y = -1.6 + Math.sin(index * 0.8) * 0.22 + (labelOffset ? 0.68 : 0);
   return [Math.cos(angle) * distance, y, Math.sin(angle) * distance];
 }
 
@@ -484,6 +571,35 @@ function buildConstellationCenters(stars) {
 
 function clampStarSize(magnitude) {
   return Math.max(1.2, 5.2 - magnitude * 0.58);
+}
+
+function projectSkyPosition(star) {
+  const az = (star.azimuth * Math.PI) / 180;
+  const altitudeRatio = Math.max(0, star.altitude) / 90;
+  const lateral = Math.cos(altitudeRatio * Math.PI * 0.42);
+  const x = Math.sin(az) * 10.2 * lateral;
+  const y = -2.4 + altitudeRatio * 9.6 + Math.sin(az * 0.5) * 0.16;
+  const z = -8.8 + Math.cos(az) * (1.6 - altitudeRatio * 0.4) - altitudeRatio * 0.95;
+  return {
+    x: Number(x.toFixed(4)),
+    y: Number(y.toFixed(4)),
+    z: Number(z.toFixed(4))
+  };
+}
+
+function lightenColor(hex, amount) {
+  return blendColor(hex, "#ffffff", amount);
+}
+
+function darkenColor(hex, amount) {
+  return blendColor(hex, "#000000", amount);
+}
+
+function blendColor(fromHex, toHex, amount) {
+  const from = new THREE.Color(fromHex);
+  const to = new THREE.Color(toHex);
+  const color = from.lerp(to, amount);
+  return `#${color.getHexString()}`;
 }
 
 function HorizonRing({ dictionary, language }) {
