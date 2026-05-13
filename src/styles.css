@@ -387,26 +387,6 @@ input[type="range"] {
   gap: 10px;
 }
 
-.planet-chip-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.planet-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-}
-
 .focus-chip {
   padding: 8px 12px;
   border: 1px solid var(--line);
@@ -458,14 +438,6 @@ input[type="range"] {
 
 .saved-sketch-button small {
   color: var(--muted);
-}
-
-.planet-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--planet-color);
-  box-shadow: 0 0 18px var(--planet-color);
 }
 
 .scene-empty {
@@ -520,8 +492,7 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 
-  .toggle-grid,
-  .planet-chip-list {
+  .toggle-grid {
     grid-template-columns: 1fr;
   }
 

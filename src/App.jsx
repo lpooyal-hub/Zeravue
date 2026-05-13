@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
 import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
 import { getInitialLanguage, translations } from "./data/i18n.js";
-import { planets } from "./data/planets.js";
 
 const SKETCH_STORAGE_KEY = "planetarium-sketches";
 
@@ -41,7 +40,6 @@ export function App() {
   const [showLabels, setShowLabels] = useState(false);
   const [showGuides, setShowGuides] = useState(false);
   const [showConstellations, setShowConstellations] = useState(true);
-  const [showPlanets, setShowPlanets] = useState(true);
   const [autoRotate, setAutoRotate] = useState(true);
   const [focusedConstellation, setFocusedConstellation] = useState("all");
   const [drawMode, setDrawMode] = useState(false);
@@ -128,10 +126,6 @@ export function App() {
   const selectedStar = useMemo(
     () => (selectedTarget?.kind === "star" ? sceneState.data?.stars.find((star) => star.id === selectedTarget.id) || null : null),
     [sceneState.data, selectedTarget]
-  );
-  const selectedPlanet = useMemo(
-    () => (selectedTarget?.kind === "planet" ? planets.find((planet) => planet.name === selectedTarget.id) || null : null),
-    [selectedTarget]
   );
   const visibleConstellations = sceneState.data?.summary.visibleConstellations || [];
   const activeSketch = useMemo(() => savedSketches.find((sketch) => sketch.id === activeSketchId) || null, [activeSketchId, savedSketches]);
@@ -461,10 +455,6 @@ export function App() {
                 <span>{dictionary.viewer.toggles.labels}</span>
               </label>
               <label className="toggle-item">
-                <input type="checkbox" checked={showPlanets} onChange={(event) => setShowPlanets(event.target.checked)} />
-                <span>{dictionary.viewer.toggles.planets}</span>
-              </label>
-              <label className="toggle-item">
                 <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
                 <span>{dictionary.viewer.toggles.autoRotate}</span>
               </label>
@@ -479,7 +469,6 @@ export function App() {
         <main ref={viewerRef} className={`viewer ${isFullscreen ? "is-fullscreen" : ""}`}>
           <PlanetariumCanvas
             scene={sceneState.data}
-            planets={planets}
             selectedTarget={selectedTarget}
             onSelectTarget={selectTarget}
             language={language}
@@ -487,7 +476,6 @@ export function App() {
             showLabels={showLabels}
             showGuides={showGuides}
             showConstellations={showConstellations}
-            showPlanets={showPlanets}
             autoRotate={autoRotate}
             focusedConstellation={currentPage === "watch" ? focusedConstellation : "all"}
             drawMode={currentPage === "sketch" ? drawMode : false}
@@ -527,27 +515,8 @@ export function App() {
           </section>
 
           <section>
-            <p className="eyebrow">{selectedPlanet ? dictionary.viewer.planetInspector : dictionary.viewer.starInspector}</p>
-            {selectedPlanet ? (
-              <>
-                <h2>{dictionary.planetNames[selectedPlanet.name]}</h2>
-                <p className="constellation-copy">{selectedPlanet.feature[language]}</p>
-                <dl className="summary-list compact">
-                  <div>
-                    <dt>{dictionary.viewer.planetType}</dt>
-                    <dd>{dictionary.planetTypes[selectedPlanet.type]}</dd>
-                  </div>
-                  <div>
-                    <dt>{dictionary.viewer.orbitBand}</dt>
-                    <dd>{Math.round(selectedPlanet.orbit)}</dd>
-                  </div>
-                  <div>
-                    <dt>{dictionary.viewer.moons}</dt>
-                    <dd>{selectedPlanet.moons}</dd>
-                  </div>
-                </dl>
-              </>
-            ) : selectedStar ? (
+            <p className="eyebrow">{dictionary.viewer.starInspector}</p>
+            {selectedStar ? (
               <>
                 <h2>{selectedStar.name}</h2>
                 <p className="constellation-copy">
@@ -584,17 +553,6 @@ export function App() {
                 <div className="constellation-list">
                   {(sceneState.data?.summary.visibleConstellations || []).map((name) => (
                     <span key={name}>{dictionary.constellations?.[name]?.[language] || name}</span>
-                  ))}
-                </div>
-              </section>
-              <section>
-                <p className="eyebrow">{dictionary.viewer.planetsBand}</p>
-                <div className="planet-chip-list">
-                  {planets.map((planet) => (
-                    <button key={planet.name} type="button" className="planet-chip" onClick={() => selectTarget({ kind: "planet", id: planet.name })}>
-                      <span className="planet-dot" style={{ "--planet-color": planet.color }} />
-                      <strong>{dictionary.planetNames[planet.name]}</strong>
-                    </button>
                   ))}
                 </div>
               </section>

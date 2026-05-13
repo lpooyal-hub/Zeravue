@@ -140,23 +140,18 @@ export const translations = {
       },
       overlay: {
         mood: "A calm sky with brighter constellations resting over the background stars",
-        inspect: "Click stars and planets to inspect them",
+        inspect: "Click stars to inspect them",
         draw: "Sketch mode records stars in the order you click"
       },
       starInspector: "Star inspector",
-      planetInspector: "Planet inspector",
       constellationsInFrame: "Constellations in frame",
-      planetsBand: "Tracked planets",
       magnitude: "Magnitude",
       altitude: "Altitude",
       azimuth: "Azimuth",
       visibility: "Visibility",
       aboveHorizon: "Above horizon",
       belowHorizon: "Below horizon",
-      pickHint: "Pick a star or planet to inspect it.",
-      planetType: "Type",
-      orbitBand: "Orbit band",
-      moons: "Moons",
+      pickHint: "Pick a star to inspect it.",
       cardinals: {
         north: { en: "North", ko: "북" },
         east: { en: "East", ko: "동" },
@@ -225,21 +220,6 @@ export const translations = {
       "Piscis Austrinus": { en: "Piscis Austrinus", ko: "남쪽물고기자리" },
       Aries: { en: "Aries", ko: "양자리" }
     },
-    planetNames: {
-      Mercury: "Mercury",
-      Venus: "Venus",
-      Earth: "Earth",
-      Mars: "Mars",
-      Jupiter: "Jupiter",
-      Saturn: "Saturn",
-      Uranus: "Uranus",
-      Neptune: "Neptune"
-    },
-    planetTypes: {
-      Terrestrial: "Terrestrial",
-      "Gas giant": "Gas giant",
-      "Ice giant": "Ice giant"
-    }
   },
   ko: {
     languageName: "한국어",
@@ -382,23 +362,18 @@ export const translations = {
       },
       overlay: {
         mood: "배경별 위에 별자리가 조금 더 또렷하게 떠오르는 차분한 밤하늘",
-        inspect: "별과 행성을 눌러 상세 정보를 확인",
+        inspect: "별을 눌러 상세 정보를 확인",
         draw: "스케치 모드에서는 클릭한 순서대로 별이 이어집니다"
       },
       starInspector: "별 정보",
-      planetInspector: "행성 정보",
       constellationsInFrame: "현재 시야의 별자리",
-      planetsBand: "추적 중인 행성",
       magnitude: "등급",
       altitude: "고도",
       azimuth: "방위각",
       visibility: "가시성",
       aboveHorizon: "지평선 위",
       belowHorizon: "지평선 아래",
-      pickHint: "별이나 행성을 선택해 정보를 확인하세요.",
-      planetType: "분류",
-      orbitBand: "궤도 밴드",
-      moons: "위성",
+      pickHint: "별을 선택해 정보를 확인하세요.",
       cardinals: {
         north: { en: "North", ko: "북" },
         east: { en: "East", ko: "동" },
@@ -467,21 +442,6 @@ export const translations = {
       "Piscis Austrinus": { en: "Piscis Austrinus", ko: "남쪽물고기자리" },
       Aries: { en: "Aries", ko: "양자리" }
     },
-    planetNames: {
-      Mercury: "수성",
-      Venus: "금성",
-      Earth: "지구",
-      Mars: "화성",
-      Jupiter: "목성",
-      Saturn: "토성",
-      Uranus: "천왕성",
-      Neptune: "해왕성"
-    },
-    planetTypes: {
-      Terrestrial: "지구형 행성",
-      "Gas giant": "가스 행성",
-      "Ice giant": "얼음 행성"
-    }
   }
 };
 
