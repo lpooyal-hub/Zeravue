@@ -2,6 +2,23 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
+function buildStarTexture(color) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext("2d");
+  const gradient = context.createRadialGradient(64, 64, 2, 64, 64, 64);
+  gradient.addColorStop(0, "#ffffff");
+  gradient.addColorStop(0.18, color);
+  gradient.addColorStop(0.45, `${color}aa`);
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export function PlanetariumCanvas({
   scene,
   planets,
@@ -14,7 +31,9 @@ export function PlanetariumCanvas({
   showConstellations,
   showPlanets,
   autoRotate,
-  focusedConstellation
+  focusedConstellation,
+  drawMode,
+  customSketchStarIds
 }) {
   if (!scene) {
     return <div className="scene-empty">{dictionary.viewer.loading}</div>;
@@ -22,8 +41,8 @@ export function PlanetariumCanvas({
 
   return (
     <Canvas camera={{ position: [0, 0, 18], fov: 48 }} dpr={[1, 2]}>
-      <color attach="background" args={["#02040a"]} />
-      <fog attach="fog" args={["#02040a", 18, 34]} />
+      <color attach="background" args={["#010208"]} />
+      <fog attach="fog" args={["#010208", 16, 36]} />
       <SceneContents
         scene={scene}
         planets={planets}
@@ -37,6 +56,8 @@ export function PlanetariumCanvas({
         showPlanets={showPlanets}
         autoRotate={autoRotate}
         focusedConstellation={focusedConstellation}
+        drawMode={drawMode}
+        customSketchStarIds={customSketchStarIds}
       />
     </Canvas>
   );
@@ -54,7 +75,9 @@ function SceneContents({
   showConstellations,
   showPlanets,
   autoRotate,
-  focusedConstellation
+  focusedConstellation,
+  drawMode,
+  customSketchStarIds
 }) {
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0 });
@@ -119,14 +142,16 @@ function SceneContents({
 
   return (
     <>
-      <ambientLight intensity={0.45} />
-      <pointLight position={[0, 4, 12]} intensity={1.25} color="#c7dcff" />
-      <pointLight position={[0, -6, -10]} intensity={0.52} color="#ffb36b" />
+      <ambientLight intensity={0.35} />
+      <pointLight position={[0, 4, 12]} intensity={1.05} color="#bcd6ff" />
+      <pointLight position={[0, -6, -10]} intensity={0.44} color="#ffb36b" />
       <group ref={groupRef}>
+        <DeepSkyField />
         <StarDome />
         {showGuides ? <GuideGrid /> : null}
         {showGuides ? <HorizonRing dictionary={dictionary} language={language} /> : null}
         {showConstellations ? <ConstellationLines lines={scene.lines} stars={scene.stars} focusedConstellation={focusedConstellation} /> : null}
+        {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={scene.stars} starIds={customSketchStarIds} /> : null}
         {scene.stars.map((star) => (
           <StarMarker
             key={star.id}
@@ -134,6 +159,8 @@ function SceneContents({
             selected={selectedTarget?.kind === "star" && star.id === selectedTarget.id}
             onSelectTarget={onSelectTarget}
             dimmed={!isHighlighted(star.constellation, focusedConstellation)}
+            sketched={customSketchStarIds.includes(star.id)}
+            drawMode={drawMode}
           />
         ))}
         {showPlanets
@@ -171,44 +198,87 @@ function SceneContents({
   );
 }
 
-function StarMarker({ star, selected, onSelectTarget, dimmed }) {
-  const radius = star.size * (selected ? 1.9 : dimmed ? 0.9 : 1.2);
+function StarMarker({ star, selected, onSelectTarget, dimmed, sketched, drawMode }) {
+  const haloRef = useRef(null);
+  const spriteMaterial = useMemo(
+    () =>
+      new THREE.SpriteMaterial({
+        map: buildStarTexture(drawMode && sketched ? "#ffcf70" : star.color),
+        transparent: true,
+        depthWrite: false
+      }),
+    [drawMode, sketched, star.color]
+  );
+  const radius = star.size * (selected ? 1.9 : sketched ? 1.5 : dimmed ? 0.9 : 1.2);
   const emissive = star.visible ? star.color : "#334155";
-  const opacity = dimmed ? 0.18 : 1;
+  const opacity = sketched ? 1 : dimmed ? 0.18 : 1;
+  const pulseSeed = useMemo(() => Number.parseInt(String(star.id).replace(/\D/g, "").slice(-4) || "7", 10) * 0.013, [star.id]);
+
+  useFrame(({ clock }) => {
+    if (!haloRef.current) {
+      return;
+    }
+
+    const pulse = 1 + Math.sin(clock.elapsedTime * 1.35 + pulseSeed) * 0.12;
+    haloRef.current.scale.setScalar(pulse);
+    haloRef.current.material.opacity = (sketched ? 0.24 : 0.14) + (selected ? 0.1 : 0) + Math.sin(clock.elapsedTime * 1.1 + pulseSeed) * 0.03;
+  });
 
   return (
     <group position={[star.x, star.y, star.z]}>
-      {selected ? (
+      {selected || sketched ? (
         <mesh>
           <sphereGeometry args={[radius * 2.6, 24, 24]} />
-          <meshBasicMaterial color={star.color} transparent opacity={0.12} />
+          <meshBasicMaterial color={sketched ? "#ffcf70" : star.color} transparent opacity={sketched ? 0.18 : 0.12} />
         </mesh>
       ) : null}
+      <sprite ref={haloRef} material={spriteMaterial} scale={[radius * 5.8, radius * 5.8, 1]} />
       <mesh onClick={() => onSelectTarget({ kind: "star", id: star.id })}>
-        <sphereGeometry args={[radius, 18, 18]} />
-        <meshBasicMaterial color={emissive} toneMapped={false} transparent opacity={opacity} />
+        <sphereGeometry args={[radius * 1.15, 12, 12]} />
+        <meshBasicMaterial color={emissive} toneMapped={false} transparent opacity={Math.max(opacity * 0.02, 0.01)} depthWrite={false} />
       </mesh>
     </group>
   );
 }
 
 function PlanetMarker({ planet, index, selected, onSelectTarget, dimmed }) {
+  const groupRef = useRef(null);
   const position = planetPosition(index, planet.orbit);
   const radius = 0.28 + planet.radius * 0.035;
   const opacity = dimmed ? 0.24 : 1;
+  const ringTilt = planet.name === "Saturn" ? 0.62 : 0;
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) {
+      return;
+    }
+
+    groupRef.current.position.y = position[1] + Math.sin(clock.elapsedTime * 0.5 + index) * 0.08;
+    groupRef.current.rotation.y += 0.003 + index * 0.0002;
+  });
 
   return (
-    <group position={position}>
+    <group ref={groupRef} position={position}>
       {selected ? (
         <mesh>
           <sphereGeometry args={[radius * 2.2, 18, 18]} />
           <meshBasicMaterial color={planet.color} transparent opacity={0.12} />
         </mesh>
       ) : null}
+      <mesh>
+        <sphereGeometry args={[radius * 1.9, 18, 18]} />
+        <meshBasicMaterial color={planet.color} transparent opacity={dimmed ? 0.08 : 0.16} depthWrite={false} />
+      </mesh>
       <mesh onClick={() => onSelectTarget({ kind: "planet", id: planet.name })}>
         <sphereGeometry args={[radius, 20, 20]} />
         <meshStandardMaterial color={planet.color} emissive={planet.color} emissiveIntensity={0.35} roughness={0.5} transparent opacity={opacity} />
       </mesh>
+      {planet.name === "Saturn" ? (
+        <mesh rotation={[ringTilt, 0.2, 0]}>
+          <ringGeometry args={[radius * 1.45, radius * 2.3, 64]} />
+          <meshBasicMaterial color="#d9c28a" transparent opacity={dimmed ? 0.12 : 0.4} side={THREE.DoubleSide} />
+        </mesh>
+      ) : null}
     </group>
   );
 }
@@ -259,6 +329,34 @@ function ConstellationLines({ lines, stars, focusedConstellation }) {
         </lineSegments>
       ) : null}
     </>
+  );
+}
+
+function CustomSketchLines({ stars, starIds }) {
+  const geometry = useMemo(() => {
+    const byId = new Map(stars.map((star) => [star.id, star]));
+    const points = [];
+
+    for (let index = 1; index < starIds.length; index += 1) {
+      const from = byId.get(starIds[index - 1]);
+      const to = byId.get(starIds[index]);
+
+      if (!from || !to) {
+        continue;
+      }
+
+      points.push(from.x, from.y, from.z, to.x, to.y, to.z);
+    }
+
+    const lineGeometry = new THREE.BufferGeometry();
+    lineGeometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+    return lineGeometry;
+  }, [starIds, stars]);
+
+  return (
+    <lineSegments geometry={geometry}>
+      <lineBasicMaterial color="#ffcf70" transparent opacity={0.95} />
+    </lineSegments>
   );
 }
 
@@ -339,8 +437,40 @@ function StarDome() {
   return (
     <mesh rotation={[0, 0, 0]}>
       <sphereGeometry args={[10.25, 36, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
-      <meshBasicMaterial color="#0d1422" transparent opacity={0.18} side={THREE.BackSide} />
+      <meshBasicMaterial color="#07101f" transparent opacity={0.26} side={THREE.BackSide} />
     </mesh>
+  );
+}
+
+function DeepSkyField() {
+  const particles = useMemo(() => {
+    const positions = [];
+    const colors = [];
+
+    for (let index = 0; index < 1800; index += 1) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI * 0.58;
+      const radius = 12 + Math.random() * 18;
+      const x = Math.sin(theta) * Math.cos(phi) * radius;
+      const y = Math.sin(phi) * radius * 0.95;
+      const z = -Math.cos(theta) * Math.cos(phi) * radius;
+
+      positions.push(x, y, z);
+
+      const color = new THREE.Color(index % 7 === 0 ? "#9fc3ff" : index % 11 === 0 ? "#ffd59f" : "#dfe8ff");
+      colors.push(color.r, color.g, color.b);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    return geometry;
+  }, []);
+
+  return (
+    <points geometry={particles}>
+      <pointsMaterial size={0.095} sizeAttenuation vertexColors transparent opacity={0.58} depthWrite={false} />
+    </points>
   );
 }
 

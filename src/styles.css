@@ -102,6 +102,31 @@ select {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.page-switcher {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.page-switcher button {
+  min-width: 76px;
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.page-switcher button[aria-pressed="true"] {
+  background: var(--accent-2);
+  color: #071219;
+}
+
 .language-switcher button {
   min-width: 44px;
   min-height: 34px;
@@ -260,6 +285,25 @@ input[type="range"] {
   font-size: 0.84rem;
 }
 
+.overlay-button {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 207, 112, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 207, 112, 0.12);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.viewer.is-fullscreen {
+  border-radius: 0;
+  border: 0;
+}
+
+.viewer.is-fullscreen .viewer-overlay {
+  right: 24px;
+  bottom: 24px;
+}
+
 .summary-list {
   display: grid;
   gap: 10px;
@@ -335,6 +379,43 @@ input[type="range"] {
   color: var(--text);
 }
 
+.saved-sketch-list {
+  display: grid;
+  gap: 10px;
+}
+
+.saved-sketch-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.saved-sketch-card.is-active {
+  border-color: rgba(255, 207, 112, 0.55);
+  background: rgba(255, 207, 112, 0.1);
+}
+
+.saved-sketch-button {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.saved-sketch-button small {
+  color: var(--muted);
+}
+
 .planet-dot {
   width: 14px;
   height: 14px;
@@ -381,6 +462,7 @@ input[type="range"] {
   .topbar-controls {
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .field-grid {
