@@ -1,7 +1,19 @@
+const noirlabCredit = "E. Slawik/NOIRLab/NSF/AURA/M. Zamani";
+
+function noirlabPhoto(id) {
+  return {
+    imageUrl: `https://noirlab.edu/public/media/archives/images/screen/${id}.jpg`,
+    sourceUrl: `https://noirlab.edu/public/images/${id}/`,
+    credit: noirlabCredit,
+    license: "CC BY 4.0"
+  };
+}
+
 export const zodiacSigns = [
   {
     id: "aries",
     name: { en: "Aries", ko: "양자리" },
+    photo: noirlabPhoto("aries"),
     dateRange: { en: "Mar 21 - Apr 19", ko: "3월 21일 - 4월 19일" },
     brightStar: { en: "Hamal", ko: "하말" },
     raHours: 2.5,
@@ -25,6 +37,7 @@ export const zodiacSigns = [
   {
     id: "taurus",
     name: { en: "Taurus", ko: "황소자리" },
+    photo: noirlabPhoto("taurus"),
     dateRange: { en: "Apr 20 - May 20", ko: "4월 20일 - 5월 20일" },
     brightStar: { en: "Aldebaran", ko: "알데바란" },
     raHours: 4.6,
@@ -52,6 +65,7 @@ export const zodiacSigns = [
   {
     id: "gemini",
     name: { en: "Gemini", ko: "쌍둥이자리" },
+    photo: noirlabPhoto("gemini"),
     dateRange: { en: "May 21 - Jun 20", ko: "5월 21일 - 6월 20일" },
     brightStar: { en: "Pollux", ko: "폴룩스" },
     raHours: 7.0,
@@ -83,6 +97,7 @@ export const zodiacSigns = [
   {
     id: "cancer",
     name: { en: "Cancer", ko: "게자리" },
+    photo: noirlabPhoto("cancer"),
     dateRange: { en: "Jun 21 - Jul 22", ko: "6월 21일 - 7월 22일" },
     brightStar: { en: "Altarf", ko: "알타르프" },
     raHours: 8.7,
@@ -108,6 +123,7 @@ export const zodiacSigns = [
   {
     id: "leo",
     name: { en: "Leo", ko: "사자자리" },
+    photo: noirlabPhoto("leo"),
     dateRange: { en: "Jul 23 - Aug 22", ko: "7월 23일 - 8월 22일" },
     brightStar: { en: "Regulus", ko: "레굴루스" },
     raHours: 10.7,
@@ -140,6 +156,7 @@ export const zodiacSigns = [
   {
     id: "virgo",
     name: { en: "Virgo", ko: "처녀자리" },
+    photo: noirlabPhoto("virgo"),
     dateRange: { en: "Aug 23 - Sep 22", ko: "8월 23일 - 9월 22일" },
     brightStar: { en: "Spica", ko: "스피카" },
     raHours: 13.4,
@@ -170,6 +187,7 @@ export const zodiacSigns = [
   {
     id: "libra",
     name: { en: "Libra", ko: "천칭자리" },
+    photo: noirlabPhoto("libra"),
     dateRange: { en: "Sep 23 - Oct 22", ko: "9월 23일 - 10월 22일" },
     brightStar: { en: "Zubeneschamali", ko: "주베네샤말리" },
     raHours: 15.2,
@@ -197,6 +215,7 @@ export const zodiacSigns = [
   {
     id: "scorpius",
     name: { en: "Scorpius", ko: "전갈자리" },
+    photo: noirlabPhoto("scorpius"),
     dateRange: { en: "Oct 23 - Nov 21", ko: "10월 23일 - 11월 21일" },
     brightStar: { en: "Antares", ko: "안타레스" },
     raHours: 16.6,
@@ -228,6 +247,7 @@ export const zodiacSigns = [
   {
     id: "sagittarius",
     name: { en: "Sagittarius", ko: "궁수자리" },
+    photo: noirlabPhoto("sagittarius"),
     dateRange: { en: "Nov 22 - Dec 21", ko: "11월 22일 - 12월 21일" },
     brightStar: { en: "Kaus Australis", ko: "카우스 오스트랄리스" },
     raHours: 19.0,
@@ -259,6 +279,7 @@ export const zodiacSigns = [
   {
     id: "capricornus",
     name: { en: "Capricornus", ko: "염소자리" },
+    photo: noirlabPhoto("capricornus"),
     dateRange: { en: "Dec 22 - Jan 19", ko: "12월 22일 - 1월 19일" },
     brightStar: { en: "Deneb Algedi", ko: "데네브 알게디" },
     raHours: 21.0,
@@ -285,6 +306,7 @@ export const zodiacSigns = [
   {
     id: "aquarius",
     name: { en: "Aquarius", ko: "물병자리" },
+    photo: noirlabPhoto("aquarius"),
     dateRange: { en: "Jan 20 - Feb 18", ko: "1월 20일 - 2월 18일" },
     brightStar: { en: "Sadalsuud", ko: "사달수드" },
     raHours: 22.4,
@@ -317,6 +339,7 @@ export const zodiacSigns = [
   {
     id: "pisces",
     name: { en: "Pisces", ko: "물고기자리" },
+    photo: noirlabPhoto("pisces"),
     dateRange: { en: "Feb 19 - Mar 20", ko: "2월 19일 - 3월 20일" },
     brightStar: { en: "Eta Piscium", ko: "에타 피시움" },
     raHours: 0.6,

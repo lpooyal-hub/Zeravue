@@ -1,5 +1,6 @@
 const degreeToRadian = Math.PI / 180;
 const radianToDegree = 180 / Math.PI;
+const minTrigDenominator = 1e-12;
 
 export function calculateVisibleZodiac({ latitude, longitude, signs, date = new Date() }) {
   const localSiderealHours = getLocalSiderealTime(date, longitude);
@@ -35,8 +36,9 @@ function getAltitude(latitude, declination, hourAngle) {
   const dec = declination * degreeToRadian;
   const ha = hourAngle * degreeToRadian;
   const sinAltitude = Math.sin(dec) * Math.sin(lat) + Math.cos(dec) * Math.cos(lat) * Math.cos(ha);
+  const clamped = Math.max(-1, Math.min(1, sinAltitude));
 
-  return Math.asin(sinAltitude) * radianToDegree;
+  return Math.asin(clamped) * radianToDegree;
 }
 
 function getAzimuth(latitude, declination, hourAngle, altitude) {
@@ -44,7 +46,13 @@ function getAzimuth(latitude, declination, hourAngle, altitude) {
   const dec = declination * degreeToRadian;
   const ha = hourAngle * degreeToRadian;
   const alt = altitude * degreeToRadian;
-  const cosAzimuth = (Math.sin(dec) - Math.sin(alt) * Math.sin(lat)) / (Math.cos(alt) * Math.cos(lat));
+  const denominator = Math.cos(alt) * Math.cos(lat);
+
+  if (Math.abs(denominator) < minTrigDenominator) {
+    return 0;
+  }
+
+  const cosAzimuth = (Math.sin(dec) - Math.sin(alt) * Math.sin(lat)) / denominator;
   const clamped = Math.max(-1, Math.min(1, cosAzimuth));
   let azimuth = Math.acos(clamped) * radianToDegree;
 

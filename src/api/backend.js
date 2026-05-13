@@ -51,3 +51,25 @@ export async function getVisibleZodiac({ latitude, longitude, signs }) {
     return calculateVisibleZodiac({ latitude, longitude, signs });
   }
 }
+
+export async function getSkyScene({ latitude, longitude, observedAt, limitingMagnitude, maxStars }) {
+  const response = await fetch(`${config.apiBaseUrl}/api/sky/scene`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      latitude,
+      longitude,
+      observedAt,
+      limitingMagnitude,
+      maxStars
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Backend sky scene request failed with ${response.status}`);
+  }
+
+  return response.json();
+}

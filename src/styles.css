@@ -1,14 +1,16 @@
 :root {
   color-scheme: dark;
-  --ink: #f6f8fb;
-  --muted: #aeb8c7;
-  --panel: rgba(11, 17, 29, 0.72);
-  --panel-strong: rgba(16, 25, 41, 0.9);
-  --line: rgba(255, 255, 255, 0.16);
+  --bg: #04070d;
+  --panel: rgba(10, 15, 24, 0.84);
+  --panel-strong: rgba(8, 12, 20, 0.96);
+  --line: rgba(173, 211, 255, 0.16);
+  --line-strong: rgba(173, 211, 255, 0.28);
+  --text: #ecf3ff;
+  --muted: #9caec7;
   --accent: #ffcf70;
-  --accent-2: #72dbc7;
-  --danger-space: #de6d5f;
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  --accent-2: #7fdbc9;
+  --danger: #ff8c7a;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
   font-family:
     Inter, "Noto Sans KR", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
@@ -18,32 +20,19 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
+html,
+body,
+#app {
+  min-height: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  background: #05070d;
-  color: var(--ink);
-}
-
-body::after {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  content: "";
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px);
-  background-size: 76px 76px;
-  mask-image: linear-gradient(to bottom, black 0%, transparent 72%);
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+    radial-gradient(circle at top, rgba(15, 34, 68, 0.86), transparent 32%),
+    linear-gradient(180deg, #09111d 0%, var(--bg) 38%, #02040a 100%);
+  color: var(--text);
 }
 
 button,
@@ -51,757 +40,365 @@ input {
   font: inherit;
 }
 
-#sky-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
+select {
+  font: inherit;
 }
 
-#app {
+.planetarium-app {
   min-height: 100vh;
+  padding: 20px;
 }
 
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+.topbar {
   display: flex;
-  align-items: center;
+  align-items: end;
   justify-content: space-between;
-  gap: 24px;
-  padding: 18px clamp(18px, 4vw, 58px);
-  background: rgba(5, 7, 13, 0.72);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(18px);
+  gap: 18px;
+  margin-bottom: 20px;
 }
 
-.brand,
-.site-header nav,
-.language-switcher,
-.hero-actions,
-.control-band {
+.topbar-controls {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
-.brand {
-  gap: 10px;
-  font-weight: 800;
+.topbar h1,
+.inspector-panel h2 {
+  margin: 0;
   letter-spacing: 0;
 }
 
-.brand-mark {
-  width: 28px;
-  height: 28px;
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-  background:
-    linear-gradient(90deg, transparent 44%, rgba(255, 255, 255, 0.45) 45%, transparent 56%),
-    radial-gradient(circle at 58% 42%, var(--accent-2) 0 5px, transparent 6px);
-  transform: rotate(-24deg);
+.topbar h1 {
+  max-width: 720px;
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  line-height: 0.94;
 }
 
-.site-header nav {
-  gap: 18px;
-  color: var(--muted);
-  font-size: 0.94rem;
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent-2);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.site-header nav a:hover {
-  color: var(--ink);
+.observer-pill,
+.control-panel,
+.inspector-panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
 }
 
 .language-switcher {
+  display: flex;
   gap: 6px;
   padding: 4px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .language-switcher button {
-  min-width: 42px;
+  min-width: 44px;
   min-height: 34px;
   border: 0;
   border-radius: 6px;
   background: transparent;
   color: var(--muted);
-  cursor: pointer;
   font-weight: 800;
+  cursor: pointer;
 }
 
 .language-switcher button[aria-pressed="true"] {
   background: var(--accent);
-  color: #17110a;
+  color: #1d1407;
 }
 
-.hero {
-  min-height: calc(100vh - 66px);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
-  align-items: end;
-  gap: clamp(26px, 5vw, 72px);
-  padding: clamp(72px, 9vw, 122px) clamp(18px, 5vw, 74px) 76px;
-}
-
-.hero-copy {
-  max-width: 820px;
-}
-
-.eyebrow {
-  margin: 0 0 14px;
-  color: var(--accent-2);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-h1,
-h2,
-p {
-  margin-top: 0;
-}
-
-.hero-title {
-  max-width: 820px;
-  margin-bottom: 22px;
-  font-size: clamp(3.2rem, 8vw, 7.8rem);
-  line-height: 0.92;
-  letter-spacing: 0;
-  font-family: Inter, "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
-  font-weight: 900;
-  text-wrap: balance;
-}
-
-.hero-title-ko {
-  max-width: 900px;
-  font-family: "Noto Sans KR", Inter, ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(2.45rem, 5.6vw, 5.8rem);
-  line-height: 1.08;
-  font-weight: 800;
-  word-break: keep-all;
-}
-
-.hero-title-en {
-  max-width: 900px;
-}
-
-h2 {
-  margin-bottom: 14px;
-  font-size: clamp(1.75rem, 3vw, 3rem);
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-.lede {
-  max-width: 680px;
-  color: #d4dbe7;
-  font-size: clamp(1rem, 1.7vw, 1.25rem);
-  line-height: 1.65;
-}
-
-.hero-actions {
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 30px;
-}
-
-.primary-action,
-.secondary-action,
-.text-button,
-.icon-button {
-  min-height: 44px;
-  border: 1px solid var(--line);
+.observer-pill {
+  min-width: 210px;
+  padding: 14px 16px;
   border-radius: 8px;
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background 180ms ease;
 }
 
-.primary-action,
-.secondary-action {
-  display: inline-flex;
-  align-items: center;
-  padding: 0 18px;
-  font-weight: 800;
-}
-
-.primary-action {
-  background: var(--accent);
-  color: #17110a;
-}
-
-.secondary-action,
-.text-button,
-.icon-button {
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--ink);
-}
-
-.primary-action:hover,
-.secondary-action:hover,
-.text-button:hover,
-.icon-button:hover,
-.planet-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.mission-panel,
-.apod-card {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(20px);
-}
-
-.mission-panel {
-  padding: 24px;
-}
-
-.tracked-planet-image {
+.observer-pill span,
+.observer-pill small {
   display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  margin-bottom: 20px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  object-fit: cover;
-  background: #05070d;
 }
 
-.source-link {
-  display: inline-block;
-  margin-top: 18px;
+.observer-pill span,
+label span,
+.summary-list dt {
   color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.5;
 }
 
-.source-link:hover {
-  color: var(--accent);
+.observer-pill strong {
+  display: block;
+  margin: 5px 0 4px;
+  font-size: 1rem;
 }
 
-.panel-label {
-  color: var(--accent);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.mission-panel p {
-  color: #d7dfeb;
-  line-height: 1.6;
-}
-
-.mission-panel dl {
+.workspace {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin: 26px 0 0;
+  grid-template-columns: minmax(250px, 300px) minmax(0, 1fr) minmax(260px, 320px);
+  gap: 18px;
+  min-height: calc(100vh - 132px);
 }
 
-.mission-panel dt {
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.mission-panel dd {
-  margin: 4px 0 0;
-  font-weight: 800;
-}
-
-.control-band {
-  position: relative;
-  z-index: 2;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 0 clamp(18px, 5vw, 74px);
-  padding: 14px;
-  border: 1px solid var(--line);
+.control-panel,
+.inspector-panel {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 18px;
   border-radius: 8px;
-  background: rgba(5, 7, 13, 0.72);
-  backdrop-filter: blur(18px);
 }
 
-.icon-button,
-.text-button {
-  padding: 0 16px;
+.control-panel section,
+.inspector-panel section {
+  display: grid;
+  gap: 14px;
 }
 
-.date-control {
-  display: flex;
-  align-items: center;
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.stacked-field,
+.field-grid label {
+  display: grid;
+  gap: 8px;
+}
+
+input[type="number"],
+input[type="datetime-local"],
+select {
+  width: 100%;
   min-height: 44px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
 }
 
-.date-control input {
-  width: 150px;
+input[type="range"] {
+  width: 100%;
+}
+
+.primary-button {
+  min-height: 46px;
   border: 0;
-  color: var(--ink);
-  background: transparent;
-  outline: 0;
-}
-
-.content-grid,
-.sky-section,
-.zodiac-section,
-.nasa-section {
-  position: relative;
-  z-index: 1;
-  padding: 92px clamp(18px, 5vw, 74px);
-}
-
-.section-heading {
-  max-width: 680px;
-  margin-bottom: 28px;
-}
-
-.zodiac-section {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.75fr) minmax(280px, 0.85fr);
-  gap: 22px;
-  align-items: stretch;
-}
-
-.sky-section {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.76fr) minmax(300px, 1fr);
-  gap: 22px;
-  align-items: stretch;
-}
-
-.sky-copy {
-  align-self: center;
-  max-width: 690px;
-}
-
-.sky-copy p:last-of-type {
-  color: #d4dce8;
-  line-height: 1.7;
-}
-
-.location-button {
-  margin-top: 18px;
-  border: 0;
-}
-
-.sky-results {
-  min-height: 280px;
-  padding: 24px;
-  border: 1px solid rgba(255, 207, 112, 0.28);
   border-radius: 8px;
-  background: rgba(8, 12, 22, 0.82);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(20px);
+  background: var(--accent);
+  color: #1d1407;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.sky-empty {
+.toggle-grid {
   display: grid;
-  min-height: 220px;
-  place-items: center;
-  color: var(--muted);
-  text-align: center;
-}
-
-.sky-meta {
-  display: flex;
-  flex-wrap: wrap;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 18px;
-  color: var(--muted);
-  font-size: 0.86rem;
 }
 
-.sky-meta span {
-  padding: 7px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.sky-results h3 {
-  margin: 0 0 18px;
-  font-size: clamp(1.35rem, 2.4vw, 2.2rem);
-}
-
-.visible-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.visible-card {
-  min-height: 172px;
-  padding: 16px;
-  border: 1px solid rgba(114, 219, 199, 0.35);
-  border-radius: 8px;
-  background: rgba(114, 219, 199, 0.11);
-}
-
-.visible-card.is-below {
-  border-color: var(--line);
-  background: rgba(255, 255, 255, 0.05);
-  opacity: 0.72;
-}
-
-.visible-card strong,
-.visible-card small {
-  display: block;
-}
-
-.visible-card strong {
-  margin-top: 12px;
-  font-size: 1.1rem;
-}
-
-.visible-card small {
-  margin-top: 4px;
-  color: var(--accent);
-  font-weight: 800;
-}
-
-.visible-card dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.toggle-item {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  margin: 14px 0 0;
-}
-
-.visible-card dt {
-  color: var(--muted);
-  font-size: 0.76rem;
-}
-
-.visible-card dd {
-  margin: 3px 0 0;
-  font-weight: 800;
-}
-
-.zodiac-copy {
-  align-self: center;
-  max-width: 650px;
-}
-
-.zodiac-copy p:last-child {
-  color: #d4dce8;
-  line-height: 1.7;
-}
-
-.zodiac-feature {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 22px;
-  align-items: center;
-  min-height: 238px;
-  padding: 26px;
-  border: 1px solid rgba(114, 219, 199, 0.34);
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(114, 219, 199, 0.15), rgba(255, 207, 112, 0.08)), var(--panel);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(20px);
-}
-
-.zodiac-feature h3 {
-  margin: 0 0 12px;
-  font-size: clamp(2rem, 4vw, 4rem);
-  line-height: 0.95;
-}
-
-.zodiac-feature p {
-  color: #d7dfeb;
-  line-height: 1.6;
-}
-
-.zodiac-feature dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 20px 0 0;
-}
-
-.zodiac-feature dt {
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.zodiac-feature dd {
-  margin: 4px 0 0;
-  font-weight: 800;
-}
-
-.zodiac-grid {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.zodiac-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 78px;
-  padding: 13px;
+  min-height: 42px;
+  padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(16, 25, 41, 0.82);
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background 180ms ease;
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.zodiac-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(114, 219, 199, 0.55);
+.toggle-item input {
+  margin: 0;
 }
 
-.zodiac-card[aria-pressed="true"] {
-  border-color: var(--accent-2);
-  background: rgba(114, 219, 199, 0.14);
-}
-
-.zodiac-card strong,
-.zodiac-card small {
-  display: block;
-}
-
-.zodiac-card small {
-  color: var(--muted);
-}
-
-.zodiac-glyph {
-  display: grid;
-  flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border: 1px solid rgba(114, 219, 199, 0.45);
-  border-radius: 50%;
-  color: var(--accent-2);
-  font-size: 1.4rem;
-  box-shadow: 0 0 22px rgba(114, 219, 199, 0.18);
-}
-
-.zodiac-glyph.large {
-  width: 96px;
-  height: 96px;
-  color: var(--accent);
-  font-size: 4rem;
-  border-color: rgba(255, 207, 112, 0.5);
-  box-shadow: 0 0 46px rgba(255, 207, 112, 0.25);
-}
-
-.planet-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.planet-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 88px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel-strong);
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.22);
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background 180ms ease;
-}
-
-.planet-card[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: rgba(255, 207, 112, 0.13);
-}
-
-.planet-swatch {
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--planet-color);
-  box-shadow: 0 0 22px var(--planet-color);
-}
-
-.planet-thumb {
-  flex: 0 0 auto;
-  width: 56px;
-  height: 56px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  object-fit: cover;
-  background: #05070d;
-  box-shadow: 0 0 22px rgba(255, 255, 255, 0.12);
-}
-
-.planet-card strong,
-.planet-card small {
-  display: block;
-}
-
-.planet-card strong {
-  margin-bottom: 4px;
-  font-size: 1.02rem;
-}
-
-.planet-card small {
-  color: var(--muted);
-}
-
-.apod-card {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.92fr) minmax(280px, 0.8fr);
+.viewer {
+  position: relative;
   overflow: hidden;
-  background: rgba(8, 12, 22, 0.86);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  min-height: 620px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(14, 56, 97, 0.36), transparent 42%),
+    linear-gradient(180deg, #04070d, #02040a);
 }
 
-.apod-media {
-  min-height: 440px;
-  background: #070a12;
-}
-
-.apod-media img {
+.viewer canvas {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 440px;
-  object-fit: cover;
 }
 
-.video-link {
+.viewer-overlay {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.viewer-overlay span,
+.constellation-list span {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(7, 12, 20, 0.82);
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.summary-list {
   display: grid;
-  min-height: 440px;
+  gap: 10px;
+  margin: 0;
+}
+
+.summary-list div {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(173, 211, 255, 0.08);
+}
+
+.summary-list.compact div:last-child,
+.summary-list div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.summary-list dt,
+.summary-list dd {
+  margin: 0;
+}
+
+.summary-list dd {
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.constellation-copy,
+.helper-copy {
+  margin: -6px 0 4px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.constellation-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.planet-chip-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.planet-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.focus-chip {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.focus-chip.is-active {
+  border-color: rgba(255, 207, 112, 0.55);
+  background: rgba(255, 207, 112, 0.12);
+  color: var(--text);
+}
+
+.planet-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--planet-color);
+  box-shadow: 0 0 18px var(--planet-color);
+}
+
+.scene-empty {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 620px;
   place-items: center;
-  color: var(--accent);
-  font-weight: 800;
+  color: var(--muted);
 }
 
-.apod-copy {
-  align-self: center;
-  padding: clamp(24px, 4vw, 50px);
+.error-copy {
+  margin: 0;
+  color: var(--danger);
+  line-height: 1.55;
 }
 
-.apod-copy time {
-  display: inline-block;
-  margin-bottom: 22px;
-  color: var(--accent);
-  font-weight: 800;
-}
-
-.apod-copy p:last-child {
-  color: #d4dce8;
-  line-height: 1.75;
-}
-
-@media (max-width: 980px) {
-  .hero,
-  .sky-section,
-  .zodiac-section,
-  .apod-card {
+@media (max-width: 1180px) {
+  .workspace {
     grid-template-columns: 1fr;
   }
 
-  .hero {
-    align-items: center;
-  }
-
-  .mission-panel {
-    max-width: 620px;
-  }
-
-  .planet-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .zodiac-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .visible-grid {
-    grid-template-columns: 1fr;
+  .viewer {
+    min-height: 72vh;
   }
 }
 
-@media (max-width: 680px) {
-  .site-header {
-    position: relative;
-    align-items: flex-start;
+@media (max-width: 720px) {
+  .planetarium-app {
+    padding: 14px;
+  }
+
+  .topbar {
+    align-items: start;
     flex-direction: column;
   }
 
-  .site-header nav {
+  .topbar-controls {
     width: 100%;
     justify-content: space-between;
-    gap: 10px;
-    font-size: 0.86rem;
   }
 
-  .hero {
-    min-height: auto;
-    padding-top: 58px;
-  }
-
-  .hero-title {
-    font-size: clamp(2.8rem, 17vw, 4.6rem);
-  }
-
-  .hero-title-ko {
-    font-size: clamp(2.25rem, 11vw, 3.8rem);
-    line-height: 1.12;
-  }
-
-  .mission-panel dl,
-  .sky-section,
-  .zodiac-feature,
-  .zodiac-feature dl,
-  .zodiac-grid,
-  .planet-grid {
+  .field-grid {
     grid-template-columns: 1fr;
   }
 
-  .zodiac-feature {
-    align-items: start;
+  .toggle-grid,
+  .planet-chip-list {
+    grid-template-columns: 1fr;
   }
 
-  .control-band {
-    align-items: stretch;
+  .viewer {
+    min-height: 64vh;
   }
 
-  .control-band > * {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .date-control {
-    justify-content: space-between;
-  }
-
-  .apod-media,
-  .apod-media img,
-  .video-link {
-    min-height: 300px;
+  .viewer-overlay {
+    left: 14px;
+    right: 14px;
+    justify-content: start;
   }
 }

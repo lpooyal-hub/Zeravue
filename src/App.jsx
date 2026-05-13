@@ -1,38 +1,33 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { getAstronomyPicture, getVisibleZodiac } from "./api/backend.js";
+import { useEffect, useMemo, useState } from "react";
+import { getSkyScene } from "./api/backend.js";
+import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { planets } from "./data/planets.js";
-import { zodiacSigns } from "./data/zodiac.js";
-import { PlanetariumScene } from "./scene/starfield.js";
 
-const glyphs = {
-  aries: "♈",
-  taurus: "♉",
-  gemini: "♊",
-  cancer: "♋",
-  leo: "♌",
-  virgo: "♍",
-  libra: "♎",
-  scorpius: "♏",
-  sagittarius: "♐",
-  capricornus: "♑",
-  aquarius: "♒",
-  pisces: "♓"
+const defaultObserver = {
+  latitude: 37.5665,
+  longitude: 126.978,
+  label: "Seoul"
 };
 
+function getInitialObservedAt() {
+  return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 export function App() {
-  const sceneRef = useRef(null);
   const [language, setLanguage] = useState(getInitialLanguage);
-  const [activePlanet, setActivePlanet] = useState(planets[2]);
-  const [activeZodiac, setActiveZodiac] = useState(zodiacSigns[4]);
-  const [paused, setPaused] = useState(false);
-  const [apod, setApod] = useState(null);
-  const [apodDate, setApodDate] = useState(new Date().toISOString().slice(0, 10));
-  const [observation, setObservation] = useState({
-    status: "idle",
-    coordinates: null,
-    results: []
-  });
+  const [observer, setObserver] = useState(defaultObserver);
+  const [observedAt, setObservedAt] = useState(getInitialObservedAt);
+  const [limitingMagnitude, setLimitingMagnitude] = useState(4.8);
+  const [maxStars, setMaxStars] = useState(3200);
+  const [sceneState, setSceneState] = useState({ status: "loading", data: null, error: "" });
+  const [selectedTarget, setSelectedTarget] = useState(null);
+  const [showLabels, setShowLabels] = useState(true);
+  const [showGuides, setShowGuides] = useState(true);
+  const [showConstellations, setShowConstellations] = useState(true);
+  const [showPlanets, setShowPlanets] = useState(true);
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [focusedConstellation, setFocusedConstellation] = useState("all");
   const dictionary = translations[language];
 
   useEffect(() => {
@@ -41,381 +36,353 @@ export function App() {
   }, [language]);
 
   useEffect(() => {
-    getAstronomyPicture().then(setApod);
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
-    const canvas = document.querySelector("#sky-canvas");
-    sceneRef.current = new PlanetariumScene(canvas, { planets, zodiacSigns });
-    sceneRef.current.start();
+    async function loadScene() {
+      setSceneState((current) => ({ ...current, status: "loading", error: "" }));
 
-    return () => {
-      sceneRef.current?.stop?.();
-      sceneRef.current = null;
-    };
-  }, []);
+      try {
+        const data = await getSkyScene({
+          latitude: observer.latitude,
+          longitude: observer.longitude,
+          observedAt: new Date(observedAt).toISOString(),
+          limitingMagnitude,
+          maxStars
+        });
 
-  useEffect(() => {
-    sceneRef.current?.setFocusedPlanet(activePlanet.name);
-  }, [activePlanet]);
+        if (cancelled) {
+          return;
+        }
 
-  useEffect(() => {
-    sceneRef.current?.setFocusedZodiac(activeZodiac.id);
-  }, [activeZodiac]);
+        setSceneState({ status: "ready", data, error: "" });
+        setSelectedTarget((current) => current || { kind: "star", id: data.stars.find((star) => star.visible)?.id || data.stars[0]?.id || null });
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
 
-  useEffect(() => {
-    sceneRef.current?.setPaused(paused);
-  }, [paused]);
-
-  const topObservation = useMemo(() => {
-    if (observation.status !== "ready") {
-      return [];
+        setSceneState({ status: "error", data: null, error: error.message || "Failed to load the scene." });
+      }
     }
 
-    const visible = observation.results.filter((item) => item.visible).slice(0, 4);
-    return visible.length > 0 ? visible : observation.results.slice(0, 4);
-  }, [observation]);
+    loadScene();
 
-  async function loadApod(options) {
-    setApod(await getAstronomyPicture(options));
+    return () => {
+      cancelled = true;
+    };
+  }, [observer.latitude, observer.longitude, observedAt, limitingMagnitude, maxStars]);
+
+  const selectedStar = useMemo(
+    () => (selectedTarget?.kind === "star" ? sceneState.data?.stars.find((star) => star.id === selectedTarget.id) || null : null),
+    [sceneState.data, selectedTarget]
+  );
+  const selectedPlanet = useMemo(
+    () => (selectedTarget?.kind === "planet" ? planets.find((planet) => planet.name === selectedTarget.id) || null : null),
+    [selectedTarget]
+  );
+  const visibleConstellations = sceneState.data?.summary.visibleConstellations || [];
+
+  function updateObserver(key, value) {
+    setObserver((current) => ({
+      ...current,
+      [key]: Number(value),
+      label: "Custom observer"
+    }));
   }
 
   function requestLocation() {
     if (!navigator.geolocation) {
-      setObservation({ status: "unavailable", coordinates: null, results: [] });
       return;
     }
 
-    setObservation((current) => ({ ...current, status: "loading" }));
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const coordinates = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        };
-        const results = await getVisibleZodiac({ ...coordinates, signs: zodiacSigns });
+    navigator.geolocation.getCurrentPosition((position) => {
+      setObserver({
+        latitude: Number(position.coords.latitude.toFixed(4)),
+        longitude: Number(position.coords.longitude.toFixed(4)),
+        label: "Live location"
+      });
+    });
+  }
 
-        setObservation({
-          status: "ready",
-          coordinates,
-          results
-        });
-      },
-      () => setObservation({ status: "denied", coordinates: null, results: [] }),
-      {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: 600000
+  function selectTarget(target) {
+    setSelectedTarget(target);
+
+    if (target?.kind === "star") {
+      const star = sceneState.data?.stars.find((item) => item.id === target.id);
+      if (star?.constellation) {
+        setFocusedConstellation(star.constellation);
       }
-    );
+    }
   }
 
   return (
-    <>
-      <Header dictionary={dictionary} language={language} setLanguage={setLanguage} />
-      <main id="top">
-        <section className="hero" id="observatory">
-          <div className="hero-copy">
-            <p className="eyebrow">{dictionary.hero.eyebrow}</p>
-            <h1 className={`hero-title hero-title-${language}`}>{dictionary.hero.title}</h1>
-            <p className="lede">{dictionary.hero.lede}</p>
-            <div className="hero-actions">
-              <a className="primary-action" href="#planets">
-                {dictionary.hero.planetsAction}
-              </a>
-              <a className="secondary-action" href="#zodiac">
-                {dictionary.hero.zodiacAction}
-              </a>
-            </div>
+    <div className="planetarium-app">
+      <header className="topbar">
+        <div>
+          <p className="eyebrow">{dictionary.viewer.eyebrow}</p>
+          <h1>{dictionary.viewer.title}</h1>
+        </div>
+        <div className="topbar-controls">
+          <div className="language-switcher" aria-label="Language">
+            <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
+              EN
+            </button>
+            <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
+              KR
+            </button>
           </div>
-          <MissionPanel planet={activePlanet} dictionary={dictionary} language={language} />
-        </section>
-
-        <section className="control-band" aria-label="Planetarium controls">
-          <button
-            className="icon-button"
-            type="button"
-            aria-pressed={paused}
-            onClick={() => setPaused((value) => !value)}
-          >
-            {paused ? dictionary.controls.resume : dictionary.controls.pause}
-          </button>
-          <label className="date-control">
-            <span>{dictionary.controls.dateLabel}</span>
-            <input
-              type="date"
-              min="1995-06-16"
-              value={apodDate}
-              onChange={(event) => setApodDate(event.target.value)}
-            />
-          </label>
-          <button className="text-button" type="button" onClick={() => loadApod({ date: apodDate })}>
-            {dictionary.controls.loadDate}
-          </button>
-          <button className="text-button" type="button" onClick={() => loadApod({ random: true })}>
-            {dictionary.controls.random}
-          </button>
-        </section>
-
-        <SkySection
-          dictionary={dictionary}
-          language={language}
-          observation={observation}
-          results={topObservation}
-          requestLocation={requestLocation}
-        />
-
-        <ZodiacSection
-          dictionary={dictionary}
-          language={language}
-          activeZodiac={activeZodiac}
-          setActiveZodiac={setActiveZodiac}
-        />
-
-        <PlanetsSection
-          dictionary={dictionary}
-          activePlanet={activePlanet}
-          setActivePlanet={setActivePlanet}
-        />
-
-        <ApodSection apod={apod} dictionary={dictionary} />
-      </main>
-    </>
-  );
-}
-
-function Header({ dictionary, language, setLanguage }) {
-  return (
-    <header className="site-header">
-      <a className="brand" href="#top" aria-label="Celestial Atlas home">
-        <span className="brand-mark" />
-        <span>Celestial Atlas</span>
-      </a>
-      <nav aria-label="Primary navigation">
-        <a href="#observatory">{dictionary.nav.observatory}</a>
-        <a href="#sky">{dictionary.nav.sky}</a>
-        <a href="#zodiac">{dictionary.nav.zodiac}</a>
-        <a href="#planets">{dictionary.nav.planets}</a>
-        <a href="#nasa">{dictionary.nav.nasa}</a>
-      </nav>
-      <div className="language-switcher" aria-label="Language">
-        <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-          EN
-        </button>
-        <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-          KR
-        </button>
-      </div>
-    </header>
-  );
-}
-
-function MissionPanel({ planet, dictionary, language }) {
-  return (
-    <aside className="mission-panel" aria-label="Selected planet">
-      <img className="tracked-planet-image" src={planet.imageUrl} alt={dictionary.planetNames[planet.name]} />
-      <span className="panel-label">{dictionary.tracking.label}</span>
-      <h2>{dictionary.planetNames[planet.name]}</h2>
-      <p>{planet.feature[language]}</p>
-      <dl>
-        <div>
-          <dt>{dictionary.tracking.type}</dt>
-          <dd>{dictionary.planetTypes[planet.type]}</dd>
+        <div className="observer-pill">
+          <span>{dictionary.viewer.observer}</span>
+          <strong>{observer.label}</strong>
+          <small>
+            {observer.latitude.toFixed(2)}, {observer.longitude.toFixed(2)}
+          </small>
         </div>
-        <div>
-          <dt>{dictionary.tracking.moons}</dt>
-          <dd>{planet.moons}</dd>
         </div>
-        <div>
-          <dt>{dictionary.tracking.day}</dt>
-          <dd>{planet.day[language]}</dd>
-        </div>
-      </dl>
-      <a className="source-link" href={planet.sourceUrl} target="_blank" rel="noreferrer">
-        {dictionary.tracking.credit}: {planet.imageCredit}
-      </a>
-    </aside>
-  );
-}
+      </header>
 
-function SkySection({ dictionary, language, observation, results, requestLocation }) {
-  return (
-    <section className="sky-section" id="sky">
-      <div className="sky-copy">
-        <p className="eyebrow">{dictionary.sky.eyebrow}</p>
-        <h2>{dictionary.sky.title}</h2>
-        <p>{dictionary.sky.body}</p>
-        <button className="primary-action location-button" type="button" onClick={requestLocation}>
-          {dictionary.sky.button}
-        </button>
-      </div>
-      <article className="sky-results" aria-live="polite">
-        <ObservationResults dictionary={dictionary} language={language} observation={observation} results={results} />
-      </article>
-    </section>
-  );
-}
-
-function ObservationResults({ dictionary, language, observation, results }) {
-  if (observation.status === "idle" || observation.status === "loading") {
-    return <p className="sky-empty">{dictionary.sky.waiting}</p>;
-  }
-
-  if (observation.status === "unavailable") {
-    return <p className="sky-empty">{dictionary.sky.unavailable}</p>;
-  }
-
-  if (observation.status === "denied") {
-    return <p className="sky-empty">{dictionary.sky.denied}</p>;
-  }
-
-  return (
-    <>
-      <div className="sky-meta">
-        <span>
-          {dictionary.sky.latitude}: {observation.coordinates.latitude.toFixed(2)}
-        </span>
-        <span>
-          {dictionary.sky.longitude}: {observation.coordinates.longitude.toFixed(2)}
-        </span>
-      </div>
-      <h3>{dictionary.sky.ready}</h3>
-      <div className="visible-grid">
-        {results.map((result) => {
-          const sign = zodiacSigns.find((item) => item.id === result.id);
-
-          return (
-            <div className={`visible-card ${result.visible ? "" : "is-below"}`} key={result.id}>
-              <span className="zodiac-glyph">{glyphs[sign.id]}</span>
-              <strong>{sign.name[language]}</strong>
-              <small>{dictionary.sky.quality[result.quality]}</small>
-              <dl>
-                <div>
-                  <dt>{dictionary.sky.altitude}</dt>
-                  <dd>{result.altitude}°</dd>
-                </div>
-                <div>
-                  <dt>{dictionary.sky.direction}</dt>
-                  <dd>{result.direction}</dd>
-                </div>
-              </dl>
+      <div className="workspace">
+        <aside className="control-panel">
+          <section>
+            <p className="eyebrow">{dictionary.viewer.controls}</p>
+            <div className="field-grid">
+              <label>
+                <span>{dictionary.viewer.latitude}</span>
+                <input
+                  type="number"
+                  min="-90"
+                  max="90"
+                  step="0.01"
+                  value={observer.latitude}
+                  onChange={(event) => updateObserver("latitude", event.target.value)}
+                />
+              </label>
+              <label>
+                <span>{dictionary.viewer.longitude}</span>
+                <input
+                  type="number"
+                  min="-180"
+                  max="180"
+                  step="0.01"
+                  value={observer.longitude}
+                  onChange={(event) => updateObserver("longitude", event.target.value)}
+                />
+              </label>
             </div>
-          );
-        })}
-      </div>
-    </>
-  );
-}
-
-function ZodiacSection({ dictionary, language, activeZodiac, setActiveZodiac }) {
-  return (
-    <section className="zodiac-section" id="zodiac">
-      <div className="zodiac-copy">
-        <p className="eyebrow">{dictionary.zodiac.eyebrow}</p>
-        <h2>{dictionary.zodiac.title}</h2>
-        <p>{dictionary.zodiac.body}</p>
-      </div>
-      <article className="zodiac-feature">
-        <span className="zodiac-glyph large">{glyphs[activeZodiac.id]}</span>
-        <div>
-          <p className="panel-label">{dictionary.zodiac.season}</p>
-          <h3>{activeZodiac.name[language]}</h3>
-          <p>{activeZodiac.story[language]}</p>
-          <dl>
-            <div>
-              <dt>{dictionary.zodiac.season}</dt>
-              <dd>{activeZodiac.dateRange[language]}</dd>
+            <label className="stacked-field">
+              <span>{dictionary.viewer.observedAt}</span>
+              <input type="datetime-local" value={observedAt} onChange={(event) => setObservedAt(event.target.value)} />
+            </label>
+            <label className="stacked-field">
+              <span>
+                {dictionary.viewer.limitingMagnitude}: {limitingMagnitude.toFixed(1)}
+              </span>
+              <input
+                type="range"
+                min="1"
+                max="6"
+                step="0.1"
+                value={limitingMagnitude}
+                onChange={(event) => setLimitingMagnitude(Number(event.target.value))}
+              />
+            </label>
+            <label className="stacked-field">
+              <span>
+                {dictionary.viewer.maxStars}: {maxStars.toLocaleString()}
+              </span>
+              <input
+                type="range"
+                min="1000"
+                max="6000"
+                step="200"
+                value={maxStars}
+                onChange={(event) => setMaxStars(Number(event.target.value))}
+              />
+            </label>
+            <div className="toggle-grid">
+              <label className="toggle-item">
+                <input type="checkbox" checked={showLabels} onChange={(event) => setShowLabels(event.target.checked)} />
+                <span>{dictionary.viewer.toggles.labels}</span>
+              </label>
+              <label className="toggle-item">
+                <input
+                  type="checkbox"
+                  checked={showConstellations}
+                  onChange={(event) => setShowConstellations(event.target.checked)}
+                />
+                <span>{dictionary.viewer.toggles.constellations}</span>
+              </label>
+              <label className="toggle-item">
+                <input type="checkbox" checked={showGuides} onChange={(event) => setShowGuides(event.target.checked)} />
+                <span>{dictionary.viewer.toggles.guides}</span>
+              </label>
+              <label className="toggle-item">
+                <input type="checkbox" checked={showPlanets} onChange={(event) => setShowPlanets(event.target.checked)} />
+                <span>{dictionary.viewer.toggles.planets}</span>
+              </label>
+              <label className="toggle-item">
+                <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
+                <span>{dictionary.viewer.toggles.autoRotate}</span>
+              </label>
             </div>
-            <div>
-              <dt>{dictionary.zodiac.brightStar}</dt>
-              <dd>{activeZodiac.brightStar[language]}</dd>
-            </div>
-          </dl>
-        </div>
-      </article>
-      <div className="zodiac-grid">
-        {zodiacSigns.map((sign) => (
-          <button
-            className="zodiac-card"
-            type="button"
-            key={sign.id}
-            aria-pressed={activeZodiac.id === sign.id}
-            onClick={() => setActiveZodiac(sign)}
-          >
-            <span className="zodiac-glyph">{glyphs[sign.id]}</span>
-            <span>
-              <strong>{sign.name[language]}</strong>
-              <small>{sign.dateRange[language]}</small>
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
+            <label className="stacked-field">
+              <span>{dictionary.viewer.focusConstellation}</span>
+              <select value={focusedConstellation} onChange={(event) => setFocusedConstellation(event.target.value)}>
+                <option value="all">{dictionary.viewer.allSky}</option>
+                {visibleConstellations.map((name) => (
+                  <option key={name} value={name}>
+                    {dictionary.constellations?.[name]?.[language] || name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="primary-button" type="button" onClick={requestLocation}>
+              {dictionary.viewer.useLocation}
+            </button>
+          </section>
 
-function PlanetsSection({ dictionary, activePlanet, setActivePlanet }) {
-  return (
-    <section className="content-grid" id="planets">
-      <div className="section-heading">
-        <p className="eyebrow">{dictionary.planets.eyebrow}</p>
-        <h2>{dictionary.planets.title}</h2>
-      </div>
-      <div className="planet-grid">
-        {planets.map((planet) => (
-          <button
-            className="planet-card"
-            type="button"
-            key={planet.name}
-            aria-pressed={activePlanet.name === planet.name}
-            onClick={() => setActivePlanet(planet)}
-          >
-            <img className="planet-thumb" src={planet.imageUrl} alt="" loading="lazy" />
-            <span>
-              <strong>{dictionary.planetNames[planet.name]}</strong>
-              <small>{dictionary.planetTypes[planet.type]}</small>
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
+          <section>
+            <p className="eyebrow">{dictionary.viewer.sceneStatus}</p>
+            <dl className="summary-list">
+              <div>
+                <dt>{dictionary.viewer.status}</dt>
+                <dd>{sceneState.status}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.catalog}</dt>
+                <dd>{sceneState.data?.summary.catalog ?? "--"}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.visibleStars}</dt>
+                <dd>{sceneState.data?.summary.visibleStars ?? "--"}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.visibleConstellations}</dt>
+                <dd>{sceneState.data?.summary.visibleConstellations.length ?? "--"}</dd>
+              </div>
+            </dl>
+            {sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
+          </section>
+        </aside>
 
-function ApodSection({ apod, dictionary }) {
-  if (!apod) {
-    return (
-      <section className="nasa-section" id="nasa">
-        <article className="apod-card">
-          <div className="apod-copy">
-            <p className="eyebrow">{dictionary.apod.eyebrow}</p>
-            <h2>Loading NASA media...</h2>
+        <main className="viewer">
+          <PlanetariumCanvas
+            scene={sceneState.data}
+            planets={planets}
+            selectedTarget={selectedTarget}
+            onSelectTarget={selectTarget}
+            language={language}
+            dictionary={dictionary}
+            showLabels={showLabels}
+            showGuides={showGuides}
+            showConstellations={showConstellations}
+            showPlanets={showPlanets}
+            autoRotate={autoRotate}
+            focusedConstellation={focusedConstellation}
+          />
+          <div className="viewer-overlay">
+            <span>{dictionary.viewer.overlay.horizon}</span>
+            <span>{dictionary.viewer.overlay.motion}</span>
+            <span>{dictionary.viewer.overlay.inspect}</span>
           </div>
-        </article>
-      </section>
-    );
-  }
+        </main>
 
-  const media =
-    apod.media_type === "video" ? (
-      <a className="video-link" href={apod.url} target="_blank" rel="noreferrer">
-        {dictionary.apod.video}
-      </a>
-    ) : (
-      <img src={apod.hdurl || apod.url} alt={apod.title} loading="lazy" />
-    );
+        <aside className="inspector-panel">
+          <section>
+            <p className="eyebrow">{selectedPlanet ? dictionary.viewer.planetInspector : dictionary.viewer.starInspector}</p>
+            {selectedPlanet ? (
+              <>
+                <h2>{dictionary.planetNames[selectedPlanet.name]}</h2>
+                <p className="constellation-copy">{selectedPlanet.feature[language]}</p>
+                <dl className="summary-list compact">
+                  <div>
+                    <dt>{dictionary.viewer.planetType}</dt>
+                    <dd>{dictionary.planetTypes[selectedPlanet.type]}</dd>
+                  </div>
+                  <div>
+                    <dt>{dictionary.viewer.orbitBand}</dt>
+                    <dd>{Math.round(selectedPlanet.orbit)}</dd>
+                  </div>
+                  <div>
+                    <dt>{dictionary.viewer.moons}</dt>
+                    <dd>{selectedPlanet.moons}</dd>
+                  </div>
+                </dl>
+              </>
+            ) : selectedStar ? (
+              <>
+                <h2>{selectedStar.name}</h2>
+                <p className="constellation-copy">
+                  {dictionary.constellations?.[selectedStar.constellation]?.[language] || selectedStar.constellation}
+                </p>
+                <dl className="summary-list compact">
+                  <div>
+                    <dt>{dictionary.viewer.magnitude}</dt>
+                    <dd>{selectedStar.magnitude}</dd>
+                  </div>
+                  <div>
+                    <dt>{dictionary.viewer.altitude}</dt>
+                    <dd>{selectedStar.altitude} deg</dd>
+                  </div>
+                  <div>
+                    <dt>{dictionary.viewer.azimuth}</dt>
+                    <dd>{selectedStar.azimuth} deg</dd>
+                  </div>
+                  <div>
+                    <dt>{dictionary.viewer.visibility}</dt>
+                    <dd>{selectedStar.visible ? dictionary.viewer.aboveHorizon : dictionary.viewer.belowHorizon}</dd>
+                  </div>
+                </dl>
+              </>
+            ) : (
+              <p className="helper-copy">{dictionary.viewer.pickHint}</p>
+            )}
+          </section>
 
-  return (
-    <section className="nasa-section" id="nasa">
-      <article className="apod-card">
-        <div className="apod-media">{media}</div>
-        <div className="apod-copy">
-          <p className="eyebrow">{dictionary.apod.eyebrow}</p>
-          <h2>{apod.title}</h2>
-          <time dateTime={apod.date}>{apod.date}</time>
-          <p>{apod.explanation}</p>
-        </div>
-      </article>
-    </section>
+          <section>
+            <p className="eyebrow">{dictionary.viewer.constellationsInFrame}</p>
+            <div className="constellation-list">
+              {(sceneState.data?.summary.visibleConstellations || []).map((name) => (
+                <span key={name}>{dictionary.constellations?.[name]?.[language] || name}</span>
+              ))}
+            </div>
+          </section>
+          <section>
+            <p className="eyebrow">{dictionary.viewer.planetsBand}</p>
+            <div className="planet-chip-list">
+              {planets.map((planet) => (
+                <button
+                  key={planet.name}
+                  type="button"
+                  className="planet-chip"
+                  onClick={() => selectTarget({ kind: "planet", id: planet.name })}
+                >
+                  <span className="planet-dot" style={{ "--planet-color": planet.color }} />
+                  <strong>{dictionary.planetNames[planet.name]}</strong>
+                </button>
+              ))}
+            </div>
+          </section>
+          <section>
+            <p className="eyebrow">{dictionary.viewer.quickFocus}</p>
+            <div className="constellation-list">
+              <button type="button" className={`focus-chip ${focusedConstellation === "all" ? "is-active" : ""}`} onClick={() => setFocusedConstellation("all")}>
+                {dictionary.viewer.allSky}
+              </button>
+              {visibleConstellations.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  className={`focus-chip ${focusedConstellation === name ? "is-active" : ""}`}
+                  onClick={() => setFocusedConstellation(name)}
+                >
+                  {dictionary.constellations?.[name]?.[language] || name}
+                </button>
+              ))}
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
   );
 }

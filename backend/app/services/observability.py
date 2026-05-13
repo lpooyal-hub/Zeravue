@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from math import acos, asin, cos, degrees, radians, sin
 
+MIN_TRIG_DENOMINATOR = 1e-12
+
 
 def calculate_visible_zodiac(latitude: float, longitude: float, signs: list[dict]):
     local_sidereal_hours = get_local_sidereal_time(datetime.now(timezone.utc), longitude)
@@ -39,7 +41,8 @@ def get_altitude(latitude: float, declination: float, hour_angle: float) -> floa
     dec = radians(declination)
     ha = radians(hour_angle)
     sin_altitude = sin(dec) * sin(lat) + cos(dec) * cos(lat) * cos(ha)
-    return degrees(asin(sin_altitude))
+    clamped = max(-1, min(1, sin_altitude))
+    return degrees(asin(clamped))
 
 
 def get_azimuth(latitude: float, declination: float, hour_angle: float, altitude: float) -> float:
@@ -47,7 +50,12 @@ def get_azimuth(latitude: float, declination: float, hour_angle: float, altitude
     dec = radians(declination)
     ha = radians(hour_angle)
     alt = radians(altitude)
-    cos_azimuth = (sin(dec) - sin(alt) * sin(lat)) / (cos(alt) * cos(lat))
+    denominator = cos(alt) * cos(lat)
+
+    if abs(denominator) < MIN_TRIG_DENOMINATOR:
+        return 0
+
+    cos_azimuth = (sin(dec) - sin(alt) * sin(lat)) / denominator
     clamped = max(-1, min(1, cos_azimuth))
     azimuth = degrees(acos(clamped))
 

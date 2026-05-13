@@ -5,14 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "dev:docker": "vite --host 0.0.0.0",
     "dev:frontend": "vite --host 127.0.0.1",
     "dev:backend": "cd backend && uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
     "preview": "vite preview --host 127.0.0.1",
     "check": "node scripts/check-project.mjs"
   },
   "dependencies": {
+    "@react-three/fiber": "^8.18.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
