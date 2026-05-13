@@ -80,6 +80,8 @@ export const translations = {
       longitude: "Longitude",
       observedAt: "Observed at",
       limitingMagnitude: "Limiting magnitude",
+      maxStars: "Star density",
+      catalog: "Catalog",
       useLocation: "Use my location",
       sceneStatus: "Scene status",
       status: "Status",
@@ -90,8 +92,12 @@ export const translations = {
         labels: "Labels",
         constellations: "Constellation lines",
         guides: "Guide grid",
-        planets: "Planet markers"
+        planets: "Planet markers",
+        autoRotate: "Auto rotate"
       },
+      focusConstellation: "Focus constellation",
+      allSky: "All sky",
+      quickFocus: "Quick focus",
       overlay: {
         horizon: "Horizon ring with cardinal directions",
         motion: "Mouse parallax and rotating dome",
@@ -234,6 +240,8 @@ export const translations = {
       longitude: "경도",
       observedAt: "관측 시각",
       limitingMagnitude: "제한 등급",
+      maxStars: "별 밀도",
+      catalog: "카탈로그",
       useLocation: "내 위치 사용",
       sceneStatus: "장면 상태",
       status: "상태",
@@ -244,8 +252,12 @@ export const translations = {
         labels: "이름 라벨",
         constellations: "별자리 선",
         guides: "가이드 격자",
-        planets: "행성 마커"
+        planets: "행성 마커",
+        autoRotate: "자동 회전"
       },
+      focusConstellation: "강조할 별자리",
+      allSky: "전체 하늘",
+      quickFocus: "빠른 강조",
       overlay: {
         horizon: "방위 표시가 붙은 지평선 링",
         motion: "마우스 시차와 회전하는 하늘 돔",

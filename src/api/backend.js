@@ -52,7 +52,7 @@ export async function getVisibleZodiac({ latitude, longitude, signs }) {
   }
 }
 
-export async function getSkyScene({ latitude, longitude, observedAt, limitingMagnitude }) {
+export async function getSkyScene({ latitude, longitude, observedAt, limitingMagnitude, maxStars }) {
   const response = await fetch(`${config.apiBaseUrl}/api/sky/scene`, {
     method: "POST",
     headers: {
@@ -62,7 +62,8 @@ export async function getSkyScene({ latitude, longitude, observedAt, limitingMag
       latitude,
       longitude,
       observedAt,
-      limitingMagnitude
+      limitingMagnitude,
+      maxStars
     })
   });
 

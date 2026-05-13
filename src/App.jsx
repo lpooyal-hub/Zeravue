@@ -18,13 +18,16 @@ export function App() {
   const [language, setLanguage] = useState(getInitialLanguage);
   const [observer, setObserver] = useState(defaultObserver);
   const [observedAt, setObservedAt] = useState(getInitialObservedAt);
-  const [limitingMagnitude, setLimitingMagnitude] = useState(2.5);
+  const [limitingMagnitude, setLimitingMagnitude] = useState(4.8);
+  const [maxStars, setMaxStars] = useState(3200);
   const [sceneState, setSceneState] = useState({ status: "loading", data: null, error: "" });
   const [selectedTarget, setSelectedTarget] = useState(null);
   const [showLabels, setShowLabels] = useState(true);
   const [showGuides, setShowGuides] = useState(true);
   const [showConstellations, setShowConstellations] = useState(true);
   const [showPlanets, setShowPlanets] = useState(true);
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [focusedConstellation, setFocusedConstellation] = useState("all");
   const dictionary = translations[language];
 
   useEffect(() => {
@@ -43,7 +46,8 @@ export function App() {
           latitude: observer.latitude,
           longitude: observer.longitude,
           observedAt: new Date(observedAt).toISOString(),
-          limitingMagnitude
+          limitingMagnitude,
+          maxStars
         });
 
         if (cancelled) {
@@ -66,7 +70,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [observer.latitude, observer.longitude, observedAt, limitingMagnitude]);
+  }, [observer.latitude, observer.longitude, observedAt, limitingMagnitude, maxStars]);
 
   const selectedStar = useMemo(
     () => (selectedTarget?.kind === "star" ? sceneState.data?.stars.find((star) => star.id === selectedTarget.id) || null : null),
@@ -76,6 +80,7 @@ export function App() {
     () => (selectedTarget?.kind === "planet" ? planets.find((planet) => planet.name === selectedTarget.id) || null : null),
     [selectedTarget]
   );
+  const visibleConstellations = sceneState.data?.summary.visibleConstellations || [];
 
   function updateObserver(key, value) {
     setObserver((current) => ({
@@ -97,6 +102,17 @@ export function App() {
         label: "Live location"
       });
     });
+  }
+
+  function selectTarget(target) {
+    setSelectedTarget(target);
+
+    if (target?.kind === "star") {
+      const star = sceneState.data?.stars.find((item) => item.id === target.id);
+      if (star?.constellation) {
+        setFocusedConstellation(star.constellation);
+      }
+    }
   }
 
   return (
@@ -163,11 +179,24 @@ export function App() {
               </span>
               <input
                 type="range"
-                min="-1.5"
-                max="3.5"
+                min="1"
+                max="6"
                 step="0.1"
                 value={limitingMagnitude}
                 onChange={(event) => setLimitingMagnitude(Number(event.target.value))}
+              />
+            </label>
+            <label className="stacked-field">
+              <span>
+                {dictionary.viewer.maxStars}: {maxStars.toLocaleString()}
+              </span>
+              <input
+                type="range"
+                min="1000"
+                max="6000"
+                step="200"
+                value={maxStars}
+                onChange={(event) => setMaxStars(Number(event.target.value))}
               />
             </label>
             <div className="toggle-grid">
@@ -191,7 +220,22 @@ export function App() {
                 <input type="checkbox" checked={showPlanets} onChange={(event) => setShowPlanets(event.target.checked)} />
                 <span>{dictionary.viewer.toggles.planets}</span>
               </label>
+              <label className="toggle-item">
+                <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
+                <span>{dictionary.viewer.toggles.autoRotate}</span>
+              </label>
             </div>
+            <label className="stacked-field">
+              <span>{dictionary.viewer.focusConstellation}</span>
+              <select value={focusedConstellation} onChange={(event) => setFocusedConstellation(event.target.value)}>
+                <option value="all">{dictionary.viewer.allSky}</option>
+                {visibleConstellations.map((name) => (
+                  <option key={name} value={name}>
+                    {dictionary.constellations?.[name]?.[language] || name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button className="primary-button" type="button" onClick={requestLocation}>
               {dictionary.viewer.useLocation}
             </button>
@@ -203,6 +247,10 @@ export function App() {
               <div>
                 <dt>{dictionary.viewer.status}</dt>
                 <dd>{sceneState.status}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.catalog}</dt>
+                <dd>{sceneState.data?.summary.catalog ?? "--"}</dd>
               </div>
               <div>
                 <dt>{dictionary.viewer.visibleStars}</dt>
@@ -222,13 +270,15 @@ export function App() {
             scene={sceneState.data}
             planets={planets}
             selectedTarget={selectedTarget}
-            onSelectTarget={setSelectedTarget}
+            onSelectTarget={selectTarget}
             language={language}
             dictionary={dictionary}
             showLabels={showLabels}
             showGuides={showGuides}
             showConstellations={showConstellations}
             showPlanets={showPlanets}
+            autoRotate={autoRotate}
+            focusedConstellation={focusedConstellation}
           />
           <div className="viewer-overlay">
             <span>{dictionary.viewer.overlay.horizon}</span>
@@ -305,10 +355,28 @@ export function App() {
                   key={planet.name}
                   type="button"
                   className="planet-chip"
-                  onClick={() => setSelectedTarget({ kind: "planet", id: planet.name })}
+                  onClick={() => selectTarget({ kind: "planet", id: planet.name })}
                 >
                   <span className="planet-dot" style={{ "--planet-color": planet.color }} />
                   <strong>{dictionary.planetNames[planet.name]}</strong>
+                </button>
+              ))}
+            </div>
+          </section>
+          <section>
+            <p className="eyebrow">{dictionary.viewer.quickFocus}</p>
+            <div className="constellation-list">
+              <button type="button" className={`focus-chip ${focusedConstellation === "all" ? "is-active" : ""}`} onClick={() => setFocusedConstellation("all")}>
+                {dictionary.viewer.allSky}
+              </button>
+              {visibleConstellations.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  className={`focus-chip ${focusedConstellation === name ? "is-active" : ""}`}
+                  onClick={() => setFocusedConstellation(name)}
+                >
+                  {dictionary.constellations?.[name]?.[language] || name}
                 </button>
               ))}
             </div>

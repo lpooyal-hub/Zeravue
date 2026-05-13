@@ -12,7 +12,9 @@ export function PlanetariumCanvas({
   showLabels,
   showGuides,
   showConstellations,
-  showPlanets
+  showPlanets,
+  autoRotate,
+  focusedConstellation
 }) {
   if (!scene) {
     return <div className="scene-empty">{dictionary.viewer.loading}</div>;
@@ -33,6 +35,8 @@ export function PlanetariumCanvas({
         showGuides={showGuides}
         showConstellations={showConstellations}
         showPlanets={showPlanets}
+        autoRotate={autoRotate}
+        focusedConstellation={focusedConstellation}
       />
     </Canvas>
   );
@@ -48,7 +52,9 @@ function SceneContents({
   showLabels,
   showGuides,
   showConstellations,
-  showPlanets
+  showPlanets,
+  autoRotate,
+  focusedConstellation
 }) {
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0 });
@@ -56,7 +62,7 @@ function SceneContents({
 
   const labelData = useMemo(() => {
     const visibleBrightStars = scene.stars
-      .filter((star) => star.visible)
+      .filter((star) => star.visible && isHighlighted(star.constellation, focusedConstellation))
       .sort((left, right) => left.magnitude - right.magnitude)
       .slice(0, 8)
       .map((star) => ({
@@ -94,11 +100,13 @@ function SceneContents({
       starLabels: visibleBrightStars,
       constellationLabels
     };
-  }, [dictionary.constellations, language, scene.stars]);
+  }, [dictionary.constellations, focusedConstellation, language, scene.stars]);
 
   useFrame((_, delta) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.03;
+      if (autoRotate) {
+        groupRef.current.rotation.y += delta * 0.03;
+      }
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -pointer.y * 0.18, 0.04);
       cameraAnchor.current.x = THREE.MathUtils.lerp(cameraAnchor.current.x, pointer.x * 1.8, 0.04);
       cameraAnchor.current.y = THREE.MathUtils.lerp(cameraAnchor.current.y, pointer.y * 0.9, 0.04);
@@ -118,13 +126,14 @@ function SceneContents({
         <StarDome />
         {showGuides ? <GuideGrid /> : null}
         {showGuides ? <HorizonRing dictionary={dictionary} language={language} /> : null}
-        {showConstellations ? <ConstellationLines lines={scene.lines} stars={scene.stars} /> : null}
+        {showConstellations ? <ConstellationLines lines={scene.lines} stars={scene.stars} focusedConstellation={focusedConstellation} /> : null}
         {scene.stars.map((star) => (
           <StarMarker
             key={star.id}
             star={star}
             selected={selectedTarget?.kind === "star" && star.id === selectedTarget.id}
             onSelectTarget={onSelectTarget}
+            dimmed={!isHighlighted(star.constellation, focusedConstellation)}
           />
         ))}
         {showPlanets
@@ -136,6 +145,7 @@ function SceneContents({
                 language={language}
                 selected={selectedTarget?.kind === "planet" && planet.name === selectedTarget.id}
                 onSelectTarget={onSelectTarget}
+                dimmed={focusedConstellation !== "all"}
               />
             ))
           : null}
@@ -149,7 +159,7 @@ function SceneContents({
           ? planets.map((planet, index) => (
               <TextSprite
                 key={`planet-label-${planet.name}`}
-                text={planet.name}
+                text={dictionary.planetNames?.[planet.name] || planet.name}
                 position={planetPosition(index, planet.orbit, true)}
                 color={planet.color}
                 scale={2}
@@ -161,9 +171,10 @@ function SceneContents({
   );
 }
 
-function StarMarker({ star, selected, onSelectTarget }) {
-  const radius = star.size * (selected ? 1.9 : 1.2);
+function StarMarker({ star, selected, onSelectTarget, dimmed }) {
+  const radius = star.size * (selected ? 1.9 : dimmed ? 0.9 : 1.2);
   const emissive = star.visible ? star.color : "#334155";
+  const opacity = dimmed ? 0.18 : 1;
 
   return (
     <group position={[star.x, star.y, star.z]}>
@@ -175,15 +186,16 @@ function StarMarker({ star, selected, onSelectTarget }) {
       ) : null}
       <mesh onClick={() => onSelectTarget({ kind: "star", id: star.id })}>
         <sphereGeometry args={[radius, 18, 18]} />
-        <meshBasicMaterial color={emissive} toneMapped={false} />
+        <meshBasicMaterial color={emissive} toneMapped={false} transparent opacity={opacity} />
       </mesh>
     </group>
   );
 }
 
-function PlanetMarker({ planet, index, selected, onSelectTarget }) {
+function PlanetMarker({ planet, index, selected, onSelectTarget, dimmed }) {
   const position = planetPosition(index, planet.orbit);
   const radius = 0.28 + planet.radius * 0.035;
+  const opacity = dimmed ? 0.24 : 1;
 
   return (
     <group position={position}>
@@ -195,7 +207,7 @@ function PlanetMarker({ planet, index, selected, onSelectTarget }) {
       ) : null}
       <mesh onClick={() => onSelectTarget({ kind: "planet", id: planet.name })}>
         <sphereGeometry args={[radius, 20, 20]} />
-        <meshStandardMaterial color={planet.color} emissive={planet.color} emissiveIntensity={0.35} roughness={0.5} />
+        <meshStandardMaterial color={planet.color} emissive={planet.color} emissiveIntensity={0.35} roughness={0.5} transparent opacity={opacity} />
       </mesh>
     </group>
   );
@@ -208,10 +220,11 @@ function planetPosition(index, orbit, labelOffset = false) {
   return [Math.cos(angle) * distance, y, Math.sin(angle) * distance];
 }
 
-function ConstellationLines({ lines, stars }) {
+function ConstellationLines({ lines, stars, focusedConstellation }) {
   const geometry = useMemo(() => {
     const byId = new Map(stars.map((star) => [star.id, star]));
     const points = [];
+    const highlightedPoints = [];
 
     lines.forEach((line) => {
       const from = byId.get(line.from);
@@ -222,17 +235,30 @@ function ConstellationLines({ lines, stars }) {
       }
 
       points.push(from.x, from.y, from.z, to.x, to.y, to.z);
+
+      if (focusedConstellation !== "all" && from.constellation === focusedConstellation && to.constellation === focusedConstellation) {
+        highlightedPoints.push(from.x, from.y, from.z, to.x, to.y, to.z);
+      }
     });
 
     const lineGeometry = new THREE.BufferGeometry();
     lineGeometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
-    return lineGeometry;
-  }, [lines, stars]);
+    const highlightGeometry = new THREE.BufferGeometry();
+    highlightGeometry.setAttribute("position", new THREE.Float32BufferAttribute(highlightedPoints, 3));
+    return { lineGeometry, highlightGeometry };
+  }, [focusedConstellation, lines, stars]);
 
   return (
-    <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="#79d9cf" transparent opacity={0.42} />
-    </lineSegments>
+    <>
+      <lineSegments geometry={geometry.lineGeometry}>
+        <lineBasicMaterial color="#79d9cf" transparent opacity={focusedConstellation === "all" ? 0.42 : 0.12} />
+      </lineSegments>
+      {focusedConstellation !== "all" ? (
+        <lineSegments geometry={geometry.highlightGeometry}>
+          <lineBasicMaterial color="#ffcf70" transparent opacity={0.9} />
+        </lineSegments>
+      ) : null}
+    </>
   );
 }
 
@@ -344,4 +370,8 @@ function TextSprite({ text, position, color, scale = 2 }) {
   }, [color, text]);
 
   return <sprite material={sprite} position={position} scale={[scale * 1.4, scale * 0.35, 1]} />;
+}
+
+function isHighlighted(constellation, focusedConstellation) {
+  return focusedConstellation === "all" || constellation === focusedConstellation;
 }

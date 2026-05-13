@@ -23,7 +23,8 @@ class SceneSkyRequest(BaseModel):
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)
     observedAt: str | None = None
-    limitingMagnitude: float = Field(default=2.5, ge=-2, le=6)
+    limitingMagnitude: float = Field(default=4.8, ge=-2, le=6)
+    maxStars: int = Field(default=4500, ge=100, le=10000)
 
 
 @router.post("/visible")
@@ -42,4 +43,5 @@ async def sky_scene(payload: SceneSkyRequest):
         longitude=payload.longitude,
         observed_at=payload.observedAt,
         limiting_magnitude=payload.limitingMagnitude,
+        max_stars=payload.maxStars,
     )

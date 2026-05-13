@@ -65,6 +65,12 @@ API health check:
 http://localhost:8000/api/health
 ```
 
+Production-style server access in the current Oracle setup:
+
+```text
+http://168.107.51.224:8001
+```
+
 ## Backend
 
 ```bash
@@ -100,6 +106,35 @@ FRONTEND_ORIGIN=http://127.0.0.1:5173
 ```
 
 When running with Vite, `/api` is proxied to `http://127.0.0.1:8000`.
+
+## CI/CD
+
+This repository is set up for a GitHub Actions flow with direct server hosting:
+
+- `dev` push: build and validate the Docker app
+- `main` push: build, validate, then deploy to the Oracle server over SSH
+
+The workflow file lives at [.github/workflows/ci-cd.yml](./.github/workflows/ci-cd.yml) and uses [scripts/deploy.sh](./scripts/deploy.sh) on the server.
+
+Required GitHub repository secrets:
+
+```text
+DEPLOY_HOST=168.107.51.224
+DEPLOY_PATH=/home/ubuntu/Planetarium
+DEPLOY_PORT=22
+DEPLOY_SSH_KEY=<private key contents>
+DEPLOY_USER=ubuntu
+```
+
+Recommended release flow:
+
+1. Work on `dev`
+2. Push `dev` and let the validation job pass
+3. Merge `dev` into `main`
+4. Push `main`
+5. GitHub Actions connects to the Oracle server and runs `./scripts/deploy.sh main`
+
+If you continue editing directly on the server, it is safer to keep a separate production checkout path such as `/home/ubuntu/Planetarium-main` for automatic deployments. The deploy script intentionally uses `git pull --ff-only` so it fails instead of overwriting uncommitted server-side changes.
 
 ## Notes
 

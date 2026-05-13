@@ -40,6 +40,10 @@ input {
   font: inherit;
 }
 
+select {
+  font: inherit;
+}
+
 .planetarium-app {
   min-height: 100vh;
   padding: 20px;
@@ -172,7 +176,8 @@ label span,
 }
 
 input[type="number"],
-input[type="datetime-local"] {
+input[type="datetime-local"],
+select {
   width: 100%;
   min-height: 44px;
   padding: 0 12px;
@@ -313,6 +318,21 @@ input[type="range"] {
   color: var(--text);
   text-align: left;
   cursor: pointer;
+}
+
+.focus-chip {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.focus-chip.is-active {
+  border-color: rgba(255, 207, 112, 0.55);
+  background: rgba(255, 207, 112, 0.12);
+  color: var(--text);
 }
 
 .planet-dot {
