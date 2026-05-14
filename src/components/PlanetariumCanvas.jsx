@@ -74,7 +74,9 @@ function SceneContents({
   customSketchStarIds
 }) {
   const groupRef = useRef(null);
-  const cameraAnchor = useRef({ x: 0, y: 0 });
+  const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
+  const lookAnchor = useRef({ x: 0, y: 1.8, z: -12.8 });
+  const rotationAnchor = useRef({ x: 0, y: 0 });
   const { camera, pointer } = useThree();
   const projectedStars = useMemo(() => scene.stars.map((star) => ({ ...star, ...projectSkyPosition(star) })), [scene.stars]);
 
@@ -140,18 +142,37 @@ function SceneContents({
   }, [constellationCenters, dictionary.constellations, featuredStars, focusedConstellation, language, showConstellations, showLabels]);
 
   useFrame((_, delta) => {
+    const targetTiltX = -pointer.y * 0.03;
+    const targetYawDrift = pointer.x * 0.08;
+    const targetCameraX = pointer.x * 0.62;
+    const targetCameraY = pointer.y * 0.22;
+    const targetCameraZ = Math.abs(pointer.x) * -0.22;
+    const targetLookX = pointer.x * 2.4;
+    const targetLookY = 1.8 + pointer.y * 1.15;
+    const targetLookZ = -12.8;
+
     if (groupRef.current) {
       if (autoRotate) {
         groupRef.current.rotation.y += delta * 0.016;
       }
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -pointer.y * 0.04, 0.03);
-      cameraAnchor.current.x = THREE.MathUtils.lerp(cameraAnchor.current.x, pointer.x * 0.82, 0.03);
-      cameraAnchor.current.y = THREE.MathUtils.lerp(cameraAnchor.current.y, pointer.y * 0.32, 0.03);
+      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, 4.6, delta);
+      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, 3.8, delta);
+      groupRef.current.rotation.x = rotationAnchor.current.x;
+      groupRef.current.rotation.y += rotationAnchor.current.y * delta;
     }
 
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraAnchor.current.x, 0.03);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraAnchor.current.y, 0.03);
-    camera.lookAt(0, 1.8, -12.8);
+    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, 4.2, delta);
+    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, 4.2, delta);
+    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, 5.2, delta);
+
+    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, 4.8, delta);
+    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, 4.8, delta);
+    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, 5.4, delta);
+
+    camera.position.x = cameraAnchor.current.x;
+    camera.position.y = cameraAnchor.current.y;
+    camera.position.z = 18 + cameraAnchor.current.z;
+    camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
   });
 
   return (
