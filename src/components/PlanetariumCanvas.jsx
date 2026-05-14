@@ -187,13 +187,14 @@ function SceneContents({
       <pointLight position={[0, 6, 14]} intensity={0.9} color="#b8d2ff" />
       <pointLight position={[-12, -4, -8]} intensity={0.25} color="#ffbf8a" />
       <group ref={groupRef}>
-        <MilkyWayBand />
-        <DeepSkyField />
+        <MilkyWayBand viewMode={viewMode} />
+        <DeepSkyField viewMode={viewMode} />
+        {viewMode === "space" ? <SpaceDepthField /> : null}
         <BackgroundStarField stars={projectedStars} focusedConstellation={focusedConstellation} />
         {showGuides ? <GuideGrid /> : null}
         {showGuides ? <HorizonRing dictionary={dictionary} language={language} /> : null}
-        {showConstellations ? <ConstellationLines lines={scene.lines} stars={projectedStars} focusedConstellation={focusedConstellation} /> : null}
-        {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={projectedStars} starIds={customSketchStarIds} /> : null}
+        {showConstellations ? <ConstellationLines lines={scene.lines} stars={projectedStars} focusedConstellation={focusedConstellation} viewMode={viewMode} /> : null}
+        {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={projectedStars} starIds={customSketchStarIds} viewMode={viewMode} /> : null}
         {featuredStars.map((star) => (
           <StarMarker
             key={star.id}
@@ -217,11 +218,13 @@ function SceneContents({
 }
 
 function BackgroundStarField({ stars, focusedConstellation }) {
+  const materialRef = useRef(null);
   const geometry = useMemo(() => {
     const positions = [];
     const colors = [];
     const sizes = [];
     const alphas = [];
+    const twinkles = [];
     const densityFactor = Math.min(1, stars.length / 2200);
 
     stars.forEach((star) => {
@@ -240,6 +243,7 @@ function BackgroundStarField({ stars, focusedConstellation }) {
 
       const baseAlpha = focusedConstellation === "all" ? 0.24 - densityFactor * 0.08 : highlighted ? 0.6 : 0.05 - densityFactor * 0.015;
       alphas.push(baseAlpha + Math.max(0, 0.16 - star.magnitude * 0.012));
+      twinkles.push((Number.parseInt(String(star.id).replace(/\D/g, "").slice(-4) || "17", 10) % 97) / 97);
     });
 
     const starGeometry = new THREE.BufferGeometry();
@@ -247,6 +251,7 @@ function BackgroundStarField({ stars, focusedConstellation }) {
     starGeometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     starGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
     starGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
+    starGeometry.setAttribute("twinkle", new THREE.Float32BufferAttribute(twinkles, 1));
     return starGeometry;
   }, [focusedConstellation, stars]);
 
@@ -256,29 +261,35 @@ function BackgroundStarField({ stars, focusedConstellation }) {
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        uniforms: { scale: { value: window.devicePixelRatio || 1 } },
+        uniforms: { time: { value: 0 } },
         vertexShader: `
           attribute float size;
           attribute float alpha;
+          attribute float twinkle;
           varying vec3 vColor;
           varying float vAlpha;
+          varying float vTwinkle;
           void main() {
             vColor = color;
             vAlpha = alpha;
+            vTwinkle = twinkle;
             vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
             gl_PointSize = size * (220.0 / max(8.0, -mvPosition.z));
             gl_Position = projectionMatrix * mvPosition;
           }
         `,
         fragmentShader: `
+          uniform float time;
           varying vec3 vColor;
           varying float vAlpha;
+          varying float vTwinkle;
           void main() {
             vec2 coord = gl_PointCoord - vec2(0.5);
             float dist = length(coord);
             float glow = smoothstep(0.52, 0.0, dist);
             float core = smoothstep(0.18, 0.0, dist);
-            gl_FragColor = vec4(vColor * (0.55 + core * 1.6), (glow * 0.55 + core * 0.7) * vAlpha);
+            float pulse = 0.86 + sin(time * (0.34 + vTwinkle * 0.42) + vTwinkle * 24.0) * 0.14;
+            gl_FragColor = vec4(vColor * (0.55 + core * 1.6) * pulse, (glow * 0.55 + core * 0.7) * vAlpha * pulse);
           }
         `,
         vertexColors: true
@@ -286,7 +297,13 @@ function BackgroundStarField({ stars, focusedConstellation }) {
     []
   );
 
-  return <points geometry={geometry} material={material} frustumCulled={false} />;
+  useFrame(({ clock }) => {
+    if (materialRef.current?.material?.uniforms?.time) {
+      materialRef.current.material.uniforms.time.value = clock.elapsedTime;
+    }
+  });
+
+  return <points geometry={geometry} material={material} ref={materialRef} frustumCulled={false} />;
 }
 
 function StarMarker({ star, selected, onSelectTarget, dimmed, sketched, drawMode }) {
@@ -332,11 +349,12 @@ function StarMarker({ star, selected, onSelectTarget, dimmed, sketched, drawMode
   );
 }
 
-function ConstellationLines({ lines, stars, focusedConstellation }) {
+function ConstellationLines({ lines, stars, focusedConstellation, viewMode }) {
   const geometry = useMemo(() => {
     const byId = new Map(stars.map((star) => [star.id, star]));
     const points = [];
     const highlightedPoints = [];
+    const curved = viewMode === "space";
 
     lines.forEach((line) => {
       const from = byId.get(line.from);
@@ -346,10 +364,10 @@ function ConstellationLines({ lines, stars, focusedConstellation }) {
         return;
       }
 
-      points.push(from.x, from.y, from.z, to.x, to.y, to.z);
+      pushLinePath(points, from, to, curved);
 
       if (focusedConstellation !== "all" && from.constellation === focusedConstellation && to.constellation === focusedConstellation) {
-        highlightedPoints.push(from.x, from.y, from.z, to.x, to.y, to.z);
+        pushLinePath(highlightedPoints, from, to, curved);
       }
     });
 
@@ -359,7 +377,7 @@ function ConstellationLines({ lines, stars, focusedConstellation }) {
     highlightGeometry.setAttribute("position", new THREE.Float32BufferAttribute(highlightedPoints, 3));
     const densityFactor = Math.min(1, points.length / 1800);
     return { lineGeometry, highlightGeometry, densityFactor };
-  }, [focusedConstellation, lines, stars]);
+  }, [focusedConstellation, lines, stars, viewMode]);
 
   const ambientOpacity = focusedConstellation === "all" ? 0.17 + geometry.densityFactor * 0.09 : 0.05 + geometry.densityFactor * 0.03;
   const ambientGlowOpacity = focusedConstellation === "all" ? 0.06 + geometry.densityFactor * 0.04 : 0.02;
@@ -388,10 +406,11 @@ function ConstellationLines({ lines, stars, focusedConstellation }) {
   );
 }
 
-function CustomSketchLines({ stars, starIds }) {
+function CustomSketchLines({ stars, starIds, viewMode }) {
   const geometry = useMemo(() => {
     const byId = new Map(stars.map((star) => [star.id, star]));
     const points = [];
+    const curved = viewMode === "space";
 
     for (let index = 1; index < starIds.length; index += 1) {
       const from = byId.get(starIds[index - 1]);
@@ -401,18 +420,53 @@ function CustomSketchLines({ stars, starIds }) {
         continue;
       }
 
-      points.push(from.x, from.y, from.z, to.x, to.y, to.z);
+      pushLinePath(points, from, to, curved);
     }
 
     const lineGeometry = new THREE.BufferGeometry();
     lineGeometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
     return lineGeometry;
-  }, [starIds, stars]);
+  }, [starIds, stars, viewMode]);
 
   return (
     <lineSegments geometry={geometry}>
       <lineBasicMaterial color="#ffcf70" transparent opacity={0.95} />
     </lineSegments>
+  );
+}
+
+function pushLinePath(points, from, to, curved) {
+  if (!curved) {
+    points.push(from.x, from.y, from.z, to.x, to.y, to.z);
+    return;
+  }
+
+  const start = new THREE.Vector3(from.x, from.y, from.z);
+  const end = new THREE.Vector3(to.x, to.y, to.z);
+  const mid = start.clone().add(end).multiplyScalar(0.5);
+  const distance = start.distanceTo(end);
+  const lift = Math.min(1.1, distance * 0.055);
+  const control = mid.clone().multiplyScalar(1.018);
+  control.y += lift;
+  control.z -= lift * 0.42;
+
+  const previous = new THREE.Vector3();
+  for (let step = 0; step <= 5; step += 1) {
+    const t = step / 5;
+    const current = quadraticPoint(start, control, end, t);
+    if (step > 0) {
+      points.push(previous.x, previous.y, previous.z, current.x, current.y, current.z);
+    }
+    previous.copy(current);
+  }
+}
+
+function quadraticPoint(start, control, end, t) {
+  const oneMinusT = 1 - t;
+  return new THREE.Vector3(
+    oneMinusT * oneMinusT * start.x + 2 * oneMinusT * t * control.x + t * t * end.x,
+    oneMinusT * oneMinusT * start.y + 2 * oneMinusT * t * control.y + t * t * end.y,
+    oneMinusT * oneMinusT * start.z + 2 * oneMinusT * t * control.z + t * t * end.z
   );
 }
 
@@ -560,6 +614,50 @@ function GuideGrid() {
         <lineBasicMaterial color="#80a3c8" transparent opacity={0.12} />
       </lineSegments>
     </>
+  );
+}
+
+function SpaceDepthField() {
+  const fieldRef = useRef(null);
+  const particles = useMemo(() => {
+    const positions = [];
+    const colors = [];
+    const sizes = [];
+
+    for (let index = 0; index < 1400; index += 1) {
+      const theta = Math.random() * Math.PI * 2;
+      const vertical = (Math.random() - 0.5) * 1.25;
+      const radius = 18 + Math.random() * 18;
+      const x = Math.sin(theta) * radius;
+      const y = vertical * radius * 0.56;
+      const z = -12 - Math.cos(theta) * radius * 0.72;
+
+      positions.push(x, y, z);
+
+      const color = new THREE.Color(index % 8 === 0 ? "#8fb8ff" : index % 13 === 0 ? "#ffe1b8" : "#cfdcff");
+      colors.push(color.r, color.g, color.b);
+      sizes.push(0.045 + Math.random() * 0.075);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    return geometry;
+  }, []);
+
+  useFrame((_, delta) => {
+    if (!fieldRef.current) {
+      return;
+    }
+    fieldRef.current.rotation.y += delta * 0.0035;
+    fieldRef.current.rotation.x = Math.sin(performance.now() * 0.00004) * 0.012;
+  });
+
+  return (
+    <points ref={fieldRef} geometry={particles}>
+      <pointsMaterial size={0.075} sizeAttenuation vertexColors transparent opacity={0.28} depthWrite={false} />
+    </points>
   );
 }
 
