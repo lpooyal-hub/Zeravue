@@ -144,14 +144,14 @@ function SceneContents({
       if (autoRotate) {
         groupRef.current.rotation.y += delta * 0.016;
       }
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -pointer.y * 0.045, 0.03);
-      cameraAnchor.current.x = THREE.MathUtils.lerp(cameraAnchor.current.x, pointer.x * 0.92, 0.03);
-      cameraAnchor.current.y = THREE.MathUtils.lerp(cameraAnchor.current.y, pointer.y * 0.34, 0.03);
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -pointer.y * 0.03, 0.03);
+      cameraAnchor.current.x = THREE.MathUtils.lerp(cameraAnchor.current.x, pointer.x * 0.78, 0.03);
+      cameraAnchor.current.y = THREE.MathUtils.lerp(cameraAnchor.current.y, pointer.y * 0.24, 0.03);
     }
 
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraAnchor.current.x, 0.03);
     camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraAnchor.current.y, 0.03);
-    camera.lookAt(0, 1.25, -8.2);
+    camera.lookAt(0, 2.8, -10.4);
   });
 
   return (
@@ -423,10 +423,10 @@ function clampStarSize(magnitude) {
 function projectSkyPosition(star) {
   const az = (star.azimuth * Math.PI) / 180;
   const altitudeRatio = Math.max(0, star.altitude) / 90;
-  const width = 15.4 + (1 - altitudeRatio) * 1.6;
-  const x = Math.sin(az) * width + Math.sin(az * 2.2) * 0.22;
-  const y = 0.35 + altitudeRatio * 4.9 + Math.sin(az * 0.45) * 0.14;
-  const z = -12.6 + Math.cos(az) * 4.1 + (0.5 - altitudeRatio) * 0.55;
+  const width = 17.6 - altitudeRatio * 1.2;
+  const x = Math.sin(az) * width + Math.sin(az * 2.2) * 0.25;
+  const y = -3.6 + altitudeRatio * 11.8 + Math.sin(az * 0.45) * 0.2;
+  const z = -12.8 + Math.cos(az) * 3.2 + (0.5 - altitudeRatio) * 0.45;
   return {
     x: Number(x.toFixed(4)),
     y: Number(y.toFixed(4)),
