@@ -177,7 +177,7 @@ label span,
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(260px, 300px) minmax(0, 1fr) minmax(250px, 290px);
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 290px);
   align-items: start;
   gap: 16px;
 }
@@ -189,6 +189,18 @@ label span,
   gap: 18px;
   padding: 18px;
   border-radius: 18px;
+}
+
+.control-panel {
+  grid-column: 1 / 2;
+  grid-row: 2;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.inspector-panel {
+  grid-column: 2 / 3;
+  grid-row: 1 / span 2;
   position: sticky;
   top: 16px;
   max-height: calc(100vh - 32px);
@@ -261,11 +273,13 @@ input[type="range"] {
 }
 
 .viewer {
+  grid-column: 1 / 2;
+  grid-row: 1;
   position: relative;
   overflow: hidden;
   border: 1px solid var(--line-strong);
   border-radius: 24px;
-  min-height: calc(100vh - 170px);
+  min-height: calc(100vh - 230px);
   background:
     radial-gradient(circle at 50% 18%, rgba(36, 74, 132, 0.22), transparent 38%),
     radial-gradient(circle at 50% 72%, rgba(19, 37, 74, 0.2), transparent 44%),
@@ -461,10 +475,21 @@ input[type="range"] {
   }
 
   .control-panel,
+  .inspector-panel,
+  .viewer {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .control-panel,
   .inspector-panel {
     position: static;
     max-height: none;
     overflow: visible;
+  }
+
+  .control-panel {
+    grid-template-columns: 1fr;
   }
 
   .viewer {
