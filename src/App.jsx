@@ -129,7 +129,7 @@ function createAmbientSoundscape() {
   playChime(1.1);
   timers.push(window.setInterval(() => playChime(), 6200));
 
-  master.gain.setTargetAtTime(0.78, context.currentTime, 0.9);
+  master.gain.setTargetAtTime(0.9, context.currentTime, 0.9);
 
   return {
     context,
