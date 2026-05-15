@@ -4,6 +4,7 @@ import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 
 const SKETCH_STORAGE_KEY = "planetarium-custom-space-scenes";
+const AMBIENT_STORAGE_KEY = "planetarium-ambient-preference";
 
 const planetPresets = [
   { id: "amber", color: "#f3b46c", ring: false },
@@ -241,11 +242,48 @@ export function App() {
   }, [language]);
 
   useEffect(
-    () => () => {
-      ambientSoundRef.current?.stop();
+    () => {
+      return () => {
+        ambientSoundRef.current?.stop();
+      };
     },
     []
   );
+
+  useEffect(() => {
+    if (window.localStorage.getItem(AMBIENT_STORAGE_KEY) === "off") {
+      return undefined;
+    }
+
+    let active = true;
+    const startOnGesture = () => {
+      startAmbientSound({ remember: false }).then((started) => {
+        if (started) {
+          removeGestureListeners();
+        }
+      });
+    };
+    const removeGestureListeners = () => {
+      window.removeEventListener("pointerdown", startOnGesture);
+      window.removeEventListener("keydown", startOnGesture);
+      window.removeEventListener("touchstart", startOnGesture);
+    };
+
+    startAmbientSound({ remember: false }).then((started) => {
+      if (!active || started) {
+        return;
+      }
+
+      window.addEventListener("pointerdown", startOnGesture, { passive: true });
+      window.addEventListener("keydown", startOnGesture);
+      window.addEventListener("touchstart", startOnGesture, { passive: true });
+    });
+
+    return () => {
+      active = false;
+      removeGestureListeners();
+    };
+  }, []);
 
   useEffect(() => {
     window.localStorage.setItem(SKETCH_STORAGE_KEY, JSON.stringify(savedSketches));
@@ -562,22 +600,55 @@ export function App() {
     await viewerRef.current.requestFullscreen();
   }
 
-  async function toggleAmbientSound() {
+  function stopAmbientSound({ remember = true } = {}) {
     if (ambientSoundRef.current) {
       ambientSoundRef.current.stop();
       ambientSoundRef.current = null;
-      setAmbientEnabled(false);
-      return;
+    }
+
+    setAmbientEnabled(false);
+    if (remember) {
+      window.localStorage.setItem(AMBIENT_STORAGE_KEY, "off");
+    }
+  }
+
+  async function startAmbientSound({ remember = true } = {}) {
+    if (ambientSoundRef.current) {
+      return true;
     }
 
     const soundscape = createAmbientSoundscape();
     if (!soundscape) {
-      return;
+      return false;
     }
 
     ambientSoundRef.current = soundscape;
-    await soundscape.context.resume();
-    setAmbientEnabled(true);
+    try {
+      await soundscape.context.resume();
+      if (soundscape.context.state !== "running") {
+        throw new Error(`Audio context stayed ${soundscape.context.state}`);
+      }
+      setAmbientEnabled(true);
+      if (remember) {
+        window.localStorage.setItem(AMBIENT_STORAGE_KEY, "on");
+      }
+      return true;
+    } catch (error) {
+      console.warn("Ambient audio is waiting for a user gesture:", error);
+      soundscape.stop();
+      ambientSoundRef.current = null;
+      setAmbientEnabled(false);
+      return false;
+    }
+  }
+
+  async function toggleAmbientSound() {
+    if (ambientSoundRef.current) {
+      stopAmbientSound();
+      return;
+    }
+
+    await startAmbientSound();
   }
 
   function shiftTime(hours) {
