@@ -280,7 +280,14 @@ function SceneContents({
         {showConstellations ? <ConstellationLines lines={scene.lines} stars={projectedStars} focusedConstellation={focusedConstellation} viewMode={viewMode} /> : null}
         {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={projectedStars} starIds={customSketchStarIds} viewMode={viewMode} /> : null}
         {spaceMode
-          ? null
+          ? featuredStars.map((star) => (
+              <PassiveStarGlow
+                key={star.id}
+                star={star}
+                dimmed={focusedConstellation !== "all" && star.constellation !== focusedConstellation}
+                sketched={customSketchStarIds.includes(star.id)}
+              />
+            ))
           : featuredStars.map((star) => (
               <StarMarker
                 key={star.id}
@@ -390,6 +397,32 @@ function BackgroundStarField({ stars, focusedConstellation }) {
   });
 
   return <points geometry={geometry} material={material} ref={materialRef} frustumCulled={false} />;
+}
+
+function PassiveStarGlow({ star, dimmed, sketched }) {
+  const haloRef = useRef(null);
+  const spriteMaterial = useMemo(
+    () =>
+      new THREE.SpriteMaterial({
+        map: buildStarTexture(sketched ? "#ffcf70" : star.color),
+        transparent: true,
+        depthWrite: false
+      }),
+    [sketched, star.color]
+  );
+  const radius = star.size * (sketched ? 1.75 : dimmed ? 1.05 : 1.48);
+  const pulseSeed = useMemo(() => Number.parseInt(String(star.id).replace(/\D/g, "").slice(-4) || "13", 10) * 0.017, [star.id]);
+
+  useFrame(({ clock }) => {
+    if (!haloRef.current) {
+      return;
+    }
+    const pulse = 1 + Math.sin(clock.elapsedTime * 0.62 + pulseSeed) * 0.07;
+    haloRef.current.scale.setScalar(pulse);
+    haloRef.current.material.opacity = 0.72 + Math.sin(clock.elapsedTime * 0.48 + pulseSeed) * 0.08;
+  });
+
+  return <sprite ref={haloRef} material={spriteMaterial} position={[star.x, star.y, star.z]} scale={[radius * 5.8, radius * 5.8, 1]} />;
 }
 
 function CreativePlacementPlane({ creativeTool, onCreativeSpaceClick }) {
