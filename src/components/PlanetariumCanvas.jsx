@@ -32,9 +32,13 @@ export function PlanetariumCanvas({
   viewMode,
   focusedConstellation,
   drawMode,
-  customSketchStarIds
+  customSketchStarIds,
+  creativeMode = false,
+  customSpace,
+  creativeTool,
+  onCreativeSpaceClick
 }) {
-  if (!scene) {
+  if (!scene && !creativeMode) {
     return <div className="scene-empty">{dictionary.viewer.loading}</div>;
   }
 
@@ -42,22 +46,100 @@ export function PlanetariumCanvas({
     <Canvas camera={{ position: [0, 0, 18], fov: 48 }} dpr={[1, 2]}>
       <color attach="background" args={["#010208"]} />
       <fog attach="fog" args={["#010208", 22, 44]} />
-      <SceneContents
-        scene={scene}
-        selectedTarget={selectedTarget}
-        onSelectTarget={onSelectTarget}
-        language={language}
-        dictionary={dictionary}
-        showLabels={showLabels}
-        showGuides={showGuides}
-        showConstellations={showConstellations}
-        autoRotate={autoRotate}
-        viewMode={viewMode}
-        focusedConstellation={focusedConstellation}
-        drawMode={drawMode}
-        customSketchStarIds={customSketchStarIds}
-      />
+      {creativeMode ? (
+        <CreativeSpaceContents
+          customSpace={customSpace}
+          selectedTarget={selectedTarget}
+          onSelectTarget={onSelectTarget}
+          autoRotate={autoRotate}
+          creativeTool={creativeTool}
+          onCreativeSpaceClick={onCreativeSpaceClick}
+        />
+      ) : (
+        <SceneContents
+          scene={scene}
+          selectedTarget={selectedTarget}
+          onSelectTarget={onSelectTarget}
+          language={language}
+          dictionary={dictionary}
+          showLabels={showLabels}
+          showGuides={showGuides}
+          showConstellations={showConstellations}
+          autoRotate={autoRotate}
+          viewMode={viewMode}
+          focusedConstellation={focusedConstellation}
+          drawMode={drawMode}
+          customSketchStarIds={customSketchStarIds}
+        />
+      )}
     </Canvas>
+  );
+}
+
+function CreativeSpaceContents({ customSpace, selectedTarget, onSelectTarget, autoRotate, creativeTool, onCreativeSpaceClick }) {
+  const groupRef = useRef(null);
+  const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
+  const lookAnchor = useRef({ x: 0, y: 0, z: -11.8 });
+  const rotationAnchor = useRef({ x: 0, y: 0 });
+  const { camera, pointer } = useThree();
+
+  useFrame((_, delta) => {
+    const targetTiltX = -pointer.y * 0.018;
+    const targetYawDrift = pointer.x * 0.024;
+    const targetCameraX = pointer.x * 1.05;
+    const targetCameraY = pointer.y * 0.48;
+    const targetLookX = pointer.x * 4.2;
+    const targetLookY = pointer.y * 1.55;
+
+    if (groupRef.current) {
+      if (autoRotate) {
+        groupRef.current.rotation.y += delta * 0.0045;
+      }
+      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, 3.8, delta);
+      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, 3.4, delta);
+      groupRef.current.rotation.x = rotationAnchor.current.x;
+      groupRef.current.rotation.y += rotationAnchor.current.y * delta;
+    }
+
+    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, 3.9, delta);
+    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, 3.9, delta);
+    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, 4.1, delta);
+    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, 4.1, delta);
+
+    camera.position.x = cameraAnchor.current.x;
+    camera.position.y = cameraAnchor.current.y;
+    camera.position.z = 14.4;
+    camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, -12.2);
+  });
+
+  return (
+    <>
+      <ambientLight intensity={0.42} />
+      <pointLight position={[0, 5, 12]} intensity={0.7} color="#b8d2ff" />
+      <group ref={groupRef}>
+        <MilkyWayBand />
+        <DeepSkyField />
+        <SpaceDepthField />
+        <CreativePlacementPlane creativeTool={creativeTool} onCreativeSpaceClick={onCreativeSpaceClick} />
+        <CreativeConstellationLines customSpace={customSpace} />
+        {customSpace?.stars.map((star) => (
+          <CreativeStar
+            key={star.id}
+            star={star}
+            selected={selectedTarget?.kind === "custom-star" && selectedTarget.id === star.id}
+            onSelectTarget={onSelectTarget}
+          />
+        ))}
+        {customSpace?.planets.map((planet) => (
+          <CreativePlanet
+            key={planet.id}
+            planet={planet}
+            selected={selectedTarget?.kind === "custom-planet" && selectedTarget.id === planet.id}
+            onSelectTarget={onSelectTarget}
+          />
+        ))}
+      </group>
+    </>
   );
 }
 
@@ -304,6 +386,142 @@ function BackgroundStarField({ stars, focusedConstellation }) {
   });
 
   return <points geometry={geometry} material={material} ref={materialRef} frustumCulled={false} />;
+}
+
+function CreativePlacementPlane({ creativeTool, onCreativeSpaceClick }) {
+  return (
+    <mesh
+      position={[0, 0, -12.2]}
+      onPointerDown={(event) => {
+        if (creativeTool === "delete") {
+          return;
+        }
+        event.stopPropagation();
+        onCreativeSpaceClick?.(event.point);
+      }}
+    >
+      <planeGeometry args={[42, 26]} />
+      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+    </mesh>
+  );
+}
+
+function CreativeConstellationLines({ customSpace }) {
+  const geometries = useMemo(() => {
+    const byId = new Map((customSpace?.stars || []).map((star) => [star.id, star]));
+    return (customSpace?.constellations || []).map((constellation) => {
+      const points = [];
+      for (let index = 1; index < constellation.starIds.length; index += 1) {
+        const from = byId.get(constellation.starIds[index - 1]);
+        const to = byId.get(constellation.starIds[index]);
+        if (!from || !to) {
+          continue;
+        }
+        pushLinePath(points, from, to, true);
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+      return { id: constellation.id, color: constellation.color, geometry, empty: points.length === 0 };
+    });
+  }, [customSpace]);
+
+  return (
+    <>
+      {geometries.map((item) =>
+        item.empty ? null : (
+          <lineSegments key={item.id} geometry={item.geometry}>
+            <lineBasicMaterial color={item.color} transparent opacity={0.86} />
+          </lineSegments>
+        )
+      )}
+    </>
+  );
+}
+
+function CreativeStar({ star, selected, onSelectTarget }) {
+  const haloRef = useRef(null);
+  const material = useMemo(
+    () =>
+      new THREE.SpriteMaterial({
+        map: buildStarTexture(star.color),
+        transparent: true,
+        depthWrite: false
+      }),
+    [star.color]
+  );
+
+  useFrame(({ clock }) => {
+    if (!haloRef.current) {
+      return;
+    }
+    const pulse = 1 + Math.sin(clock.elapsedTime * 0.9 + star.size * 2.7) * 0.08;
+    haloRef.current.scale.setScalar(pulse);
+  });
+
+  return (
+    <group position={[star.x, star.y, star.z]}>
+      {selected ? (
+        <mesh>
+          <sphereGeometry args={[star.size * 0.42, 24, 24]} />
+          <meshBasicMaterial color="#ffcf70" transparent opacity={0.18} />
+        </mesh>
+      ) : null}
+      <sprite ref={haloRef} material={material} scale={[star.size * 2.6, star.size * 2.6, 1]} />
+      <mesh
+        onClick={(event) => {
+          event.stopPropagation();
+          onSelectTarget({ kind: "custom-star", id: star.id });
+        }}
+      >
+        <sphereGeometry args={[star.size * 0.18, 12, 12]} />
+        <meshBasicMaterial color={star.color} transparent opacity={0.08} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
+function CreativePlanet({ planet, selected, onSelectTarget }) {
+  const groupRef = useRef(null);
+  const color = new THREE.Color(planet.color);
+
+  useFrame((_, delta) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += delta * 0.16;
+    }
+  });
+
+  return (
+    <group
+      ref={groupRef}
+      position={[planet.x, planet.y, planet.z]}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelectTarget({ kind: "custom-planet", id: planet.id });
+      }}
+    >
+      {selected ? (
+        <mesh>
+          <sphereGeometry args={[planet.size * 0.9, 32, 32]} />
+          <meshBasicMaterial color="#ffcf70" transparent opacity={0.12} />
+        </mesh>
+      ) : null}
+      <mesh>
+        <sphereGeometry args={[planet.size * 0.42, 32, 32]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.16} roughness={0.72} metalness={0.05} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[planet.size * 0.72, 32, 32]} />
+        <meshBasicMaterial color={planet.color} transparent opacity={0.08} depthWrite={false} />
+      </mesh>
+      {planet.ring ? (
+        <mesh rotation={[Math.PI * 0.52, 0.18, 0]}>
+          <ringGeometry args={[planet.size * 0.58, planet.size * 0.88, 72]} />
+          <meshBasicMaterial color="#f3dca8" transparent opacity={0.5} side={THREE.DoubleSide} depthWrite={false} />
+        </mesh>
+      ) : null}
+    </group>
+  );
 }
 
 function StarMarker({ star, selected, onSelectTarget, dimmed, sketched, drawMode }) {
