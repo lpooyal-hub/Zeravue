@@ -157,6 +157,11 @@ export const translations = {
       type: "Type",
       creationInspector: "Creation inspector",
       creationPickHint: "Click empty space to place an object, or click an object to inspect it.",
+      objectName: "Object name",
+      objectSize: "Object size",
+      objectColor: "Object color",
+      planetRing: "Planet ring",
+      removeObject: "Remove object",
       planetPresets: {
         amber: "Amber planet",
         blue: "Blue planet",
@@ -417,6 +422,11 @@ export const translations = {
       type: "종류",
       creationInspector: "창작 오브젝트",
       creationPickHint: "빈 우주를 눌러 오브젝트를 놓거나, 오브젝트를 눌러 정보를 확인하세요.",
+      objectName: "오브젝트 이름",
+      objectSize: "오브젝트 크기",
+      objectColor: "오브젝트 색상",
+      planetRing: "행성 고리",
+      removeObject: "오브젝트 제거",
       planetPresets: {
         amber: "호박빛 행성",
         blue: "푸른 행성",

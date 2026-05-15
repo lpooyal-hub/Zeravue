@@ -227,6 +227,7 @@ label span,
 
 input[type="number"],
 input[type="datetime-local"],
+input[type="text"],
 select {
   width: 100%;
   min-height: 44px;
@@ -235,6 +236,16 @@ select {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
+}
+
+input[type="color"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
 }
 
 input[type="range"] {

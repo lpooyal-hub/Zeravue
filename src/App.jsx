@@ -373,6 +373,30 @@ export function App() {
     setSelectedTarget(null);
   }
 
+  function updateCustomObject(target, patch) {
+    if (!target?.kind) {
+      return;
+    }
+
+    setCustomSpace((current) => {
+      if (target.kind === "custom-star") {
+        return {
+          ...current,
+          stars: current.stars.map((star) => (star.id === target.id ? { ...star, ...patch } : star))
+        };
+      }
+
+      if (target.kind === "custom-planet") {
+        return {
+          ...current,
+          planets: current.planets.map((planet) => (planet.id === target.id ? { ...planet, ...patch } : planet))
+        };
+      }
+
+      return current;
+    });
+  }
+
   async function toggleFullscreen() {
     if (!viewerRef.current) {
       return;
@@ -749,6 +773,31 @@ export function App() {
               <>
                 <h2>{selectedCustomStar.name}</h2>
                 <p className="constellation-copy">{activeCustomConstellation?.name || dictionary.viewer.customConstellation}</p>
+                <label className="stacked-field">
+                  <span>{dictionary.viewer.objectName}</span>
+                  <input
+                    type="text"
+                    value={selectedCustomStar.name}
+                    onChange={(event) => updateCustomObject(selectedTarget, { name: event.target.value })}
+                  />
+                </label>
+                <label className="stacked-field">
+                  <span>
+                    {dictionary.viewer.objectSize}: {selectedCustomStar.size.toFixed(2)}
+                  </span>
+                  <input
+                    type="range"
+                    min="0.7"
+                    max="2.8"
+                    step="0.05"
+                    value={selectedCustomStar.size}
+                    onChange={(event) => updateCustomObject(selectedTarget, { size: Number(event.target.value) })}
+                  />
+                </label>
+                <label className="stacked-field">
+                  <span>{dictionary.viewer.objectColor}</span>
+                  <input type="color" value={selectedCustomStar.color} onChange={(event) => updateCustomObject(selectedTarget, { color: event.target.value })} />
+                </label>
                 <dl className="summary-list compact">
                   <div>
                     <dt>{dictionary.viewer.type}</dt>
@@ -762,11 +811,51 @@ export function App() {
                     </dd>
                   </div>
                 </dl>
+                <button type="button" className="focus-chip" onClick={() => removeCustomObject(selectedTarget)}>
+                  {dictionary.viewer.removeObject}
+                </button>
               </>
             ) : currentPage === "sketch" && selectedCustomPlanet ? (
               <>
                 <h2>{selectedCustomPlanet.name}</h2>
                 <p className="constellation-copy">{dictionary.viewer.customPlanet}</p>
+                <label className="stacked-field">
+                  <span>{dictionary.viewer.objectName}</span>
+                  <input
+                    type="text"
+                    value={selectedCustomPlanet.name}
+                    onChange={(event) => updateCustomObject(selectedTarget, { name: event.target.value })}
+                  />
+                </label>
+                <label className="stacked-field">
+                  <span>
+                    {dictionary.viewer.objectSize}: {selectedCustomPlanet.size.toFixed(2)}
+                  </span>
+                  <input
+                    type="range"
+                    min="0.9"
+                    max="4"
+                    step="0.05"
+                    value={selectedCustomPlanet.size}
+                    onChange={(event) => updateCustomObject(selectedTarget, { size: Number(event.target.value) })}
+                  />
+                </label>
+                <label className="stacked-field">
+                  <span>{dictionary.viewer.objectColor}</span>
+                  <input
+                    type="color"
+                    value={selectedCustomPlanet.color}
+                    onChange={(event) => updateCustomObject(selectedTarget, { color: event.target.value })}
+                  />
+                </label>
+                <label className="toggle-item">
+                  <input
+                    type="checkbox"
+                    checked={selectedCustomPlanet.ring}
+                    onChange={(event) => updateCustomObject(selectedTarget, { ring: event.target.checked })}
+                  />
+                  <span>{dictionary.viewer.planetRing}</span>
+                </label>
                 <dl className="summary-list compact">
                   <div>
                     <dt>{dictionary.viewer.type}</dt>
@@ -777,6 +866,9 @@ export function App() {
                     <dd>{selectedCustomPlanet.color}</dd>
                   </div>
                 </dl>
+                <button type="button" className="focus-chip" onClick={() => removeCustomObject(selectedTarget)}>
+                  {dictionary.viewer.removeObject}
+                </button>
               </>
             ) : currentPage === "watch" && selectedStar ? (
               <>
