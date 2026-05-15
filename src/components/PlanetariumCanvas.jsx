@@ -226,36 +226,38 @@ function SceneContents({
     return { starLabels, constellationLabels };
   }, [constellationCenters, dictionary.constellations, featuredStars, focusedConstellation, language, showConstellations, showLabels]);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     const observerMode = viewMode === "observer";
     const panoramaMode = viewMode === "panorama";
     const spaceMode = viewMode === "space";
-    const targetTiltX = spaceMode ? -pointer.y * 0.022 : observerMode ? -pointer.y * 0.035 : -pointer.y * 0.016;
-    const targetYawDrift = spaceMode ? pointer.x * 0.026 : observerMode ? pointer.x * 0.055 : pointer.x * 0.032;
-    const targetCameraX = spaceMode ? pointer.x * 1.15 : observerMode ? pointer.x * 0.38 : pointer.x * 0.86;
-    const targetCameraY = spaceMode ? pointer.y * 0.55 : observerMode ? 0.55 + pointer.y * 0.34 : pointer.y * 0.12;
-    const targetCameraZ = spaceMode ? -1.45 + Math.abs(pointer.x) * -0.04 : observerMode ? -0.28 - Math.abs(pointer.x) * 0.08 : -0.16;
-    const targetLookX = spaceMode ? pointer.x * 4.8 : observerMode ? pointer.x * 1.7 : pointer.x * 3.2;
-    const targetLookY = spaceMode ? pointer.y * 1.9 : observerMode ? 2.9 + pointer.y * 1.4 : 0.65 + pointer.y * 0.55;
-    const targetLookZ = spaceMode ? -11.2 : observerMode ? -13.6 : -12.2;
+    const driftA = clock.elapsedTime * 0.085;
+    const driftB = clock.elapsedTime * 0.052;
+    const targetTiltX = spaceMode ? Math.sin(driftB) * 0.028 : observerMode ? -pointer.y * 0.035 : -pointer.y * 0.016;
+    const targetYawDrift = spaceMode ? Math.sin(driftA) * 0.035 : observerMode ? pointer.x * 0.055 : pointer.x * 0.032;
+    const targetCameraX = spaceMode ? Math.sin(driftA) * 1.35 : observerMode ? pointer.x * 0.38 : pointer.x * 0.86;
+    const targetCameraY = spaceMode ? Math.cos(driftB) * 0.62 : observerMode ? 0.55 + pointer.y * 0.34 : pointer.y * 0.12;
+    const targetCameraZ = spaceMode ? -1.62 + Math.sin(driftA * 0.7) * 0.18 : observerMode ? -0.28 - Math.abs(pointer.x) * 0.08 : -0.16;
+    const targetLookX = spaceMode ? Math.sin(driftA * 0.8) * 5.2 : observerMode ? pointer.x * 1.7 : pointer.x * 3.2;
+    const targetLookY = spaceMode ? Math.cos(driftB * 1.15) * 1.65 : observerMode ? 2.9 + pointer.y * 1.4 : 0.65 + pointer.y * 0.55;
+    const targetLookZ = spaceMode ? -11.4 + Math.sin(driftB) * 0.45 : observerMode ? -13.6 : -12.2;
 
     if (groupRef.current) {
       if (autoRotate) {
-        groupRef.current.rotation.y += delta * (spaceMode ? 0.006 : observerMode ? 0.011 : 0.008);
+        groupRef.current.rotation.y += delta * (spaceMode ? 0.013 : observerMode ? 0.011 : 0.008);
       }
-      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, spaceMode ? 3.8 : observerMode ? 4.2 : 5.4, delta);
-      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, spaceMode ? 3.4 : observerMode ? 3.6 : 4.8, delta);
+      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, spaceMode ? 2.1 : observerMode ? 4.2 : 5.4, delta);
+      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, spaceMode ? 2 : observerMode ? 3.6 : 4.8, delta);
       groupRef.current.rotation.x = rotationAnchor.current.x;
       groupRef.current.rotation.y += rotationAnchor.current.y * delta;
     }
 
-    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, spaceMode ? 3.8 : observerMode ? 4 : 5.1, delta);
-    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, spaceMode ? 3.8 : observerMode ? 4 : 5.1, delta);
-    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, spaceMode ? 4.3 : observerMode ? 4.8 : 5.4, delta);
+    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, spaceMode ? 2.1 : observerMode ? 4 : 5.1, delta);
+    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, spaceMode ? 2.1 : observerMode ? 4 : 5.1, delta);
+    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, spaceMode ? 2.4 : observerMode ? 4.8 : 5.4, delta);
 
-    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, spaceMode ? 4 : observerMode ? 4.4 : 5.4, delta);
-    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, spaceMode ? 4 : observerMode ? 4.4 : 5.4, delta);
-    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, spaceMode ? 4.5 : observerMode ? 5 : 5.7, delta);
+    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, spaceMode ? 2.2 : observerMode ? 4.4 : 5.4, delta);
+    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, spaceMode ? 2.2 : observerMode ? 4.4 : 5.4, delta);
+    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, spaceMode ? 2.4 : observerMode ? 5 : 5.7, delta);
 
     camera.position.x = cameraAnchor.current.x;
     camera.position.y = cameraAnchor.current.y;
@@ -277,17 +279,19 @@ function SceneContents({
         {showGuides ? <HorizonRing dictionary={dictionary} language={language} /> : null}
         {showConstellations ? <ConstellationLines lines={scene.lines} stars={projectedStars} focusedConstellation={focusedConstellation} viewMode={viewMode} /> : null}
         {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={projectedStars} starIds={customSketchStarIds} viewMode={viewMode} /> : null}
-        {featuredStars.map((star) => (
-          <StarMarker
-            key={star.id}
-            star={star}
-            selected={selectedTarget?.kind === "star" && star.id === selectedTarget.id}
-            onSelectTarget={onSelectTarget}
-            dimmed={focusedConstellation !== "all" && star.constellation !== focusedConstellation}
-            sketched={customSketchStarIds.includes(star.id)}
-            drawMode={drawMode}
-          />
-        ))}
+        {spaceMode
+          ? null
+          : featuredStars.map((star) => (
+              <StarMarker
+                key={star.id}
+                star={star}
+                selected={selectedTarget?.kind === "star" && star.id === selectedTarget.id}
+                onSelectTarget={onSelectTarget}
+                dimmed={focusedConstellation !== "all" && star.constellation !== focusedConstellation}
+                sketched={customSketchStarIds.includes(star.id)}
+                drawMode={drawMode}
+              />
+            ))}
         {labelData.starLabels.map((label) => (
           <TextSprite key={label.id} {...label} />
         ))}

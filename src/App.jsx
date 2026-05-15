@@ -214,6 +214,10 @@ export function App() {
       return;
     }
 
+    if (currentPage === "watch" && viewMode === "space") {
+      return;
+    }
+
     setSelectedTarget(target);
 
     if (target?.kind === "star") {
@@ -726,7 +730,7 @@ export function App() {
             showConstellations={showConstellations}
             autoRotate={autoRotate}
             viewMode={viewMode}
-            focusedConstellation={currentPage === "watch" ? focusedConstellation : "all"}
+            focusedConstellation={currentPage === "watch" && viewMode !== "space" ? focusedConstellation : "all"}
             drawMode={currentPage === "sketch"}
             customSketchStarIds={[]}
             creativeMode={currentPage === "sketch"}
@@ -736,7 +740,13 @@ export function App() {
           />
           <div className="viewer-overlay">
             <span>{dictionary.viewer.overlay.modes[viewMode]}</span>
-            <span>{currentPage === "watch" ? dictionary.viewer.overlay.inspect : dictionary.viewer.overlay.draw}</span>
+            <span>
+              {currentPage === "watch"
+                ? viewMode === "space"
+                  ? dictionary.viewer.overlay.screensaver
+                  : dictionary.viewer.overlay.inspect
+                : dictionary.viewer.overlay.draw}
+            </span>
             <button type="button" className="overlay-button" onClick={toggleFullscreen}>
               {isFullscreen ? dictionary.viewer.exitFullscreen : dictionary.viewer.enterFullscreen}
             </button>

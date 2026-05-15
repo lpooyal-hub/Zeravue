@@ -184,6 +184,7 @@ export const translations = {
           panorama: "A wider night sky that stretches gently across the whole frame"
         },
         inspect: "Click stars to inspect them",
+        screensaver: "Pure screensaver mode with slow camera drift",
         draw: "Place stars and planets in your own empty space"
       },
       starInspector: "Star inspector",
@@ -449,6 +450,7 @@ export const translations = {
           panorama: "화면 전체에 하늘이 더 넓게 펼쳐지는 파노라마 밤하늘"
         },
         inspect: "별을 눌러 상세 정보를 확인",
+        screensaver: "느린 카메라 전환으로 감상하는 화면보호기 모드",
         draw: "빈 우주에 나만의 별과 행성을 배치하세요"
       },
       starInspector: "별 정보",
