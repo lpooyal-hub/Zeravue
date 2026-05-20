@@ -213,6 +213,14 @@ label span,
   gap: 14px;
 }
 
+.scene-status-section {
+  opacity: 0.8;
+}
+
+.scene-status-section .summary-list {
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -328,6 +336,38 @@ input[type="range"] {
   max-width: min(520px, calc(100% - 32px));
 }
 
+.viewer-focus-overlay {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 2;
+  max-width: min(320px, calc(100% - 32px));
+}
+
+.overlay-focus-field {
+  display: grid;
+  gap: 7px;
+  padding: 12px 14px;
+  border: 1px solid rgba(173, 211, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(5, 9, 16, 0.62);
+  backdrop-filter: blur(12px);
+}
+
+.overlay-focus-field span {
+  color: #a8b8cc;
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+
+.overlay-focus-field select {
+  min-height: 38px;
+  padding: 0 10px;
+  border-color: rgba(173, 211, 255, 0.14);
+  background: rgba(9, 16, 28, 0.88);
+  font-size: 0.86rem;
+}
+
 .time-jump-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -403,6 +443,11 @@ input[type="range"] {
 .viewer.is-fullscreen .viewer-overlay {
   right: 24px;
   bottom: 24px;
+}
+
+.viewer.is-fullscreen .viewer-focus-overlay {
+  left: 24px;
+  top: 24px;
 }
 
 .summary-list {
@@ -614,6 +659,12 @@ input[type="range"] {
     right: 14px;
     bottom: 14px;
     justify-content: start;
+  }
+
+  .viewer-focus-overlay {
+    left: 14px;
+    top: 14px;
+    max-width: calc(100% - 28px);
   }
 
   .overlay-volume {

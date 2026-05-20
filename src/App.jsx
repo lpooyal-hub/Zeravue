@@ -990,11 +990,6 @@ export function App() {
 
           {currentPage === "watch" ? (
             <>
-              <section className="story-card">
-                <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
-                <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
-                <p>{activeConstellationStory}</p>
-              </section>
               <section>
                 <p className="eyebrow">{dictionary.viewer.viewModeLabel}</p>
                 <div className="constellation-list focus-list">
@@ -1054,6 +1049,11 @@ export function App() {
                     </button>
                   ))}
                 </div>
+              </section>
+              <section className="story-card">
+                <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
+                <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
+                <p>{activeConstellationStory}</p>
               </section>
             </>
           ) : (
@@ -1354,6 +1354,21 @@ export function App() {
             creativeTool={creativeTool}
             onCreativeSpaceClick={addCustomObject}
           />
+          {currentPage === "watch" ? (
+            <div className="viewer-focus-overlay">
+              <label className="overlay-focus-field">
+                <span>{dictionary.viewer.focusConstellation}</span>
+                <select value={focusedConstellation} onChange={(event) => setFocusedConstellation(event.target.value)}>
+                  <option value="all">{dictionary.viewer.allSky}</option>
+                  {visibleConstellations.map((name) => (
+                    <option key={name} value={name}>
+                      {dictionary.constellations?.[name]?.[language] || name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          ) : null}
           <div className="viewer-overlay">
             <label className="overlay-volume">
               <span>{dictionary.viewer.ambient.volumeShort}</span>
@@ -1378,29 +1393,6 @@ export function App() {
         </main>
 
         <aside className="inspector-panel">
-          <section>
-            <p className="eyebrow">{dictionary.viewer.sceneStatus}</p>
-            <dl className="summary-list compact">
-              <div>
-                <dt>{dictionary.viewer.status}</dt>
-                <dd>{sceneState.status}</dd>
-              </div>
-              <div>
-                <dt>{dictionary.viewer.catalog}</dt>
-                <dd>{sceneState.data?.summary.catalog ?? "--"}</dd>
-              </div>
-              <div>
-                <dt>{dictionary.viewer.visibleStars}</dt>
-                <dd>{sceneState.data?.summary.visibleStars ?? "--"}</dd>
-              </div>
-              <div>
-                <dt>{dictionary.viewer.visibleConstellations}</dt>
-                <dd>{sceneState.data?.summary.visibleConstellations.length ?? "--"}</dd>
-              </div>
-            </dl>
-            {sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
-          </section>
-
           <section>
             <p className="eyebrow">{currentPage === "watch" ? dictionary.viewer.starInspector : dictionary.viewer.creationInspector}</p>
             {currentPage === "sketch" && selectedCustomStar ? (
@@ -1579,6 +1571,28 @@ export function App() {
               </section>
             </>
           )}
+          <section className="scene-status-section">
+            <p className="eyebrow">{dictionary.viewer.sceneStatus}</p>
+            <dl className="summary-list compact">
+              <div>
+                <dt>{dictionary.viewer.status}</dt>
+                <dd>{sceneState.status}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.catalog}</dt>
+                <dd>{sceneState.data?.summary.catalog ?? "--"}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.visibleStars}</dt>
+                <dd>{sceneState.data?.summary.visibleStars ?? "--"}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.visibleConstellations}</dt>
+                <dd>{sceneState.data?.summary.visibleConstellations.length ?? "--"}</dd>
+              </div>
+            </dl>
+            {sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
+          </section>
         </aside>
       </div>
     </div>
