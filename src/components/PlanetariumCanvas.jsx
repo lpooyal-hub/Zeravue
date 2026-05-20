@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 function buildStarTexture(color) {
@@ -57,7 +57,8 @@ export function PlanetariumCanvas({
   creativeMode = false,
   customSpace,
   creativeTool,
-  onCreativeSpaceClick
+  onCreativeSpaceClick,
+  onUpdateCustomObject
 }) {
   if (!scene && !creativeMode) {
     return <div className="scene-empty">{dictionary.viewer.loading}</div>;
@@ -81,6 +82,7 @@ export function PlanetariumCanvas({
           dictionary={dictionary}
           creativeTool={creativeTool}
           onCreativeSpaceClick={onCreativeSpaceClick}
+          onUpdateCustomObject={onUpdateCustomObject}
         />
       ) : (
         <SceneContents
@@ -117,12 +119,16 @@ function CreativeSpaceContents({
   language,
   dictionary,
   creativeTool,
-  onCreativeSpaceClick
+  onCreativeSpaceClick,
+  onUpdateCustomObject
 }) {
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
   const lookAnchor = useRef({ x: 0, y: 0, z: -11.8 });
-  const { camera } = useThree();
+  const draggingStarRef = useRef(null);
+  const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 12.2));
+  const dragPointRef = useRef(new THREE.Vector3());
+  const { camera, gl } = useThree();
   const labelData = useMemo(() => {
     if (!showLabels) {
       return [];
@@ -170,7 +176,20 @@ function CreativeSpaceContents({
     return labels;
   }, [customSpace, showLabels]);
 
-  useFrame((_, delta) => {
+  useEffect(() => {
+    function clearDrag() {
+      draggingStarRef.current = null;
+    }
+
+    gl.domElement.addEventListener("pointerup", clearDrag);
+    gl.domElement.addEventListener("pointerleave", clearDrag);
+    return () => {
+      gl.domElement.removeEventListener("pointerup", clearDrag);
+      gl.domElement.removeEventListener("pointerleave", clearDrag);
+    };
+  }, [gl]);
+
+  useFrame((state, delta) => {
     const targetCameraX = 0;
     const targetCameraY = 0.2;
     const targetCameraZ = -0.05;
@@ -198,6 +217,20 @@ function CreativeSpaceContents({
     camera.fov = THREE.MathUtils.damp(camera.fov, 42, 5.2, delta);
     camera.updateProjectionMatrix();
     camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
+
+    if (draggingStarRef.current) {
+      state.raycaster.setFromCamera(state.pointer, state.camera);
+      if (state.raycaster.ray.intersectPlane(dragPlaneRef.current, dragPointRef.current)) {
+        onUpdateCustomObject?.(
+          { kind: "custom-star", id: draggingStarRef.current },
+          {
+            x: clampCoordinate(dragPointRef.current.x),
+            y: clampCoordinate(dragPointRef.current.y),
+            z: -12.2
+          }
+        );
+      }
+    }
   });
 
   return (
@@ -218,6 +251,9 @@ function CreativeSpaceContents({
             star={star}
             selected={selectedTarget?.kind === "custom-star" && selectedTarget.id === star.id}
             onSelectTarget={onSelectTarget}
+            onStartDrag={(starId) => {
+              draggingStarRef.current = starId;
+            }}
           />
         ))}
         {customSpace?.planets.map((planet) => (
@@ -689,7 +725,7 @@ function CreativeConstellationLines({ customSpace }) {
   );
 }
 
-function CreativeStar({ star, selected, onSelectTarget }) {
+function CreativeStar({ star, selected, onSelectTarget, onStartDrag }) {
   const haloRef = useRef(null);
   const material = useMemo(
     () =>
@@ -719,6 +755,11 @@ function CreativeStar({ star, selected, onSelectTarget }) {
       ) : null}
       <sprite ref={haloRef} material={material} scale={[star.size * 2.6, star.size * 2.6, 1]} />
       <mesh
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          onSelectTarget({ kind: "custom-star", id: star.id });
+          onStartDrag?.(star.id);
+        }}
         onClick={(event) => {
           event.stopPropagation();
           onSelectTarget({ kind: "custom-star", id: star.id });

@@ -1745,11 +1745,12 @@ export function App() {
             trackConstellation={currentPage === "watch" ? trackConstellation : false}
             drawMode={currentPage === "sketch"}
             customSketchStarIds={[]}
-            creativeMode={currentPage === "sketch"}
-            customSpace={customSpace}
-            creativeTool={creativeTool}
-            onCreativeSpaceClick={addCustomObject}
-          />
+          creativeMode={currentPage === "sketch"}
+          customSpace={customSpace}
+          creativeTool={creativeTool}
+          onCreativeSpaceClick={addCustomObject}
+          onUpdateCustomObject={updateCustomObject}
+        />
           {currentPage === "watch" ? (
             <div className="viewer-focus-overlay">
               <label className="overlay-focus-field">
