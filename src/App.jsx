@@ -566,6 +566,13 @@ export function App() {
     }
   }, [focusedConstellation]);
 
+  useEffect(() => {
+    if (!trackConstellation || focusedConstellation === "all") {
+      return;
+    }
+    setZoomLevel((current) => Number(Math.min(current, 0.44).toFixed(2)));
+  }, [focusedConstellation, trackConstellation]);
+
   function updateObserver(key, value) {
     setObserver((current) => ({
       ...current,

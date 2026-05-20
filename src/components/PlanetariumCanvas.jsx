@@ -273,6 +273,7 @@ function SceneContents({
   const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
   const lookAnchor = useRef({ x: 0, y: 1.8, z: -12.8 });
   const rotationAnchor = useRef({ x: 0, y: 0 });
+  const trackingBlend = useRef(0);
   const { camera, pointer } = useThree();
   const spaceMode = viewMode === "space";
   const projectionMode = viewMode === "projection";
@@ -349,7 +350,8 @@ function SceneContents({
     const observerMode = viewMode === "observer";
     const driftA = clock.elapsedTime * 0.085;
     const driftB = clock.elapsedTime * 0.052;
-    const trackWeight = trackedCenter ? 1 : 0;
+    trackingBlend.current = THREE.MathUtils.damp(trackingBlend.current, trackedCenter ? 1 : 0, 3.2, delta);
+    const trackWeight = trackingBlend.current;
     const targetTiltX = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftB) * 0.018 : -pointer.y * 0.01;
     const targetYawDrift = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftA) * 0.022 : pointer.x * 0.018;
     const baseCameraX = projectionMode ? 0 : spaceMode ? Math.sin(driftA) * 0.55 : observerMode ? pointer.x * 0.04 : pointer.x * 0.26;
@@ -358,11 +360,11 @@ function SceneContents({
     const baseLookX = projectionMode ? 0 : spaceMode ? Math.sin(driftA * 0.8) * 2.2 : observerMode ? pointer.x * 0.2 : pointer.x * 1.45;
     const baseLookY = projectionMode ? 0 : spaceMode ? Math.cos(driftB * 1.15) * 0.85 : observerMode ? 10.2 + pointer.y * 0.12 : 2.35 + pointer.y * 0.46;
     const baseLookZ = projectionMode ? -13.5 : spaceMode ? 0 : observerMode ? -0.9 : -14.6;
-    const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * 0.08 : baseCameraX, trackWeight);
-    const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * (observerMode ? 0.02 : 0.035) : baseCameraY, trackWeight);
-    const targetLookX = THREE.MathUtils.lerp(baseLookX, trackedCenter ? trackedCenter.x : baseLookX, trackWeight);
-    const targetLookY = THREE.MathUtils.lerp(baseLookY, trackedCenter ? trackedCenter.y + (spaceMode ? 0.3 : observerMode ? 0.28 : 0.55) : baseLookY, trackWeight);
-    const targetLookZ = THREE.MathUtils.lerp(baseLookZ, trackedCenter ? trackedCenter.z : baseLookZ, trackWeight);
+    const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * (spaceMode ? 0.03 : observerMode ? 0.04 : 0.06) : baseCameraX, trackWeight);
+    const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * (observerMode ? 0.014 : spaceMode ? 0.02 : 0.028) : baseCameraY, trackWeight);
+    const targetLookX = THREE.MathUtils.lerp(baseLookX, trackedCenter ? trackedCenter.x * (spaceMode ? 0.84 : 0.92) : baseLookX, trackWeight);
+    const targetLookY = THREE.MathUtils.lerp(baseLookY, trackedCenter ? trackedCenter.y + (spaceMode ? 0.22 : observerMode ? 0.2 : 0.42) : baseLookY, trackWeight);
+    const targetLookZ = THREE.MathUtils.lerp(baseLookZ, trackedCenter ? trackedCenter.z * (spaceMode ? 0.84 : 0.94) : baseLookZ, trackWeight);
 
     if (groupRef.current) {
       if (autoRotate && !trackedCenter && !projectionMode && !observerMode) {
@@ -392,9 +394,9 @@ function SceneContents({
       camera.position.y = cameraAnchor.current.y;
       const baseDistance = trackedCenter
         ? projectionMode
-          ? 15.6
+          ? 16.3
           : spaceMode
-            ? 18.8
+            ? 20.6
             : 12.4
         : projectionMode
           ? 14.8
@@ -423,12 +425,25 @@ function SceneContents({
         <MilkyWayBand viewMode={viewMode} />
         <DeepSkyField viewMode={viewMode} atmosphereStrength={atmosphereStrength} />
         {viewMode === "space" ? <SpaceDepthField atmosphereStrength={atmosphereStrength} /> : null}
-        <BackgroundStarField stars={projectedStars} focusedConstellation={focusedConstellation} starGlowStrength={starGlowStrength} />
+        <BackgroundStarField
+          stars={projectedStars}
+          focusedConstellation={focusedConstellation}
+          starGlowStrength={starGlowStrength}
+          tracking={trackConstellation && focusedConstellation !== "all"}
+        />
         {showGuides && !projectionMode && !observerMode ? <GuideGrid /> : null}
         {showGuides && observerMode ? <ObserverGuide dictionary={dictionary} language={language} /> : null}
         {showGuides && projectionMode ? <ProjectionGuide dictionary={dictionary} language={language} /> : null}
         {showGuides && !projectionMode ? <HorizonRing dictionary={dictionary} language={language} /> : null}
-        {showConstellations ? <ConstellationLines lines={scene.lines} stars={projectedStars} focusedConstellation={focusedConstellation} viewMode={viewMode} /> : null}
+        {showConstellations ? (
+          <ConstellationLines
+            lines={scene.lines}
+            stars={projectedStars}
+            focusedConstellation={focusedConstellation}
+            viewMode={viewMode}
+            tracking={trackConstellation && focusedConstellation !== "all"}
+          />
+        ) : null}
         {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={projectedStars} starIds={customSketchStarIds} viewMode={viewMode} /> : null}
         {spaceMode
           ? featuredStars.map((star) => (
@@ -462,7 +477,7 @@ function SceneContents({
   );
 }
 
-function BackgroundStarField({ stars, focusedConstellation, starGlowStrength = 0.8 }) {
+function BackgroundStarField({ stars, focusedConstellation, starGlowStrength = 0.8, tracking = false }) {
   const materialRef = useRef(null);
   const geometry = useMemo(() => {
     const positions = [];
@@ -486,7 +501,7 @@ function BackgroundStarField({ stars, focusedConstellation, starGlowStrength = 0
       const sizeScale = highlighted ? 1.4 : 1 - densityFactor * 0.08;
       sizes.push(clampStarSize(star.magnitude) * sizeScale);
 
-      const baseAlpha = focusedConstellation === "all" ? 0.24 - densityFactor * 0.08 : highlighted ? 0.6 : 0.05 - densityFactor * 0.015;
+      const baseAlpha = focusedConstellation === "all" ? 0.24 - densityFactor * 0.08 : highlighted ? (tracking ? 0.76 : 0.6) : tracking ? 0.028 : 0.05 - densityFactor * 0.015;
       alphas.push(baseAlpha + Math.max(0, 0.16 - star.magnitude * 0.012));
       twinkles.push((Number.parseInt(String(star.id).replace(/\D/g, "").slice(-4) || "17", 10) % 97) / 97);
     });
@@ -498,7 +513,7 @@ function BackgroundStarField({ stars, focusedConstellation, starGlowStrength = 0
     starGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
     starGeometry.setAttribute("twinkle", new THREE.Float32BufferAttribute(twinkles, 1));
     return starGeometry;
-  }, [focusedConstellation, stars]);
+  }, [focusedConstellation, stars, tracking]);
 
   const material = useMemo(
     () =>
@@ -788,7 +803,7 @@ function StarMarker({ star, selected, onSelectTarget, dimmed, sketched, drawMode
   );
 }
 
-function ConstellationLines({ lines, stars, focusedConstellation, viewMode }) {
+function ConstellationLines({ lines, stars, focusedConstellation, viewMode, tracking = false }) {
   const geometry = useMemo(() => {
     const byId = new Map(stars.map((star) => [star.id, star]));
     const points = [];
@@ -818,10 +833,10 @@ function ConstellationLines({ lines, stars, focusedConstellation, viewMode }) {
     return { lineGeometry, highlightGeometry, densityFactor };
   }, [focusedConstellation, lines, stars, viewMode]);
 
-  const ambientOpacity = focusedConstellation === "all" ? 0.17 + geometry.densityFactor * 0.09 : 0.05 + geometry.densityFactor * 0.03;
-  const ambientGlowOpacity = focusedConstellation === "all" ? 0.06 + geometry.densityFactor * 0.04 : 0.02;
-  const highlightOpacity = 0.78 + geometry.densityFactor * 0.14;
-  const highlightGlowOpacity = 0.22 + geometry.densityFactor * 0.14;
+  const ambientOpacity = focusedConstellation === "all" ? 0.17 + geometry.densityFactor * 0.09 : tracking ? 0.026 : 0.05 + geometry.densityFactor * 0.03;
+  const ambientGlowOpacity = focusedConstellation === "all" ? 0.06 + geometry.densityFactor * 0.04 : tracking ? 0.012 : 0.02;
+  const highlightOpacity = tracking ? 0.98 + geometry.densityFactor * 0.08 : 0.78 + geometry.densityFactor * 0.14;
+  const highlightGlowOpacity = tracking ? 0.34 + geometry.densityFactor * 0.1 : 0.22 + geometry.densityFactor * 0.14;
 
   return (
     <>
