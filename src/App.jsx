@@ -1446,7 +1446,14 @@ export function App() {
                 <button type="button" className={`focus-chip ${creativeTool === "delete" ? "is-active" : ""}`} onClick={() => setCreativeTool("delete")}>
                   {dictionary.viewer.deleteTool}
                 </button>
-                <button type="button" className="focus-chip" onClick={addCustomConstellation}>
+                <button
+                  type="button"
+                  className="focus-chip"
+                  onClick={() => {
+                    addCustomConstellation();
+                    setCreativeTool("star");
+                  }}
+                >
                   {dictionary.viewer.addConstellation}
                 </button>
                 <button type="button" className="focus-chip" onClick={duplicateActiveConstellation} disabled={activeCustomConstellationStars.length < 2}>
