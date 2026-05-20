@@ -45,8 +45,8 @@ Finish the night-sky theme to a level where it feels polished, consistent, and r
 
 - [x] import finished constellations into sketch mode
 - [x] move, scale, spread, tighten, and rotate imported constellations
+- [x] duplicate a constellation
 - [ ] drag individual stars directly
-- [ ] duplicate a constellation
 - [ ] save favorite sketch layouts
 - [ ] make custom constellations easier to rename and curate
 
@@ -87,4 +87,3 @@ Suggested rhythm:
 3. commit
 4. push to `dev`
 5. continue to the next step
-

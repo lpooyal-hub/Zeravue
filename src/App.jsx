@@ -778,6 +778,50 @@ export function App() {
     });
   }
 
+  function duplicateActiveConstellation() {
+    const sourceConstellation = activeCustomConstellation;
+    if (!sourceConstellation || activeCustomConstellationStars.length < 2) {
+      return;
+    }
+
+    const nextConstellationId = `constellation-${Date.now()}`;
+    const starIdMap = new Map();
+    const duplicateStars = activeCustomConstellationStars.map((star, index) => {
+      const nextStarId = `star-${Date.now()}-${index}`;
+      starIdMap.set(star.id, nextStarId);
+      return {
+        ...star,
+        id: nextStarId,
+        name: `${star.name}`,
+        x: clampCoordinate(star.x + 1.4),
+        y: clampCoordinate(star.y - 0.9),
+        constellationId: nextConstellationId
+      };
+    });
+
+    const duplicateSegments = (sourceConstellation.segments || [])
+      .map((segment) => [starIdMap.get(segment[0]), starIdMap.get(segment[1])])
+      .filter((segment) => segment[0] && segment[1]);
+
+    setCustomSpace((current) => ({
+      ...current,
+      activeConstellationId: nextConstellationId,
+      stars: [...current.stars, ...duplicateStars],
+      constellations: [
+        ...current.constellations,
+        {
+          ...sourceConstellation,
+          id: nextConstellationId,
+          name: language === "ko" ? `${sourceConstellation.name} 복사본` : `${sourceConstellation.name} Copy`,
+          color: sourceConstellation.color,
+          starIds: duplicateStars.map((star) => star.id),
+          segments: duplicateSegments
+        }
+      ]
+    }));
+    setSelectedTarget({ kind: "custom-star", id: duplicateStars[0].id });
+  }
+
   function importPresetConstellation() {
     if (!presetConstellationName || !sceneState.data) {
       return;
@@ -1376,6 +1420,9 @@ export function App() {
                 </button>
                 <button type="button" className="focus-chip" onClick={addCustomConstellation}>
                   {dictionary.viewer.addConstellation}
+                </button>
+                <button type="button" className="focus-chip" onClick={duplicateActiveConstellation} disabled={activeCustomConstellationStars.length < 2}>
+                  {dictionary.viewer.duplicateConstellation}
                 </button>
               </div>
               <label className="stacked-field">
