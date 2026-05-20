@@ -565,20 +565,48 @@ export function App() {
       .slice(0, 10)
       .map((item) => item.name);
   }, [sceneState.data?.stars, viewMode]);
+  const importableConstellations = useMemo(() => {
+    const stars = sceneState.data?.stars || [];
+    if (!stars.length) {
+      return [];
+    }
+
+    const bucket = new Map();
+    stars.forEach((star) => {
+      if (!star.visible || star.constellation === "Unknown") {
+        return;
+      }
+      const current = bucket.get(star.constellation) || { count: 0, magnitude: 0, altitude: 0 };
+      bucket.set(star.constellation, {
+        count: current.count + 1,
+        magnitude: current.magnitude + star.magnitude,
+        altitude: current.altitude + star.altitude
+      });
+    });
+
+    return [...bucket.entries()]
+      .filter(([, value]) => value.count >= 2)
+      .map(([name, value]) => ({
+        name,
+        score: value.count * 2.6 + value.altitude / value.count / 18 - value.magnitude / value.count / 3.4
+      }))
+      .sort((left, right) => right.score - left.score)
+      .map((item) => item.name);
+  }, [sceneState.data?.stars]);
   const visibleFavoriteConstellations = useMemo(
     () => favoriteConstellations.filter((name) => visibleConstellations.includes(name)),
     [favoriteConstellations, visibleConstellations]
   );
 
   useEffect(() => {
-    if (!visibleConstellations.length) {
+    if (!importableConstellations.length) {
       setPresetConstellationName("");
       return;
     }
-    if (!presetConstellationName || !visibleConstellations.includes(presetConstellationName)) {
-      setPresetConstellationName(visibleConstellations[0]);
+    if (!presetConstellationName || !importableConstellations.includes(presetConstellationName)) {
+      setPresetConstellationName(importableConstellations[0]);
     }
-  }, [presetConstellationName, visibleConstellations]);
+  }, [importableConstellations, presetConstellationName]);
 
   useEffect(() => {
     if (focusedConstellation === "all") {
@@ -1441,10 +1469,10 @@ export function App() {
               <label className="stacked-field">
                 <span>{dictionary.viewer.presetConstellation}</span>
                 <select value={presetConstellationName} onChange={(event) => setPresetConstellationName(event.target.value)} disabled={visibleConstellations.length === 0}>
-                  {visibleConstellations.length === 0 ? (
+                  {importableConstellations.length === 0 ? (
                     <option value="">{dictionary.viewer.noPresetConstellations}</option>
                   ) : (
-                    visibleConstellations.map((name) => (
+                    importableConstellations.map((name) => (
                       <option key={name} value={name}>
                         {dictionary.constellations?.[name]?.[language] || name}
                       </option>
