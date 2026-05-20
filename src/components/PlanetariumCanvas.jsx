@@ -350,13 +350,13 @@ function SceneContents({
     const driftA = clock.elapsedTime * 0.085;
     const driftB = clock.elapsedTime * 0.052;
     const trackWeight = trackedCenter ? 1 : 0;
-    const targetTiltX = trackedCenter || projectionMode ? 0 : spaceMode ? Math.sin(driftB) * 0.018 : observerMode ? -0.03 - pointer.y * 0.008 : -pointer.y * 0.01;
-    const targetYawDrift = trackedCenter || projectionMode ? 0 : spaceMode ? Math.sin(driftA) * 0.022 : observerMode ? pointer.x * 0.008 : pointer.x * 0.018;
-    const baseCameraX = projectionMode ? 0 : spaceMode ? Math.sin(driftA) * 0.55 : observerMode ? pointer.x * 0.08 : pointer.x * 0.26;
-    const baseCameraY = projectionMode ? 0 : spaceMode ? Math.cos(driftB) * 0.32 : observerMode ? -2.8 + pointer.y * 0.08 : -0.15 + pointer.y * 0.08;
-    const targetCameraZ = projectionMode ? -0.65 : spaceMode ? -11.8 + Math.sin(driftA * 0.7) * 0.18 : observerMode ? 0.25 : -0.42;
-    const baseLookX = projectionMode ? 0 : spaceMode ? Math.sin(driftA * 0.8) * 2.2 : observerMode ? pointer.x * 0.42 : pointer.x * 1.45;
-    const baseLookY = projectionMode ? 0 : spaceMode ? Math.cos(driftB * 1.15) * 0.85 : observerMode ? 6.25 + pointer.y * 0.36 : 2.35 + pointer.y * 0.46;
+    const targetTiltX = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftB) * 0.018 : -pointer.y * 0.01;
+    const targetYawDrift = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftA) * 0.022 : pointer.x * 0.018;
+    const baseCameraX = projectionMode ? 0 : spaceMode ? Math.sin(driftA) * 0.55 : observerMode ? pointer.x * 0.18 : pointer.x * 0.26;
+    const baseCameraY = projectionMode ? 0 : spaceMode ? Math.cos(driftB) * 0.32 : observerMode ? pointer.y * 0.14 : -0.15 + pointer.y * 0.08;
+    const targetCameraZ = projectionMode ? -0.65 : spaceMode ? -11.8 + Math.sin(driftA * 0.7) * 0.18 : observerMode ? 0.3 : -0.42;
+    const baseLookX = projectionMode ? 0 : spaceMode ? Math.sin(driftA * 0.8) * 2.2 : observerMode ? pointer.x * 0.65 : pointer.x * 1.45;
+    const baseLookY = projectionMode ? 0 : spaceMode ? Math.cos(driftB * 1.15) * 0.85 : observerMode ? 9 + pointer.y * 0.55 : 2.35 + pointer.y * 0.46;
     const baseLookZ = projectionMode ? -13.5 : spaceMode ? 0 : observerMode ? 0 : -14.6;
     const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * 0.08 : baseCameraX, trackWeight);
     const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * (observerMode ? 0.02 : 0.035) : baseCameraY, trackWeight);
@@ -382,26 +382,33 @@ function SceneContents({
     lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, spaceMode ? 2.2 : observerMode ? 5.4 : 5.4, delta);
     lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, spaceMode ? 2.4 : observerMode ? 5.8 : 5.7, delta);
 
-    camera.position.x = cameraAnchor.current.x;
-    camera.position.y = cameraAnchor.current.y;
-    const baseDistance = trackedCenter
-      ? projectionMode
-        ? 15.6
-        : spaceMode
-          ? 18.8
-          : observerMode
-            ? 8.8
+    if (observerMode) {
+      const observerLift = trackedCenter ? THREE.MathUtils.lerp(10.6, 6.8, zoomLevel) : THREE.MathUtils.lerp(11.6, 7.6, zoomLevel);
+      camera.position.x = cameraAnchor.current.x;
+      camera.position.y = -observerLift + cameraAnchor.current.y;
+      camera.position.z = 0.85 + cameraAnchor.current.z * 0.16;
+    } else {
+      camera.position.x = cameraAnchor.current.x;
+      camera.position.y = cameraAnchor.current.y;
+      const baseDistance = trackedCenter
+        ? projectionMode
+          ? 15.6
+          : spaceMode
+            ? 18.8
             : 12.4
-      : projectionMode
-        ? 14.8
-        : spaceMode
-          ? 13.7
-          : observerMode
-            ? 5.8
+        : projectionMode
+          ? 14.8
+          : spaceMode
+            ? 13.7
             : 9.4;
-    const zoomMultiplier = THREE.MathUtils.lerp(1.45, 0.7, zoomLevel);
-    camera.position.z = baseDistance * zoomMultiplier + cameraAnchor.current.z;
-    const targetFov = projectionMode ? THREE.MathUtils.lerp(44, 26, zoomLevel) : THREE.MathUtils.lerp(58, 30, zoomLevel);
+      const zoomMultiplier = THREE.MathUtils.lerp(1.45, 0.7, zoomLevel);
+      camera.position.z = baseDistance * zoomMultiplier + cameraAnchor.current.z;
+    }
+    const targetFov = observerMode
+      ? THREE.MathUtils.lerp(74, 48, zoomLevel)
+      : projectionMode
+        ? THREE.MathUtils.lerp(44, 26, zoomLevel)
+        : THREE.MathUtils.lerp(58, 30, zoomLevel);
     camera.fov = THREE.MathUtils.damp(camera.fov, targetFov, 5.2, delta);
     camera.updateProjectionMatrix();
     camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
@@ -417,7 +424,8 @@ function SceneContents({
         <DeepSkyField viewMode={viewMode} atmosphereStrength={atmosphereStrength} />
         {viewMode === "space" ? <SpaceDepthField atmosphereStrength={atmosphereStrength} /> : null}
         <BackgroundStarField stars={projectedStars} focusedConstellation={focusedConstellation} starGlowStrength={starGlowStrength} />
-        {showGuides && !projectionMode ? <GuideGrid /> : null}
+        {showGuides && !projectionMode && !observerMode ? <GuideGrid /> : null}
+        {showGuides && observerMode ? <ObserverGuide dictionary={dictionary} language={language} /> : null}
         {showGuides && projectionMode ? <ProjectionGuide dictionary={dictionary} language={language} /> : null}
         {showGuides && !projectionMode ? <HorizonRing dictionary={dictionary} language={language} /> : null}
         {showConstellations ? <ConstellationLines lines={scene.lines} stars={projectedStars} focusedConstellation={focusedConstellation} viewMode={viewMode} /> : null}
@@ -1006,6 +1014,16 @@ function ProjectionGuide({ dictionary, language }) {
       <TextSprite text={dictionary.viewer.cardinals.east[language]} position={[12.35, 0, -13.3]} color="#ffcf70" scale={1.7} />
       <TextSprite text={dictionary.viewer.cardinals.south[language]} position={[0, -12.3, -13.3]} color="#ffcf70" scale={1.7} />
       <TextSprite text={dictionary.viewer.cardinals.west[language]} position={[-12.35, 0, -13.3]} color="#ffcf70" scale={1.7} />
+    </>
+  );
+}
+
+function ObserverGuide({ dictionary, language }) {
+  return (
+    <>
+      <GuideGrid />
+      <TextSprite text={language === "ko" ? "천정" : "Zenith"} position={[0, 12.8, 0]} color="#fff2b3" scale={1.9} />
+      <TextSprite text={language === "ko" ? "북쪽 하늘" : "North sky"} position={[0, 2.1, -10.9]} color="#9fd8ff" scale={1.5} />
     </>
   );
 }

@@ -221,6 +221,7 @@ export function App() {
   const ambientPreferenceRef = useRef(window.localStorage.getItem(AMBIENT_STORAGE_KEY) !== "off");
   const ambientRestartingRef = useRef(false);
   const ambientVolumeRef = useRef(getInitialAmbientVolume());
+  const ambientWatchdogRef = useRef({ frame: 0, until: 0, lastAttempt: 0 });
   const [currentPage, setCurrentPage] = useState("watch");
   const [language, setLanguage] = useState(getInitialLanguage);
   const [observer, setObserver] = useState(defaultObserver);
@@ -276,6 +277,9 @@ export function App() {
   useEffect(
     () => {
       return () => {
+        if (ambientWatchdogRef.current.frame) {
+          window.cancelAnimationFrame(ambientWatchdogRef.current.frame);
+        }
         ambientSoundRef.current?.stop();
         ambientSoundRef.current = null;
       };
@@ -292,6 +296,7 @@ export function App() {
       if (!ambientPreferenceRef.current) {
         return;
       }
+      kickAmbientWatchdog(12000);
       ensureAmbientSound().catch(() => {});
     };
     const retryWhenVisible = () => {
@@ -314,8 +319,10 @@ export function App() {
     }, 3500);
 
     retryAmbient();
+    window.addEventListener("load", retryAmbient);
     window.addEventListener("pointerdown", retryAmbient, { passive: true });
     window.addEventListener("click", retryAmbient, { passive: true });
+    window.addEventListener("mousemove", retryAmbient, { passive: true });
     window.addEventListener("keydown", retryAmbient);
     window.addEventListener("touchstart", retryAmbient, { passive: true });
     window.addEventListener("focus", retryAmbient);
@@ -325,8 +332,10 @@ export function App() {
 
     return () => {
       window.clearInterval(interval);
+      window.removeEventListener("load", retryAmbient);
       window.removeEventListener("pointerdown", retryAmbient);
       window.removeEventListener("click", retryAmbient);
+      window.removeEventListener("mousemove", retryAmbient);
       window.removeEventListener("keydown", retryAmbient);
       window.removeEventListener("touchstart", retryAmbient);
       window.removeEventListener("focus", retryAmbient);
@@ -833,6 +842,10 @@ export function App() {
   }
 
   function stopAmbientSound({ remember = true } = {}) {
+    if (ambientWatchdogRef.current.frame) {
+      window.cancelAnimationFrame(ambientWatchdogRef.current.frame);
+      ambientWatchdogRef.current.frame = 0;
+    }
     if (ambientSoundRef.current) {
       ambientSoundRef.current.stop();
       ambientSoundRef.current = null;
@@ -845,6 +858,50 @@ export function App() {
     }
   }
 
+  function kickAmbientWatchdog(durationMs = 12000) {
+    if (!ambientPreferenceRef.current) {
+      return;
+    }
+
+    const now = performance.now();
+    ambientWatchdogRef.current.until = Math.max(ambientWatchdogRef.current.until, now + durationMs);
+
+    if (ambientWatchdogRef.current.frame) {
+      return;
+    }
+
+    const tick = async (timestamp) => {
+      if (!ambientPreferenceRef.current) {
+        ambientWatchdogRef.current.frame = 0;
+        return;
+      }
+
+      if (timestamp > ambientWatchdogRef.current.until) {
+        ambientWatchdogRef.current.frame = 0;
+        return;
+      }
+
+      const soundscape = ambientSoundRef.current;
+      const isRunning = soundscape?.context?.state === "running";
+
+      if (!isRunning && timestamp - ambientWatchdogRef.current.lastAttempt > 700) {
+        ambientWatchdogRef.current.lastAttempt = timestamp;
+        try {
+          await ensureAmbientSound();
+        } catch {
+          // Keep retrying until the watchdog window ends.
+        }
+      } else if (isRunning) {
+        soundscape.setVolume(ambientVolumeRef.current);
+        setAmbientEnabled(true);
+      }
+
+      ambientWatchdogRef.current.frame = window.requestAnimationFrame(tick);
+    };
+
+    ambientWatchdogRef.current.frame = window.requestAnimationFrame(tick);
+  }
+
   async function ensureAmbientSound() {
     if (!ambientPreferenceRef.current || ambientRestartingRef.current) {
       return false;
@@ -853,6 +910,7 @@ export function App() {
     if (ambientSoundRef.current?.context?.state === "running") {
       ambientSoundRef.current.setVolume(ambientVolumeRef.current);
       setAmbientEnabled(true);
+      kickAmbientWatchdog(4000);
       return true;
     }
 
@@ -899,6 +957,7 @@ export function App() {
         setAmbientEnabled(false);
       }
       if (ambientPreferenceRef.current && soundscape.context.state !== "closed") {
+        kickAmbientWatchdog(12000);
         window.setTimeout(() => {
           ensureAmbientSound().catch(() => {});
         }, 180);
@@ -912,6 +971,7 @@ export function App() {
       soundscape.setVolume(ambientVolumeRef.current);
       setAmbientEnabled(true);
       window.localStorage.setItem(AMBIENT_STORAGE_KEY, "on");
+      kickAmbientWatchdog(6000);
       return true;
     } catch (error) {
       console.warn("Ambient audio is waiting for a user gesture:", error);
