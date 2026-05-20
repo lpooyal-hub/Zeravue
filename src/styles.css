@@ -500,6 +500,30 @@ input[type="range"] {
   color: #e2fffb;
 }
 
+.overlay-ambient-status {
+  display: grid;
+  gap: 4px;
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid rgba(173, 211, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(5, 9, 16, 0.68);
+  color: #b9c8dc;
+  backdrop-filter: blur(10px);
+}
+
+.overlay-ambient-status strong {
+  color: #e6f0ff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.overlay-ambient-status span {
+  color: #8fa0b8;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
 .overlay-volume {
   display: flex;
   align-items: center;

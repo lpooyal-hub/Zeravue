@@ -53,7 +53,7 @@ Finish the night-sky theme to a level where it feels polished, consistent, and r
 ### Stage 4: Ambience
 
 - [ ] replace fragile autoplay expectations with a dependable first-interaction start flow
-- [ ] clarify playback state in the interface
+- [x] clarify playback state in the interface
 - [ ] decide whether Web Audio stays or a looped audio asset replaces it
 
 ### Stage 5: Final Theme Polish

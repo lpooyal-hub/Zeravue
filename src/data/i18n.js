@@ -189,7 +189,10 @@ export const translations = {
         on: "Ambient on",
         off: "Ambient off",
         volume: "Ambient volume",
-        volumeShort: "Volume"
+        volumeShort: "Volume",
+        waiting: "Ambient waiting",
+        running: "Ambient playing",
+        hint: "Click, scroll, or tap inside the scene to start the sound."
       },
       zoom: "Zoom",
       zoomIn: "Zoom in",
@@ -478,7 +481,10 @@ export const translations = {
         on: "앰비언트 켜기",
         off: "앰비언트 끄기",
         volume: "앰비언트 볼륨",
-        volumeShort: "볼륨"
+        volumeShort: "볼륨",
+        waiting: "앰비언트 대기 중",
+        running: "앰비언트 재생 중",
+        hint: "장면 안에서 클릭하거나 스크롤하면 사운드가 시작됩니다."
       },
       zoom: "줌",
       zoomIn: "줌인",

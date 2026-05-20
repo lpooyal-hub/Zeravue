@@ -535,6 +535,7 @@ export function App() {
     (activeConstellationKey && dictionary.viewer.constellationMoods?.[activeConstellationKey]?.[language]) || dictionary.viewer.constellationFallback;
   const activeConstellationIsFavorite = Boolean(activeConstellationKey && favoriteConstellations.includes(activeConstellationKey));
   const sketchViewDescription = dictionary.viewer.viewModeDescriptions[viewMode];
+  const ambientStatusLabel = ambientEnabled ? dictionary.viewer.ambient.running : dictionary.viewer.ambient.waiting;
   const observerMomentLabel = useMemo(() => {
     const date = new Date(observedAt);
     if (Number.isNaN(date.getTime())) {
@@ -1890,6 +1891,12 @@ export function App() {
             </div>
           ) : null}
           <div className="viewer-overlay">
+            {!ambientEnabled ? (
+              <div className="overlay-ambient-status">
+                <strong>{ambientStatusLabel}</strong>
+                <span>{dictionary.viewer.ambient.hint}</span>
+              </div>
+            ) : null}
             <label className="overlay-volume">
               <span>{dictionary.viewer.ambient.volumeShort}</span>
               <input
