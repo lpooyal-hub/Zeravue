@@ -345,22 +345,22 @@ function SceneContents({
     const driftA = clock.elapsedTime * 0.085;
     const driftB = clock.elapsedTime * 0.052;
     const trackWeight = trackedCenter ? 1 : 0;
-    const targetTiltX = spaceMode ? Math.sin(driftB) * 0.018 : observerMode ? -0.12 - pointer.y * 0.028 : -pointer.y * 0.01;
-    const targetYawDrift = spaceMode ? Math.sin(driftA) * 0.022 : observerMode ? pointer.x * 0.03 : pointer.x * 0.018;
+    const targetTiltX = trackedCenter ? 0 : spaceMode ? Math.sin(driftB) * 0.018 : observerMode ? -0.12 - pointer.y * 0.028 : -pointer.y * 0.01;
+    const targetYawDrift = trackedCenter ? 0 : spaceMode ? Math.sin(driftA) * 0.022 : observerMode ? pointer.x * 0.03 : pointer.x * 0.018;
     const baseCameraX = spaceMode ? Math.sin(driftA) * 0.55 : observerMode ? pointer.x * 0.18 : pointer.x * 0.26;
     const baseCameraY = spaceMode ? Math.cos(driftB) * 0.32 : observerMode ? -1.1 + pointer.y * 0.18 : -0.15 + pointer.y * 0.08;
     const targetCameraZ = spaceMode ? -11.8 + Math.sin(driftA * 0.7) * 0.18 : observerMode ? -0.65 : -0.42;
     const baseLookX = spaceMode ? Math.sin(driftA * 0.8) * 2.2 : observerMode ? pointer.x * 0.9 : pointer.x * 1.45;
     const baseLookY = spaceMode ? Math.cos(driftB * 1.15) * 0.85 : observerMode ? 1.8 + pointer.y * 0.75 : 2.35 + pointer.y * 0.46;
     const baseLookZ = spaceMode ? 0 : observerMode ? -13.4 : -14.6;
-    const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * 0.12 : baseCameraX, trackWeight);
-    const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * 0.05 : baseCameraY, trackWeight);
+    const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * 0.08 : baseCameraX, trackWeight);
+    const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * 0.035 : baseCameraY, trackWeight);
     const targetLookX = THREE.MathUtils.lerp(baseLookX, trackedCenter ? trackedCenter.x : baseLookX, trackWeight);
-    const targetLookY = THREE.MathUtils.lerp(baseLookY, trackedCenter ? trackedCenter.y + (spaceMode ? 0.4 : 0.7) : baseLookY, trackWeight);
+    const targetLookY = THREE.MathUtils.lerp(baseLookY, trackedCenter ? trackedCenter.y + (spaceMode ? 0.3 : 0.55) : baseLookY, trackWeight);
     const targetLookZ = THREE.MathUtils.lerp(baseLookZ, trackedCenter ? trackedCenter.z : baseLookZ, trackWeight);
 
     if (groupRef.current) {
-      if (autoRotate) {
+      if (autoRotate && !trackedCenter) {
         groupRef.current.rotation.y += delta * (spaceMode ? 0.013 : observerMode ? 0.011 : 0.008);
       }
       rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, spaceMode ? 2.1 : observerMode ? 4.2 : 5.4, delta);
@@ -379,10 +379,11 @@ function SceneContents({
 
     camera.position.x = cameraAnchor.current.x;
     camera.position.y = cameraAnchor.current.y;
-    const baseDistance = spaceMode ? 13.7 : observerMode ? 7.2 : 9.4;
-    const zoomMultiplier = THREE.MathUtils.lerp(1.34, 0.76, zoomLevel);
-    const trackingOffset = trackedCenter ? (spaceMode ? 2.8 : observerMode ? 2.1 : 1.8) : 0;
-    camera.position.z = baseDistance * zoomMultiplier + cameraAnchor.current.z + trackingOffset;
+    const baseDistance = trackedCenter ? (spaceMode ? 18.8 : observerMode ? 10.4 : 12.4) : spaceMode ? 13.7 : observerMode ? 7.2 : 9.4;
+    const zoomMultiplier = THREE.MathUtils.lerp(1.45, 0.7, zoomLevel);
+    camera.position.z = baseDistance * zoomMultiplier + cameraAnchor.current.z;
+    camera.fov = THREE.MathUtils.damp(camera.fov, THREE.MathUtils.lerp(58, 30, zoomLevel), 5.2, delta);
+    camera.updateProjectionMatrix();
     camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
   });
 

@@ -1429,29 +1429,29 @@ export function App() {
                 />
                 <span>{dictionary.viewer.trackConstellation}</span>
               </label>
+              <label className="overlay-zoom">
+                <span>{dictionary.viewer.zoom}</span>
+                <div className="overlay-zoom-controls">
+                  <button type="button" className="overlay-button" onClick={() => changeZoom(-0.1)}>
+                    {dictionary.viewer.zoomOut}
+                  </button>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={zoomLevel}
+                    aria-label={dictionary.viewer.zoom}
+                    onChange={(event) => setZoomLevel(Number(event.target.value))}
+                  />
+                  <button type="button" className="overlay-button" onClick={() => changeZoom(0.1)}>
+                    {dictionary.viewer.zoomIn}
+                  </button>
+                </div>
+              </label>
             </div>
           ) : null}
           <div className="viewer-overlay">
-            <label className="overlay-zoom">
-              <span>{dictionary.viewer.zoom}</span>
-              <div className="overlay-zoom-controls">
-                <button type="button" className="overlay-button" onClick={() => changeZoom(-0.1)}>
-                  {dictionary.viewer.zoomOut}
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={zoomLevel}
-                  aria-label={dictionary.viewer.zoom}
-                  onChange={(event) => setZoomLevel(Number(event.target.value))}
-                />
-                <button type="button" className="overlay-button" onClick={() => changeZoom(0.1)}>
-                  {dictionary.viewer.zoomIn}
-                </button>
-              </div>
-            </label>
             <label className="overlay-volume">
               <span>{dictionary.viewer.ambient.volumeShort}</span>
               <input
