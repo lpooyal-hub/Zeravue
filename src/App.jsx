@@ -4,6 +4,7 @@ import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
 import { config } from "./config.js";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { useAmbientAudio } from "./hooks/useAmbientAudio.js";
+import { useNightSkyAmbientTrack } from "./hooks/useNightSkyAmbientTrack.js";
 
 const SKETCH_STORAGE_KEY = "planetarium-custom-space-scenes";
 const FAVORITE_CONSTELLATIONS_STORAGE_KEY = "planetarium-favorite-constellations";
@@ -108,8 +109,9 @@ export function App() {
   const [customSpace, setCustomSpace] = useState(() => createBlankSpaceScene());
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [favoriteConstellations, setFavoriteConstellations] = useState(getInitialFavoriteConstellations);
+  const { ambientTrackUrl, ambientTrackPending, ambientTrackError } = useNightSkyAmbientTrack(config.ambientTrackUrl);
   const { ambientEnabled, ambientVolume, setAmbientVolume, ambientStatus, toggleAmbientSound, wakeAmbient } = useAmbientAudio({
-    trackUrl: config.ambientTrackUrl,
+    trackUrl: ambientTrackUrl,
     isReady: sceneState.status === "ready"
   });
   const dictionary = translations[language];
@@ -275,13 +277,20 @@ export function App() {
     (activeConstellationKey && dictionary.viewer.constellationMoods?.[activeConstellationKey]?.[language]) || dictionary.viewer.constellationFallback;
   const activeConstellationIsFavorite = Boolean(activeConstellationKey && favoriteConstellations.includes(activeConstellationKey));
   const sketchViewDescription = dictionary.viewer.viewModeDescriptions[viewMode];
-  const ambientStatusLabel = dictionary.viewer.ambient[ambientStatus] || dictionary.viewer.ambient.waiting;
-  const ambientStatusHint =
-    ambientStatus === "missing"
-      ? dictionary.viewer.ambient.missingHint
-      : ambientStatus === "error"
-        ? dictionary.viewer.ambient.errorHint
-        : dictionary.viewer.ambient.hint;
+  const ambientStatusLabel = ambientTrackPending
+    ? dictionary.viewer.ambient.preparing
+    : ambientTrackError
+      ? dictionary.viewer.ambient.error
+      : dictionary.viewer.ambient[ambientStatus] || dictionary.viewer.ambient.waiting;
+  const ambientStatusHint = ambientTrackPending
+    ? dictionary.viewer.ambient.preparingHint
+    : ambientTrackError
+      ? ambientTrackError
+      : ambientStatus === "missing"
+        ? dictionary.viewer.ambient.missingHint
+        : ambientStatus === "error"
+          ? dictionary.viewer.ambient.errorHint
+          : dictionary.viewer.ambient.hint;
   const observerMomentLabel = useMemo(() => {
     const date = new Date(observedAt);
     if (Number.isNaN(date.getTime())) {
@@ -1475,7 +1484,7 @@ export function App() {
             </div>
           ) : null}
           <div className="viewer-overlay">
-            {ambientEnabled && ambientStatus !== "playing" ? (
+            {(ambientTrackPending || ambientTrackError || (ambientEnabled && ambientStatus !== "playing")) ? (
               <div className="overlay-ambient-status">
                 <strong>{ambientStatusLabel}</strong>
                 <span>{ambientStatusHint}</span>
