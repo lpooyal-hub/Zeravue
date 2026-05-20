@@ -111,10 +111,8 @@ function CreativeSpaceContents({
   customSpace,
   selectedTarget,
   onSelectTarget,
-  autoRotate,
   showGuides,
   showLabels,
-  viewMode,
   zoomLevel,
   language,
   dictionary,
@@ -124,11 +122,7 @@ function CreativeSpaceContents({
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
   const lookAnchor = useRef({ x: 0, y: 0, z: -11.8 });
-  const rotationAnchor = useRef({ x: 0, y: 0 });
-  const { camera, pointer } = useThree();
-  const spaceMode = viewMode === "space";
-  const observerMode = viewMode === "observer";
-  const projectionMode = viewMode === "projection";
+  const { camera } = useThree();
   const labelData = useMemo(() => {
     if (!showLabels) {
       return [];
@@ -177,38 +171,31 @@ function CreativeSpaceContents({
   }, [customSpace, showLabels]);
 
   useFrame((_, delta) => {
-    const targetTiltX = projectionMode ? 0 : spaceMode ? Math.sin(performance.now() * 0.00022) * 0.026 : observerMode ? -pointer.y * 0.034 : -pointer.y * 0.018;
-    const targetYawDrift = projectionMode ? 0 : spaceMode ? Math.cos(performance.now() * 0.00016) * 0.03 : observerMode ? pointer.x * 0.05 : pointer.x * 0.024;
-    const targetCameraX = projectionMode ? 0 : spaceMode ? Math.sin(performance.now() * 0.00011) * 1.25 : observerMode ? pointer.x * 0.42 : pointer.x * 1.05;
-    const targetCameraY = projectionMode ? 0 : spaceMode ? Math.cos(performance.now() * 0.00017) * 0.58 : observerMode ? 0.48 + pointer.y * 0.28 : pointer.y * 0.48;
-    const targetCameraZ = projectionMode ? -0.6 : spaceMode ? -1.15 : observerMode ? -0.2 : 0;
-    const targetLookX = projectionMode ? 0 : spaceMode ? Math.sin(performance.now() * 0.00014) * 4.8 : observerMode ? pointer.x * 1.6 : pointer.x * 4.2;
-    const targetLookY = projectionMode ? 0 : spaceMode ? Math.cos(performance.now() * 0.00013) * 1.25 : observerMode ? 2.1 + pointer.y * 1.1 : pointer.y * 1.55;
-    const targetLookZ = projectionMode ? -13.5 : spaceMode ? -12.6 : observerMode ? -13 : -12.2;
+    const targetCameraX = 0;
+    const targetCameraY = 0.2;
+    const targetCameraZ = -0.05;
+    const targetLookX = 0;
+    const targetLookY = 0.45;
+    const targetLookZ = -12.2;
 
     if (groupRef.current) {
-      if (autoRotate && !projectionMode) {
-        groupRef.current.rotation.y += delta * (spaceMode ? 0.012 : observerMode ? 0.009 : 0.0045);
-      }
-      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, spaceMode ? 2.2 : 3.8, delta);
-      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, spaceMode ? 2 : 3.4, delta);
-      groupRef.current.rotation.x = rotationAnchor.current.x;
-      groupRef.current.rotation.y += rotationAnchor.current.y * delta;
+      groupRef.current.rotation.x = THREE.MathUtils.damp(groupRef.current.rotation.x, 0, 6.2, delta);
+      groupRef.current.rotation.y = THREE.MathUtils.damp(groupRef.current.rotation.y, 0, 6.2, delta);
     }
 
-    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, spaceMode ? 2.4 : 3.9, delta);
-    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, spaceMode ? 2.4 : 3.9, delta);
-    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, spaceMode ? 2.6 : 4.2, delta);
-    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, 4.1, delta);
-    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, 4.1, delta);
-    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, 4.2, delta);
+    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, 6.2, delta);
+    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, 6.2, delta);
+    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, 6.6, delta);
+    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, 6.2, delta);
+    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, 6.2, delta);
+    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, 6.6, delta);
 
     camera.position.x = cameraAnchor.current.x;
     camera.position.y = cameraAnchor.current.y;
-    const baseDistance = projectionMode ? 16.2 : spaceMode ? 15.1 : observerMode ? 16.8 : 14.4;
-    const zoomMultiplier = THREE.MathUtils.lerp(1.28, 0.72, zoomLevel);
+    const baseDistance = 15.2;
+    const zoomMultiplier = THREE.MathUtils.lerp(1.12, 0.78, zoomLevel);
     camera.position.z = baseDistance * zoomMultiplier + cameraAnchor.current.z;
-    camera.fov = THREE.MathUtils.damp(camera.fov, projectionMode ? 34 : 48, 4.4, delta);
+    camera.fov = THREE.MathUtils.damp(camera.fov, 42, 5.2, delta);
     camera.updateProjectionMatrix();
     camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
   });
@@ -218,12 +205,11 @@ function CreativeSpaceContents({
       <ambientLight intensity={0.42} />
       <pointLight position={[0, 5, 12]} intensity={0.7} color="#b8d2ff" />
       <group ref={groupRef}>
-        <MilkyWayBand viewMode={viewMode} />
-        <DeepSkyField viewMode={viewMode} />
-        {spaceMode ? <SpaceDepthField /> : null}
-        {showGuides ? <GuideGrid /> : null}
-        {showGuides && projectionMode ? <ProjectionGuide dictionary={dictionary} language={language} /> : null}
-        {showGuides && !spaceMode && !projectionMode ? <HorizonRing dictionary={dictionary} language={language} /> : null}
+        <MilkyWayBand viewMode="panorama" />
+        <DeepSkyField viewMode="panorama" atmosphereStrength={0.48} />
+        <SpaceDepthField atmosphereStrength={0.36} />
+        <CreativeCanvasPlane />
+        {showGuides ? <CreativeCanvasGuides /> : null}
         <CreativePlacementPlane creativeTool={creativeTool} onCreativeSpaceClick={onCreativeSpaceClick} />
         <CreativeConstellationLines customSpace={customSpace} />
         {customSpace?.stars.map((star) => (
@@ -246,6 +232,53 @@ function CreativeSpaceContents({
           <TextSprite key={label.id} {...label} />
         ))}
       </group>
+    </>
+  );
+}
+
+function CreativeCanvasPlane() {
+  return (
+    <mesh position={[0, 0, -12.24]}>
+      <planeGeometry args={[42, 26]} />
+      <meshBasicMaterial color="#020611" transparent opacity={0.42} depthWrite={false} />
+    </mesh>
+  );
+}
+
+function CreativeCanvasGuides() {
+  const frame = useMemo(() => {
+    const points = [
+      -21, -13, -12.18, 21, -13, -12.18,
+      21, -13, -12.18, 21, 13, -12.18,
+      21, 13, -12.18, -21, 13, -12.18,
+      -21, 13, -12.18, -21, -13, -12.18
+    ];
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+    return geometry;
+  }, []);
+
+  const grid = useMemo(() => {
+    const points = [];
+    for (let x = -18; x <= 18; x += 6) {
+      points.push(x, -13, -12.19, x, 13, -12.19);
+    }
+    for (let y = -10; y <= 10; y += 5) {
+      points.push(-21, y, -12.19, 21, y, -12.19);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+    return geometry;
+  }, []);
+
+  return (
+    <>
+      <lineSegments geometry={grid}>
+        <lineBasicMaterial color="#5d7599" transparent opacity={0.16} />
+      </lineSegments>
+      <lineSegments geometry={frame}>
+        <lineBasicMaterial color="#8eaed8" transparent opacity={0.28} />
+      </lineSegments>
     </>
   );
 }

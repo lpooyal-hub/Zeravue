@@ -565,20 +565,48 @@ export function App() {
       .slice(0, 10)
       .map((item) => item.name);
   }, [sceneState.data?.stars, viewMode]);
+  const importableConstellations = useMemo(() => {
+    const stars = sceneState.data?.stars || [];
+    if (!stars.length) {
+      return [];
+    }
+
+    const bucket = new Map();
+    stars.forEach((star) => {
+      if (!star.visible || star.constellation === "Unknown") {
+        return;
+      }
+      const current = bucket.get(star.constellation) || { count: 0, magnitude: 0, altitude: 0 };
+      bucket.set(star.constellation, {
+        count: current.count + 1,
+        magnitude: current.magnitude + star.magnitude,
+        altitude: current.altitude + star.altitude
+      });
+    });
+
+    return [...bucket.entries()]
+      .filter(([, value]) => value.count >= 2)
+      .map(([name, value]) => ({
+        name,
+        score: value.count * 2.6 + value.altitude / value.count / 18 - value.magnitude / value.count / 3.4
+      }))
+      .sort((left, right) => right.score - left.score)
+      .map((item) => item.name);
+  }, [sceneState.data?.stars]);
   const visibleFavoriteConstellations = useMemo(
     () => favoriteConstellations.filter((name) => visibleConstellations.includes(name)),
     [favoriteConstellations, visibleConstellations]
   );
 
   useEffect(() => {
-    if (!visibleConstellations.length) {
+    if (!importableConstellations.length) {
       setPresetConstellationName("");
       return;
     }
-    if (!presetConstellationName || !visibleConstellations.includes(presetConstellationName)) {
-      setPresetConstellationName(visibleConstellations[0]);
+    if (!presetConstellationName || !importableConstellations.includes(presetConstellationName)) {
+      setPresetConstellationName(importableConstellations[0]);
     }
-  }, [presetConstellationName, visibleConstellations]);
+  }, [importableConstellations, presetConstellationName]);
 
   useEffect(() => {
     if (focusedConstellation === "all") {
@@ -776,6 +804,50 @@ export function App() {
         y: clampCoordinate(activeConstellationCenter.y + offsetX * sine + offsetY * cosine)
       };
     });
+  }
+
+  function duplicateActiveConstellation() {
+    const sourceConstellation = activeCustomConstellation;
+    if (!sourceConstellation || activeCustomConstellationStars.length < 2) {
+      return;
+    }
+
+    const nextConstellationId = `constellation-${Date.now()}`;
+    const starIdMap = new Map();
+    const duplicateStars = activeCustomConstellationStars.map((star, index) => {
+      const nextStarId = `star-${Date.now()}-${index}`;
+      starIdMap.set(star.id, nextStarId);
+      return {
+        ...star,
+        id: nextStarId,
+        name: `${star.name}`,
+        x: clampCoordinate(star.x + 1.4),
+        y: clampCoordinate(star.y - 0.9),
+        constellationId: nextConstellationId
+      };
+    });
+
+    const duplicateSegments = (sourceConstellation.segments || [])
+      .map((segment) => [starIdMap.get(segment[0]), starIdMap.get(segment[1])])
+      .filter((segment) => segment[0] && segment[1]);
+
+    setCustomSpace((current) => ({
+      ...current,
+      activeConstellationId: nextConstellationId,
+      stars: [...current.stars, ...duplicateStars],
+      constellations: [
+        ...current.constellations,
+        {
+          ...sourceConstellation,
+          id: nextConstellationId,
+          name: language === "ko" ? `${sourceConstellation.name} 복사본` : `${sourceConstellation.name} Copy`,
+          color: sourceConstellation.color,
+          starIds: duplicateStars.map((star) => star.id),
+          segments: duplicateSegments
+        }
+      ]
+    }));
+    setSelectedTarget({ kind: "custom-star", id: duplicateStars[0].id });
   }
 
   function importPresetConstellation() {
@@ -1374,8 +1446,18 @@ export function App() {
                 <button type="button" className={`focus-chip ${creativeTool === "delete" ? "is-active" : ""}`} onClick={() => setCreativeTool("delete")}>
                   {dictionary.viewer.deleteTool}
                 </button>
-                <button type="button" className="focus-chip" onClick={addCustomConstellation}>
+                <button
+                  type="button"
+                  className="focus-chip"
+                  onClick={() => {
+                    addCustomConstellation();
+                    setCreativeTool("star");
+                  }}
+                >
                   {dictionary.viewer.addConstellation}
+                </button>
+                <button type="button" className="focus-chip" onClick={duplicateActiveConstellation} disabled={activeCustomConstellationStars.length < 2}>
+                  {dictionary.viewer.duplicateConstellation}
                 </button>
               </div>
               <label className="stacked-field">
@@ -1394,10 +1476,10 @@ export function App() {
               <label className="stacked-field">
                 <span>{dictionary.viewer.presetConstellation}</span>
                 <select value={presetConstellationName} onChange={(event) => setPresetConstellationName(event.target.value)} disabled={visibleConstellations.length === 0}>
-                  {visibleConstellations.length === 0 ? (
+                  {importableConstellations.length === 0 ? (
                     <option value="">{dictionary.viewer.noPresetConstellations}</option>
                   ) : (
-                    visibleConstellations.map((name) => (
+                    importableConstellations.map((name) => (
                       <option key={name} value={name}>
                         {dictionary.constellations?.[name]?.[language] || name}
                       </option>
