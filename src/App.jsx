@@ -1268,6 +1268,18 @@ export function App() {
                   />
                   <span>{dictionary.viewer.trackConstellation}</span>
                 </label>
+                {focusedConstellation !== "all" ? (
+                  <button
+                    type="button"
+                    className="focus-chip"
+                    onClick={() => {
+                      setFocusedConstellation("all");
+                      setTrackConstellation(false);
+                    }}
+                  >
+                    {language === "ko" ? "선택 해제" : "Clear selection"}
+                  </button>
+                ) : null}
                 <div className="constellation-list focus-list">
                   <button
                     type="button"
@@ -1632,6 +1644,18 @@ export function App() {
                 />
                 <span>{dictionary.viewer.trackConstellation}</span>
               </label>
+              {focusedConstellation !== "all" ? (
+                <button
+                  type="button"
+                  className="overlay-button"
+                  onClick={() => {
+                    setFocusedConstellation("all");
+                    setTrackConstellation(false);
+                  }}
+                >
+                  {language === "ko" ? "선택 해제" : "Clear selection"}
+                </button>
+              ) : null}
               <label className="overlay-zoom">
                 <span>{dictionary.viewer.zoom}</span>
                 <div className="overlay-zoom-controls">
