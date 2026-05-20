@@ -932,6 +932,33 @@ export function App() {
     }));
   }
 
+  function updateActiveConstellationColor(color) {
+    setCustomSpace((current) => ({
+      ...current,
+      constellations: current.constellations.map((constellation) =>
+        constellation.id === current.activeConstellationId ? { ...constellation, color } : constellation
+      )
+    }));
+  }
+
+  function removeActiveConstellation() {
+    const constellationId = customSpace.activeConstellationId || customSpace.constellations[0]?.id;
+    if (!constellationId || customSpace.constellations.length <= 1) {
+      return;
+    }
+
+    setCustomSpace((current) => {
+      const nextConstellations = current.constellations.filter((constellation) => constellation.id !== constellationId);
+      return {
+        ...current,
+        activeConstellationId: nextConstellations[0]?.id || "",
+        stars: current.stars.filter((star) => star.constellationId !== constellationId),
+        constellations: nextConstellations
+      };
+    });
+    setSelectedTarget(null);
+  }
+
   function addCustomObject(point) {
     if (currentPage !== "sketch") {
       return;
@@ -1600,6 +1627,32 @@ export function App() {
                   onChange={(event) => updateActiveConstellationName(event.target.value)}
                 />
               </label>
+              <label className="stacked-field">
+                <span>{dictionary.viewer.constellationColor}</span>
+                <input
+                  type="color"
+                  value={activeCustomConstellation?.color || "#ffcf70"}
+                  onChange={(event) => updateActiveConstellationColor(event.target.value)}
+                />
+              </label>
+              <dl className="summary-list compact">
+                <div>
+                  <dt>{dictionary.viewer.activeConstellation}</dt>
+                  <dd>{activeCustomConstellation?.name || "--"}</dd>
+                </div>
+                <div>
+                  <dt>{dictionary.viewer.customStars}</dt>
+                  <dd>{activeCustomConstellationStars.length}</dd>
+                </div>
+              </dl>
+              <button
+                type="button"
+                className="focus-chip"
+                onClick={removeActiveConstellation}
+                disabled={customSpace.constellations.length <= 1}
+              >
+                {dictionary.viewer.removeConstellation}
+              </button>
               <label className="stacked-field">
                 <span>{dictionary.viewer.planetStyle}</span>
                 <select value={planetPreset} onChange={(event) => setPlanetPreset(event.target.value)} disabled={creativeTool !== "planet"}>
