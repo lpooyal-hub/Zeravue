@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
-import { ConstellationFocusSection } from "./components/ConstellationFocusSection.jsx";
 import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
+import { SketchControlsPanel, SketchLibraryPanel } from "./components/SketchPanel.jsx";
 import { ViewerAmbientOverlay, ViewerFocusOverlay } from "./components/ViewerOverlays.jsx";
+import { WatchControlsPanel, WatchInspectorPanel } from "./components/WatchPanels.jsx";
 import { config } from "./config.js";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { useAmbientAudio } from "./hooks/useAmbientAudio.js";
@@ -810,440 +811,110 @@ export function App() {
 
       <div className="workspace">
         <aside className="control-panel">
-          <section>
-            <p className="eyebrow">{currentPage === "watch" ? dictionary.viewer.controls : dictionary.viewer.sketchControls}</p>
-            {currentPage === "watch" ? (
-              <>
-                <label className="stacked-field">
-                  <span>{dictionary.viewer.observedAt}</span>
-                  <input type="datetime-local" value={observedAt} onChange={(event) => setObservedAt(event.target.value)} />
-                </label>
-                <div className="time-jump-row">
-                  <button type="button" className="focus-chip" onClick={() => shiftTime(-3)}>
-                    {dictionary.viewer.timeJump.back}
-                  </button>
-                  <button type="button" className="focus-chip" onClick={() => setObservedAt((current) => setTonightTimestamp(current))}>
-                    {dictionary.viewer.timeJump.tonight}
-                  </button>
-                  <button type="button" className="focus-chip" onClick={() => shiftTime(3)}>
-                    {dictionary.viewer.timeJump.forward}
-                  </button>
-                </div>
-                {viewMode === "observer" ? (
-                  <>
-                    <div className="observer-moment-card">
-                      <strong>{language === "ko" ? "현재 관측 시각" : "Observer time"}</strong>
-                      <span>{observerMomentLabel}</span>
-                      <small>{language === "ko" ? "시간을 바꾸면 지평선 위 별자리 위치가 함께 이동합니다." : "Changing the time shifts where constellations sit above the horizon."}</small>
-                    </div>
-                    <div className="constellation-list focus-list">
-                      <button type="button" className="focus-chip" onClick={() => setObservedAt((current) => setObserverHourTimestamp(current, 21))}>
-                        {language === "ko" ? "초저녁 21:00" : "9 PM"}
-                      </button>
-                      <button type="button" className="focus-chip" onClick={() => setObservedAt((current) => setObserverHourTimestamp(current, 0))}>
-                        {language === "ko" ? "한밤중 00:00" : "12 AM"}
-                      </button>
-                      <button type="button" className="focus-chip" onClick={() => setObservedAt((current) => setObserverHourTimestamp(current, 3))}>
-                        {language === "ko" ? "새벽 03:00" : "3 AM"}
-                      </button>
-                    </div>
-                  </>
-                ) : null}
-                <div className="field-grid">
-                  <label>
-                    <span>{dictionary.viewer.latitude}</span>
-                    <input
-                      type="number"
-                      min="-90"
-                      max="90"
-                      step="0.01"
-                      value={observer.latitude}
-                      onChange={(event) => updateObserver("latitude", event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    <span>{dictionary.viewer.longitude}</span>
-                    <input
-                      type="number"
-                      min="-180"
-                      max="180"
-                      step="0.01"
-                      value={observer.longitude}
-                      onChange={(event) => updateObserver("longitude", event.target.value)}
-                    />
-                  </label>
-                </div>
-                <button className="primary-button" type="button" onClick={requestLocation}>
-                  {dictionary.viewer.useLocation}
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="eyebrow">{dictionary.viewer.viewModeLabel}</p>
-                <div className="constellation-list focus-list">
-                  {VIEW_MODE_ORDER.map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      className={`focus-chip ${viewMode === mode ? "is-active" : ""}`}
-                      onClick={() => setViewMode(mode)}
-                    >
-                      {dictionary.viewer.viewModes[mode]}
-                    </button>
-                  ))}
-                </div>
-                <p className="helper-copy">{sketchViewDescription}</p>
-              </>
-            )}
-          </section>
-
           {currentPage === "watch" ? (
+            <WatchControlsPanel
+              dictionary={dictionary}
+              language={language}
+              observedAt={observedAt}
+              setObservedAt={setObservedAt}
+              shiftTime={shiftTime}
+              setTonightTimestamp={setTonightTimestamp}
+              viewMode={viewMode}
+              observerMomentLabel={observerMomentLabel}
+              setObserverHourTimestamp={setObserverHourTimestamp}
+              observer={observer}
+              updateObserver={updateObserver}
+              requestLocation={requestLocation}
+              viewModeOrder={VIEW_MODE_ORDER}
+              setViewMode={setViewMode}
+              focusedConstellation={focusedConstellation}
+              setFocusedConstellation={setFocusedConstellation}
+              trackConstellation={trackConstellation}
+              setTrackConstellation={setTrackConstellation}
+              activeConstellationKey={activeConstellationKey}
+              activeConstellationName={activeConstellationName}
+              activeConstellationIsFavorite={activeConstellationIsFavorite}
+              toggleFavoriteConstellation={toggleFavoriteConstellation}
+              visibleFavoriteConstellations={visibleFavoriteConstellations}
+              activeConstellationStory={activeConstellationStory}
+              atmosphereStrength={atmosphereStrength}
+              setAtmosphereStrength={setAtmosphereStrength}
+              starGlowStrength={starGlowStrength}
+              setStarGlowStrength={setStarGlowStrength}
+              limitingMagnitude={limitingMagnitude}
+              setLimitingMagnitude={setLimitingMagnitude}
+              maxStars={maxStars}
+              setMaxStars={setMaxStars}
+              showConstellations={showConstellations}
+              setShowConstellations={setShowConstellations}
+              showLabels={showLabels}
+              setShowLabels={setShowLabels}
+              autoRotate={autoRotate}
+              setAutoRotate={setAutoRotate}
+              showGuides={showGuides}
+              setShowGuides={setShowGuides}
+            />
+          ) : (
             <>
               <section>
-                <p className="eyebrow">{dictionary.viewer.viewModeLabel}</p>
-                <div className="constellation-list focus-list">
-                  {VIEW_MODE_ORDER.map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      className={`focus-chip ${viewMode === mode ? "is-active" : ""}`}
-                      onClick={() => setViewMode(mode)}
-                    >
-                      {dictionary.viewer.viewModes[mode]}
-                    </button>
-                  ))}
-                </div>
-                <p className="helper-copy">{dictionary.viewer.viewModeDescriptions[viewMode]}</p>
+                <p className="eyebrow">{dictionary.viewer.sketchControls}</p>
+                <SketchControlsPanel
+                  dictionary={dictionary}
+                  language={language}
+                  viewMode={viewMode}
+                  viewModeOrder={VIEW_MODE_ORDER}
+                  setViewMode={setViewMode}
+                  sketchViewDescription={sketchViewDescription}
+                  creativeTool={creativeTool}
+                  setCreativeTool={setCreativeTool}
+                  addCustomConstellation={addCustomConstellation}
+                  duplicateActiveConstellation={duplicateActiveConstellation}
+                  activeCustomConstellationStars={activeCustomConstellationStars}
+                  customSpace={customSpace}
+                  setCustomSpace={setCustomSpace}
+                  presetConstellationName={presetConstellationName}
+                  setPresetConstellationName={setPresetConstellationName}
+                  importableConstellations={importableConstellations}
+                  importPresetConstellation={importPresetConstellation}
+                  nudgeActiveConstellation={nudgeActiveConstellation}
+                  scaleActiveConstellation={scaleActiveConstellation}
+                  spreadActiveConstellation={spreadActiveConstellation}
+                  rotateActiveConstellation={rotateActiveConstellation}
+                  activeCustomConstellation={activeCustomConstellation}
+                  updateActiveConstellationName={updateActiveConstellationName}
+                  updateActiveConstellationColor={updateActiveConstellationColor}
+                  removeActiveConstellation={removeActiveConstellation}
+                  planetPreset={planetPreset}
+                  setPlanetPreset={setPlanetPreset}
+                  planetPresets={planetPresets}
+                  sketchName={sketchName}
+                  setSketchName={setSketchName}
+                  activeSketchName={activeSketchName}
+                  startNewSketch={startNewSketch}
+                  clearDraftSketch={clearDraftSketch}
+                  saveDraftSketch={saveDraftSketch}
+                />
               </section>
-              <ConstellationFocusSection
-                dictionary={dictionary}
-                language={language}
-                focusedConstellation={focusedConstellation}
-                setFocusedConstellation={setFocusedConstellation}
-                trackConstellation={trackConstellation}
-                setTrackConstellation={setTrackConstellation}
-                activeConstellationKey={activeConstellationKey}
-                activeConstellationName={activeConstellationName}
-                activeConstellationIsFavorite={activeConstellationIsFavorite}
-                toggleFavoriteConstellation={toggleFavoriteConstellation}
-                visibleFavoriteConstellations={visibleFavoriteConstellations}
-              />
-              <section className="story-card">
-                <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
-                <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
-                <p>{activeConstellationStory}</p>
+              <section>
+                <p className="eyebrow">{dictionary.viewer.atmosphere}</p>
+                <p className="helper-copy">{dictionary.viewer.creationPickHint}</p>
+                <div className="toggle-grid">
+                  <label className="toggle-item">
+                    <input type="checkbox" checked={showLabels} onChange={(event) => setShowLabels(event.target.checked)} />
+                    <span>{dictionary.viewer.toggles.labels}</span>
+                  </label>
+                  <label className="toggle-item">
+                    <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
+                    <span>{dictionary.viewer.toggles.autoRotate}</span>
+                  </label>
+                  <label className="toggle-item">
+                    <input type="checkbox" checked={showGuides} onChange={(event) => setShowGuides(event.target.checked)} />
+                    <span>{dictionary.viewer.toggles.guides}</span>
+                  </label>
+                </div>
               </section>
             </>
-          ) : (
-            <section>
-              <p className="eyebrow">{dictionary.viewer.sketchLab}</p>
-              <div className="toggle-grid">
-                <button type="button" className={`focus-chip ${creativeTool === "star" ? "is-active" : ""}`} onClick={() => setCreativeTool("star")}>
-                  {dictionary.viewer.addStarTool}
-                </button>
-                <button type="button" className={`focus-chip ${creativeTool === "planet" ? "is-active" : ""}`} onClick={() => setCreativeTool("planet")}>
-                  {dictionary.viewer.addPlanetTool}
-                </button>
-                <button type="button" className={`focus-chip ${creativeTool === "delete" ? "is-active" : ""}`} onClick={() => setCreativeTool("delete")}>
-                  {dictionary.viewer.deleteTool}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => {
-                    addCustomConstellation();
-                    setCreativeTool("star");
-                  }}
-                >
-                  {dictionary.viewer.addConstellation}
-                </button>
-                <button type="button" className="focus-chip" onClick={duplicateActiveConstellation} disabled={activeCustomConstellationStars.length < 2}>
-                  {dictionary.viewer.duplicateConstellation}
-                </button>
-              </div>
-              <label className="stacked-field">
-                <span>{dictionary.viewer.activeConstellation}</span>
-                <select
-                  value={customSpace.activeConstellationId}
-                  onChange={(event) => setCustomSpace((current) => ({ ...current, activeConstellationId: event.target.value }))}
-                >
-                  {customSpace.constellations.map((constellation) => (
-                    <option key={constellation.id} value={constellation.id}>
-                      {constellation.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="stacked-field">
-                <span>{dictionary.viewer.presetConstellation}</span>
-                <select value={presetConstellationName} onChange={(event) => setPresetConstellationName(event.target.value)} disabled={visibleConstellations.length === 0}>
-                  {importableConstellations.length === 0 ? (
-                    <option value="">{dictionary.viewer.noPresetConstellations}</option>
-                  ) : (
-                    importableConstellations.map((name) => (
-                      <option key={name} value={name}>
-                        {dictionary.constellations?.[name]?.[language] || name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </label>
-              <button type="button" className="focus-chip" onClick={importPresetConstellation} disabled={!presetConstellationName}>
-                {dictionary.viewer.importConstellation}
-              </button>
-              <div className="toggle-grid">
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => nudgeActiveConstellation(-0.7, 0)}
-                  disabled={!activeCustomConstellationStars.length}
-                >
-                  {dictionary.viewer.arrange.left}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => nudgeActiveConstellation(0.7, 0)}
-                  disabled={!activeCustomConstellationStars.length}
-                >
-                  {dictionary.viewer.arrange.right}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => nudgeActiveConstellation(0, 0.7)}
-                  disabled={!activeCustomConstellationStars.length}
-                >
-                  {dictionary.viewer.arrange.up}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => nudgeActiveConstellation(0, -0.7)}
-                  disabled={!activeCustomConstellationStars.length}
-                >
-                  {dictionary.viewer.arrange.down}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => scaleActiveConstellation(1.14)}
-                  disabled={activeCustomConstellationStars.length < 2}
-                >
-                  {dictionary.viewer.arrange.bigger}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => scaleActiveConstellation(0.88)}
-                  disabled={activeCustomConstellationStars.length < 2}
-                >
-                  {dictionary.viewer.arrange.smaller}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => spreadActiveConstellation(1.12)}
-                  disabled={activeCustomConstellationStars.length < 2}
-                >
-                  {dictionary.viewer.arrange.spread}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => spreadActiveConstellation(0.9)}
-                  disabled={activeCustomConstellationStars.length < 2}
-                >
-                  {dictionary.viewer.arrange.tighten}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => rotateActiveConstellation(-12)}
-                  disabled={activeCustomConstellationStars.length < 2}
-                >
-                  {dictionary.viewer.arrange.rotateLeft}
-                </button>
-                <button
-                  type="button"
-                  className="focus-chip"
-                  onClick={() => rotateActiveConstellation(12)}
-                  disabled={activeCustomConstellationStars.length < 2}
-                >
-                  {dictionary.viewer.arrange.rotateRight}
-                </button>
-              </div>
-              <label className="stacked-field">
-                <span>{dictionary.viewer.constellationName}</span>
-                <input
-                  type="text"
-                  value={activeCustomConstellation?.name || ""}
-                  onChange={(event) => updateActiveConstellationName(event.target.value)}
-                />
-              </label>
-              <label className="stacked-field">
-                <span>{dictionary.viewer.constellationColor}</span>
-                <input
-                  type="color"
-                  value={activeCustomConstellation?.color || "#ffcf70"}
-                  onChange={(event) => updateActiveConstellationColor(event.target.value)}
-                />
-              </label>
-              <dl className="summary-list compact">
-                <div>
-                  <dt>{dictionary.viewer.activeConstellation}</dt>
-                  <dd>{activeCustomConstellation?.name || "--"}</dd>
-                </div>
-                <div>
-                  <dt>{dictionary.viewer.customStars}</dt>
-                  <dd>{activeCustomConstellationStars.length}</dd>
-                </div>
-              </dl>
-              <button
-                type="button"
-                className="focus-chip"
-                onClick={removeActiveConstellation}
-                disabled={customSpace.constellations.length <= 1}
-              >
-                {dictionary.viewer.removeConstellation}
-              </button>
-              <label className="stacked-field">
-                <span>{dictionary.viewer.planetStyle}</span>
-                <select value={planetPreset} onChange={(event) => setPlanetPreset(event.target.value)} disabled={creativeTool !== "planet"}>
-                  {planetPresets.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {dictionary.viewer.planetPresets[preset.id]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="stacked-field">
-                <span>{dictionary.viewer.sketchName}</span>
-                <input
-                  type="text"
-                  value={sketchName}
-                  placeholder={dictionary.viewer.sketchPlaceholder}
-                  onChange={(event) => setSketchName(event.target.value)}
-                />
-              </label>
-              <dl className="summary-list compact">
-                <div>
-                  <dt>{dictionary.viewer.currentSketch}</dt>
-                  <dd>{activeSketchName}</dd>
-                </div>
-                <div>
-                  <dt>{dictionary.viewer.activeConstellation}</dt>
-                  <dd>{activeCustomConstellation?.name || "--"}</dd>
-                </div>
-                <div>
-                  <dt>{dictionary.viewer.customStars}</dt>
-                  <dd>{customSpace.stars.length}</dd>
-                </div>
-                <div>
-                  <dt>{dictionary.viewer.customPlanets}</dt>
-                  <dd>{customSpace.planets.length}</dd>
-                </div>
-              </dl>
-              <div className="constellation-list">
-                <button type="button" className="focus-chip" onClick={startNewSketch}>
-                  {dictionary.viewer.newSketch}
-                </button>
-                <button type="button" className="focus-chip" onClick={clearDraftSketch} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
-                  {dictionary.viewer.clearSketch}
-                </button>
-                <button type="button" className="focus-chip is-active" onClick={saveDraftSketch} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
-                  {dictionary.viewer.saveSketch}
-                </button>
-              </div>
-              <p className="helper-copy">{dictionary.viewer.sketchHint}</p>
-            </section>
           )}
-
-          <section>
-            <p className="eyebrow">{dictionary.viewer.atmosphere}</p>
-            {currentPage === "watch" ? (
-              <>
-                <label className="stacked-field">
-                  <span>
-                    {dictionary.viewer.atmosphereDensity}: {Math.round(atmosphereStrength * 100)}%
-                  </span>
-                  <input
-                    type="range"
-                    min="0.2"
-                    max="1"
-                    step="0.05"
-                    value={atmosphereStrength}
-                    onChange={(event) => setAtmosphereStrength(Number(event.target.value))}
-                  />
-                </label>
-                <label className="stacked-field">
-                  <span>
-                    {dictionary.viewer.starGlow}: {Math.round(starGlowStrength * 100)}%
-                  </span>
-                  <input
-                    type="range"
-                    min="0.2"
-                    max="1"
-                    step="0.05"
-                    value={starGlowStrength}
-                    onChange={(event) => setStarGlowStrength(Number(event.target.value))}
-                  />
-                </label>
-                <label className="stacked-field">
-                  <span>
-                    {dictionary.viewer.limitingMagnitude}: {limitingMagnitude.toFixed(1)}
-                  </span>
-                  <input
-                    type="range"
-                    min="3"
-                    max="6"
-                    step="0.1"
-                    value={limitingMagnitude}
-                    onChange={(event) => setLimitingMagnitude(Number(event.target.value))}
-                  />
-                </label>
-                <label className="stacked-field">
-                  <span>
-                    {dictionary.viewer.maxStars}: {maxStars.toLocaleString()}
-                  </span>
-                  <input
-                    type="range"
-                    min="1800"
-                    max="6000"
-                    step="200"
-                    value={maxStars}
-                    onChange={(event) => setMaxStars(Number(event.target.value))}
-                  />
-                </label>
-              </>
-            ) : (
-              <p className="helper-copy">{dictionary.viewer.creationPickHint}</p>
-            )}
-            <div className="toggle-grid">
-              {currentPage === "watch" ? (
-                <label className="toggle-item">
-                  <input
-                    type="checkbox"
-                    checked={showConstellations}
-                    onChange={(event) => setShowConstellations(event.target.checked)}
-                  />
-                  <span>{dictionary.viewer.toggles.constellations}</span>
-                </label>
-              ) : null}
-              <label className="toggle-item">
-                <input type="checkbox" checked={showLabels} onChange={(event) => setShowLabels(event.target.checked)} />
-                <span>{dictionary.viewer.toggles.labels}</span>
-              </label>
-              <label className="toggle-item">
-                <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
-                <span>{dictionary.viewer.toggles.autoRotate}</span>
-              </label>
-              <label className="toggle-item">
-                <input type="checkbox" checked={showGuides} onChange={(event) => setShowGuides(event.target.checked)} />
-                <span>{dictionary.viewer.toggles.guides}</span>
-              </label>
-            </div>
-          </section>
         </aside>
 
         <main
@@ -1446,84 +1117,27 @@ export function App() {
           </section>
 
           {currentPage === "watch" ? (
-            <>
-              <section>
-                <p className="eyebrow">{dictionary.viewer.constellationsInFrame}</p>
-                <div className="constellation-list">
-                  {currentViewConstellations.map((name) => (
-                    <button
-                      key={name}
-                      type="button"
-                      className={`constellation-pill ${focusedConstellation === name ? "is-active" : ""}`}
-                      onClick={() => setFocusedConstellation(name)}
-                    >
-                      {dictionary.constellations?.[name]?.[language] || name}
-                    </button>
-                  ))}
-                </div>
-              </section>
-            </>
+            <WatchInspectorPanel
+              dictionary={dictionary}
+              language={language}
+              selectedStar={selectedStar}
+              currentViewConstellations={currentViewConstellations}
+              focusedConstellation={focusedConstellation}
+              setFocusedConstellation={setFocusedConstellation}
+              focusConstellations={focusConstellations}
+              sceneState={sceneState}
+            />
           ) : (
-            <>
-              <section>
-                <p className="eyebrow">{dictionary.viewer.savedSketches}</p>
-                <div className="saved-sketch-list">
-                  {savedSketches.length === 0 ? (
-                    <p className="helper-copy">{dictionary.viewer.noSavedSketches}</p>
-                  ) : (
-                    sortedSavedSketches.map((sketch) => (
-                      <div key={sketch.id} className={`saved-sketch-card ${activeSketchId === sketch.id ? "is-active" : ""}`}>
-                        <button type="button" className="saved-sketch-button" onClick={() => loadSketch(sketch.id)}>
-                          <strong>{sketch.name}</strong>
-                          <small>
-                            {sketch.stars.length} {dictionary.viewer.customStars} / {sketch.planets.length} {dictionary.viewer.customPlanets}
-                          </small>
-                        </button>
-                        <div className="saved-sketch-actions">
-                          <button type="button" className={`focus-chip ${sketch.favorite ? "is-active" : ""}`} onClick={() => toggleSketchFavorite(sketch.id)}>
-                            {sketch.favorite ? dictionary.viewer.unpinSketch : dictionary.viewer.pinSketch}
-                          </button>
-                          <button type="button" className="focus-chip" onClick={() => removeSketch(sketch.id)}>
-                            {dictionary.viewer.deleteSketch}
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-              <section>
-                <p className="eyebrow">{dictionary.viewer.sketchTips}</p>
-                <div className="constellation-list">
-                  <span>{dictionary.viewer.sketchTipsList.pick}</span>
-                  <span>{dictionary.viewer.sketchTipsList.order}</span>
-                  <span>{dictionary.viewer.sketchTipsList.save}</span>
-                </div>
-              </section>
-            </>
+            <SketchLibraryPanel
+              dictionary={dictionary}
+              savedSketches={savedSketches}
+              sortedSavedSketches={sortedSavedSketches}
+              activeSketchId={activeSketchId}
+              loadSketch={loadSketch}
+              toggleSketchFavorite={toggleSketchFavorite}
+              removeSketch={removeSketch}
+            />
           )}
-          <section className="scene-status-section">
-            <p className="eyebrow">{dictionary.viewer.sceneStatus}</p>
-            <dl className="summary-list compact">
-              <div>
-                <dt>{dictionary.viewer.status}</dt>
-                <dd>{sceneState.status}</dd>
-              </div>
-              <div>
-                <dt>{dictionary.viewer.catalog}</dt>
-                <dd>{sceneState.data?.summary.catalog ?? "--"}</dd>
-              </div>
-              <div>
-                <dt>{dictionary.viewer.visibleStars}</dt>
-                <dd>{sceneState.data?.summary.visibleStars ?? "--"}</dd>
-              </div>
-              <div>
-                <dt>{dictionary.viewer.visibleConstellations}</dt>
-                <dd>{focusConstellations.length || "--"}</dd>
-              </div>
-            </dl>
-            {sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
-          </section>
         </aside>
       </div>
     </div>
