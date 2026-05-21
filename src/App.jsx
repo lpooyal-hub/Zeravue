@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
+import { ConstellationFocusSection } from "./components/ConstellationFocusSection.jsx";
 import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
+import { ViewerAmbientOverlay, ViewerFocusOverlay } from "./components/ViewerOverlays.jsx";
 import { config } from "./config.js";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { useAmbientAudio } from "./hooks/useAmbientAudio.js";
+import { useConstellationCollections } from "./hooks/useConstellationCollections.js";
 import { useNightSkyAmbientTrack } from "./hooks/useNightSkyAmbientTrack.js";
 
 const SKETCH_STORAGE_KEY = "planetarium-custom-space-scenes";
@@ -202,17 +205,6 @@ export function App() {
     [sceneState.data, selectedTarget]
   );
   const visibleConstellations = sceneState.data?.summary.visibleConstellations || [];
-  const filteredConstellations = useMemo(() => {
-    const query = constellationSearch.trim().toLowerCase();
-    if (!query) {
-      return visibleConstellations;
-    }
-
-    return visibleConstellations.filter((name) => {
-      const translated = dictionary.constellations?.[name]?.[language] || name;
-      return name.toLowerCase().includes(query) || translated.toLowerCase().includes(query);
-    });
-  }, [constellationSearch, dictionary.constellations, language, visibleConstellations]);
   const activeCustomConstellation = useMemo(
     () => customSpace.constellations.find((constellation) => constellation.id === customSpace.activeConstellationId) || customSpace.constellations[0],
     [customSpace]
@@ -263,6 +255,16 @@ export function App() {
       }),
     [savedSketches]
   );
+  const { currentViewConstellations, importableConstellations, focusConstellations, filteredConstellations, visibleFavoriteConstellations } =
+    useConstellationCollections({
+      stars: sceneState.data?.stars || [],
+      backendVisibleConstellations: visibleConstellations,
+      constellationSearch,
+      dictionary,
+      language,
+      favoriteConstellations,
+      viewMode
+    });
   const activeConstellationKey = useMemo(() => {
     if (focusedConstellation !== "all") {
       return focusedConstellation;
@@ -270,8 +272,8 @@ export function App() {
     if (selectedStar?.constellation && selectedStar.constellation !== "Unknown") {
       return selectedStar.constellation;
     }
-    return visibleConstellations[0] || null;
-  }, [focusedConstellation, selectedStar, visibleConstellations]);
+    return focusConstellations[0] || null;
+  }, [focusConstellations, focusedConstellation, selectedStar]);
   const activeConstellationName = activeConstellationKey ? dictionary.constellations?.[activeConstellationKey]?.[language] || activeConstellationKey : null;
   const activeConstellationStory =
     (activeConstellationKey && dictionary.viewer.constellationMoods?.[activeConstellationKey]?.[language]) || dictionary.viewer.constellationFallback;
@@ -303,70 +305,6 @@ export function App() {
       minute: "2-digit"
     }).format(date);
   }, [language, observedAt]);
-  const currentViewConstellations = useMemo(() => {
-    const stars = sceneState.data?.stars || [];
-    if (!stars.length) {
-      return [];
-    }
-
-    const minAltitude = viewMode === "observer" ? 28 : viewMode === "panorama" ? 18 : viewMode === "projection" ? 22 : 12;
-    const minStars = viewMode === "space" ? 2 : 3;
-    const bucket = new Map();
-
-    stars.forEach((star) => {
-      if (!star.visible || star.constellation === "Unknown" || star.altitude < minAltitude) {
-        return;
-      }
-      const current = bucket.get(star.constellation) || { count: 0, altitude: 0, magnitude: 0 };
-      bucket.set(star.constellation, {
-        count: current.count + 1,
-        altitude: current.altitude + star.altitude,
-        magnitude: current.magnitude + star.magnitude
-      });
-    });
-
-    return [...bucket.entries()]
-      .filter(([, value]) => value.count >= minStars)
-      .map(([name, value]) => ({
-        name,
-        score: value.count * 3 + value.altitude / value.count / 14 - value.magnitude / value.count / 3
-      }))
-      .sort((left, right) => right.score - left.score)
-      .slice(0, 10)
-      .map((item) => item.name);
-  }, [sceneState.data?.stars, viewMode]);
-  const importableConstellations = useMemo(() => {
-    const stars = sceneState.data?.stars || [];
-    if (!stars.length) {
-      return [];
-    }
-
-    const bucket = new Map();
-    stars.forEach((star) => {
-      if (!star.visible || star.constellation === "Unknown") {
-        return;
-      }
-      const current = bucket.get(star.constellation) || { count: 0, magnitude: 0, altitude: 0 };
-      bucket.set(star.constellation, {
-        count: current.count + 1,
-        magnitude: current.magnitude + star.magnitude,
-        altitude: current.altitude + star.altitude
-      });
-    });
-
-    return [...bucket.entries()]
-      .filter(([, value]) => value.count >= 2)
-      .map(([name, value]) => ({
-        name,
-        score: value.count * 2.6 + value.altitude / value.count / 18 - value.magnitude / value.count / 3.4
-      }))
-      .sort((left, right) => right.score - left.score)
-      .map((item) => item.name);
-  }, [sceneState.data?.stars]);
-  const visibleFavoriteConstellations = useMemo(
-    () => favoriteConstellations.filter((name) => visibleConstellations.includes(name)),
-    [favoriteConstellations, visibleConstellations]
-  );
 
   useEffect(() => {
     if (!importableConstellations.length) {
@@ -977,97 +915,19 @@ export function App() {
                 </div>
                 <p className="helper-copy">{dictionary.viewer.viewModeDescriptions[viewMode]}</p>
               </section>
-              <section>
-                <p className="eyebrow">{dictionary.viewer.constellationFocus}</p>
-                <label className="stacked-field">
-                  <span>{dictionary.viewer.searchConstellation}</span>
-                  <input
-                    type="text"
-                    value={constellationSearch}
-                    placeholder={dictionary.viewer.searchPlaceholder}
-                    onChange={(event) => setConstellationSearch(event.target.value)}
-                  />
-                </label>
-                <label className="stacked-field">
-                  <span>{dictionary.viewer.focusConstellation}</span>
-                  <select value={focusedConstellation} onChange={(event) => setFocusedConstellation(event.target.value)}>
-                    <option value="all">{dictionary.viewer.allSky}</option>
-                    {(filteredConstellations.length ? filteredConstellations : visibleConstellations).map((name) => (
-                      <option key={name} value={name}>
-                        {dictionary.constellations?.[name]?.[language] || name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="toggle-item">
-                  <input
-                    type="checkbox"
-                    checked={trackConstellation}
-                    disabled={focusedConstellation === "all"}
-                    onChange={(event) => setTrackConstellation(event.target.checked)}
-                  />
-                  <span>{dictionary.viewer.trackConstellation}</span>
-                </label>
-                {focusedConstellation !== "all" ? (
-                  <button
-                    type="button"
-                    className="focus-chip"
-                    onClick={() => {
-                      setFocusedConstellation("all");
-                      setTrackConstellation(false);
-                    }}
-                  >
-                    {language === "ko" ? "선택 해제" : "Clear selection"}
-                  </button>
-                ) : null}
-                {activeConstellationKey ? (
-                  <button
-                    type="button"
-                    className={`focus-chip ${activeConstellationIsFavorite ? "is-active" : ""}`}
-                    onClick={() => toggleFavoriteConstellation(activeConstellationKey)}
-                  >
-                    {activeConstellationIsFavorite ? dictionary.viewer.removeFavorite : dictionary.viewer.addFavorite}
-                  </button>
-                ) : null}
-                <div className="constellation-list focus-list">
-                  <button
-                    type="button"
-                    className={`focus-chip ${focusedConstellation === "all" ? "is-active" : ""}`}
-                    onClick={() => setFocusedConstellation("all")}
-                  >
-                    {dictionary.viewer.allSky}
-                  </button>
-                  {filteredConstellations.slice(0, 10).map((name) => (
-                    <button
-                      key={name}
-                      type="button"
-                      className={`focus-chip ${focusedConstellation === name ? "is-active" : ""}`}
-                      onClick={() => setFocusedConstellation(name)}
-                    >
-                      {dictionary.constellations?.[name]?.[language] || name}
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section>
-                <p className="eyebrow">{dictionary.viewer.favoriteConstellations}</p>
-                {visibleFavoriteConstellations.length ? (
-                  <div className="constellation-list focus-list">
-                    {visibleFavoriteConstellations.map((name) => (
-                      <button
-                        key={name}
-                        type="button"
-                        className={`focus-chip ${focusedConstellation === name ? "is-active" : ""}`}
-                        onClick={() => setFocusedConstellation(name)}
-                      >
-                        {dictionary.constellations?.[name]?.[language] || name}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="helper-copy">{dictionary.viewer.noFavoriteConstellations}</p>
-                )}
-              </section>
+              <ConstellationFocusSection
+                dictionary={dictionary}
+                language={language}
+                focusedConstellation={focusedConstellation}
+                setFocusedConstellation={setFocusedConstellation}
+                trackConstellation={trackConstellation}
+                setTrackConstellation={setTrackConstellation}
+                activeConstellationKey={activeConstellationKey}
+                activeConstellationName={activeConstellationName}
+                activeConstellationIsFavorite={activeConstellationIsFavorite}
+                toggleFavoriteConstellation={toggleFavoriteConstellation}
+                visibleFavoriteConstellations={visibleFavoriteConstellations}
+              />
               <section className="story-card">
                 <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
                 <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
@@ -1419,97 +1279,36 @@ export function App() {
           onUpdateCustomObject={updateCustomObject}
         />
           {currentPage === "watch" ? (
-            <div className="viewer-focus-overlay">
-              <label className="overlay-focus-field">
-                <span>{dictionary.viewer.searchConstellation}</span>
-                <input
-                  type="text"
-                  value={constellationSearch}
-                  placeholder={dictionary.viewer.searchPlaceholder}
-                  onChange={(event) => setConstellationSearch(event.target.value)}
-                />
-              </label>
-              <label className="overlay-focus-field">
-                <span>{dictionary.viewer.focusConstellation}</span>
-                <select value={focusedConstellation} onChange={(event) => setFocusedConstellation(event.target.value)}>
-                  <option value="all">{dictionary.viewer.allSky}</option>
-                  {(filteredConstellations.length ? filteredConstellations : visibleConstellations).map((name) => (
-                    <option key={name} value={name}>
-                      {dictionary.constellations?.[name]?.[language] || name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="overlay-track-toggle">
-                <input
-                  type="checkbox"
-                  checked={trackConstellation}
-                  disabled={focusedConstellation === "all"}
-                  onChange={(event) => setTrackConstellation(event.target.checked)}
-                />
-                <span>{dictionary.viewer.trackConstellation}</span>
-              </label>
-              {focusedConstellation !== "all" ? (
-                <button
-                  type="button"
-                  className="overlay-button"
-                  onClick={() => {
-                    setFocusedConstellation("all");
-                    setTrackConstellation(false);
-                  }}
-                >
-                  {language === "ko" ? "선택 해제" : "Clear selection"}
-                </button>
-              ) : null}
-              <label className="overlay-zoom">
-                <span>{dictionary.viewer.zoom}</span>
-                <div className="overlay-zoom-controls">
-                  <button type="button" className="overlay-button" onClick={() => changeZoom(-0.1)}>
-                    {dictionary.viewer.zoomOut}
-                  </button>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={zoomLevel}
-                    aria-label={dictionary.viewer.zoom}
-                    onChange={(event) => setZoomLevel(Number(event.target.value))}
-                  />
-                  <button type="button" className="overlay-button" onClick={() => changeZoom(0.1)}>
-                    {dictionary.viewer.zoomIn}
-                  </button>
-                </div>
-              </label>
-            </div>
+            <ViewerFocusOverlay
+              dictionary={dictionary}
+              language={language}
+              constellationSearch={constellationSearch}
+              setConstellationSearch={setConstellationSearch}
+              focusedConstellation={focusedConstellation}
+              setFocusedConstellation={setFocusedConstellation}
+              focusConstellations={focusConstellations}
+              filteredConstellations={filteredConstellations}
+              trackConstellation={trackConstellation}
+              setTrackConstellation={setTrackConstellation}
+              zoomLevel={zoomLevel}
+              setZoomLevel={setZoomLevel}
+              changeZoom={changeZoom}
+            />
           ) : null}
-          <div className="viewer-overlay">
-            {(ambientTrackPending || ambientTrackError || (ambientEnabled && ambientStatus !== "playing")) ? (
-              <div className="overlay-ambient-status">
-                <strong>{ambientStatusLabel}</strong>
-                <span>{ambientStatusHint}</span>
-              </div>
-            ) : null}
-            <label className="overlay-volume">
-              <span>{dictionary.viewer.ambient.volumeShort}</span>
-              <input
-                type="range"
-                min="0.35"
-                max="1"
-                step="0.05"
-                value={ambientVolume}
-                aria-label={dictionary.viewer.ambient.volume}
-                onChange={(event) => setAmbientVolume(Number(event.target.value))}
-              />
-              <strong>{Math.round(ambientVolume * 100)}%</strong>
-            </label>
-            <button type="button" className="overlay-button" onClick={toggleFullscreen}>
-              {isFullscreen ? dictionary.viewer.exitFullscreen : dictionary.viewer.enterFullscreen}
-            </button>
-            <button type="button" className={`overlay-button ${ambientEnabled ? "is-active" : ""}`} onClick={toggleAmbientSound}>
-              {ambientEnabled ? dictionary.viewer.ambient.off : dictionary.viewer.ambient.on}
-            </button>
-          </div>
+          <ViewerAmbientOverlay
+            dictionary={dictionary}
+            ambientTrackPending={ambientTrackPending}
+            ambientTrackError={ambientTrackError}
+            ambientEnabled={ambientEnabled}
+            ambientStatus={ambientStatus}
+            ambientStatusLabel={ambientStatusLabel}
+            ambientStatusHint={ambientStatusHint}
+            ambientVolume={ambientVolume}
+            setAmbientVolume={setAmbientVolume}
+            isFullscreen={isFullscreen}
+            toggleFullscreen={toggleFullscreen}
+            toggleAmbientSound={toggleAmbientSound}
+          />
         </main>
 
         <aside className="inspector-panel">
@@ -1720,7 +1519,7 @@ export function App() {
               </div>
               <div>
                 <dt>{dictionary.viewer.visibleConstellations}</dt>
-                <dd>{sceneState.data?.summary.visibleConstellations.length ?? "--"}</dd>
+                <dd>{focusConstellations.length || "--"}</dd>
               </div>
             </dl>
             {sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
