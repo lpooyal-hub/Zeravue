@@ -214,6 +214,13 @@ export function App() {
     () => (selectedTarget?.kind === "custom-planet" ? customSpace.planets.find((planet) => planet.id === selectedTarget.id) || null : null),
     [customSpace.planets, selectedTarget]
   );
+  const selectedCustomConstellation = useMemo(
+    () =>
+      selectedTarget?.kind === "custom-constellation"
+        ? customSpace.constellations.find((constellation) => constellation.id === selectedTarget.id) || null
+        : null,
+    [customSpace.constellations, selectedTarget]
+  );
   const activeSketchName = sketchName.trim() || customSpace.name || dictionary.viewer.draftSketch;
   const { currentViewConstellations, currentViewConstellationDetails, importableConstellations, focusConstellations, filteredConstellations, visibleFavoriteConstellations } =
     useConstellationCollections({
@@ -738,6 +745,32 @@ export function App() {
     }
 
     setCustomSpace((current) => {
+      if (target.kind === "custom-constellation") {
+        const origin = Array.isArray(patch.dragOrigin) ? new Map(patch.dragOrigin.map((star) => [star.id, star])) : null;
+        if (!origin) {
+          return current;
+        }
+
+        return {
+          ...current,
+          stars: current.stars.map((star) => {
+            if (star.constellationId !== target.id) {
+              return star;
+            }
+            const baseline = origin.get(star.id);
+            if (!baseline) {
+              return star;
+            }
+            return {
+              ...star,
+              x: clampCoordinate(baseline.x + patch.deltaX),
+              y: clampCoordinate(baseline.y + patch.deltaY),
+              z: baseline.z
+            };
+          })
+        };
+      }
+
       if (target.kind === "custom-star") {
         return {
           ...current,
@@ -962,6 +995,7 @@ export function App() {
             language={language}
             currentPage={currentPage}
             selectedCustomStar={selectedCustomStar}
+            selectedCustomConstellation={selectedCustomConstellation}
             activeCustomConstellation={activeCustomConstellation}
             updateCustomObject={updateCustomObject}
             selectedTarget={selectedTarget}

@@ -3,6 +3,7 @@ function SelectionInspectorPanel({
   language,
   currentPage,
   selectedCustomStar,
+  selectedCustomConstellation,
   activeCustomConstellation,
   updateCustomObject,
   selectedTarget,
@@ -98,6 +99,26 @@ function SelectionInspectorPanel({
           <button type="button" className="focus-chip" onClick={() => removeCustomObject(selectedTarget)}>
             {dictionary.viewer.removeObject}
           </button>
+        </>
+      ) : currentPage === "sketch" && selectedCustomConstellation ? (
+        <>
+          <h2>{selectedCustomConstellation.name}</h2>
+          <p className="constellation-copy">{dictionary.viewer.customConstellation}</p>
+          <label className="stacked-field">
+            <span>{dictionary.viewer.constellationName}</span>
+            <input type="text" value={selectedCustomConstellation.name} readOnly />
+          </label>
+          <dl className="summary-list compact">
+            <div>
+              <dt>{dictionary.viewer.type}</dt>
+              <dd>{dictionary.viewer.customConstellation}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.customStars}</dt>
+              <dd>{selectedCustomConstellation.starIds.length}</dd>
+            </div>
+          </dl>
+          <p className="helper-copy">{dictionary.viewer.constellationDragHint}</p>
         </>
       ) : currentPage === "watch" && selectedStar ? (
         <>

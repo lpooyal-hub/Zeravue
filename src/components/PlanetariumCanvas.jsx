@@ -125,7 +125,7 @@ function CreativeSpaceContents({
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
   const lookAnchor = useRef({ x: 0, y: 0, z: -11.8 });
-  const draggingStarRef = useRef(null);
+  const draggingObjectRef = useRef(null);
   const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 12.2));
   const dragPointRef = useRef(new THREE.Vector3());
   const { camera, gl } = useThree();
@@ -176,9 +176,39 @@ function CreativeSpaceContents({
     return labels;
   }, [customSpace, showLabels]);
 
+  const activeConstellationHandle = useMemo(() => {
+    const constellationId = customSpace?.activeConstellationId || customSpace?.constellations?.[0]?.id;
+    if (!constellationId) {
+      return null;
+    }
+    const stars = (customSpace?.stars || []).filter((star) => star.constellationId === constellationId);
+    if (stars.length < 2) {
+      return null;
+    }
+
+    const center = stars.reduce(
+      (current, star) => ({
+        x: current.x + star.x,
+        y: current.y + star.y,
+        z: current.z + star.z
+      }),
+      { x: 0, y: 0, z: 0 }
+    );
+
+    return {
+      id: constellationId,
+      name: customSpace.constellations.find((constellation) => constellation.id === constellationId)?.name || dictionary.viewer.activeConstellation,
+      x: center.x / stars.length,
+      y: center.y / stars.length,
+      z: center.z / stars.length,
+      starCount: stars.length,
+      stars
+    };
+  }, [customSpace, dictionary.viewer.activeConstellation]);
+
   useEffect(() => {
     function clearDrag() {
-      draggingStarRef.current = null;
+      draggingObjectRef.current = null;
     }
 
     gl.domElement.addEventListener("pointerup", clearDrag);
@@ -218,17 +248,29 @@ function CreativeSpaceContents({
     camera.updateProjectionMatrix();
     camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
 
-    if (draggingStarRef.current) {
+    if (draggingObjectRef.current) {
       state.raycaster.setFromCamera(state.pointer, state.camera);
       if (state.raycaster.ray.intersectPlane(dragPlaneRef.current, dragPointRef.current)) {
-        onUpdateCustomObject?.(
-          { kind: "custom-star", id: draggingStarRef.current },
-          {
-            x: clampCoordinate(dragPointRef.current.x),
-            y: clampCoordinate(dragPointRef.current.y),
-            z: -12.2
-          }
-        );
+        const dragging = draggingObjectRef.current;
+        if (dragging.kind === "custom-constellation") {
+          onUpdateCustomObject?.(
+            { kind: "custom-constellation", id: dragging.id },
+            {
+              deltaX: dragPointRef.current.x - dragging.originPoint.x,
+              deltaY: dragPointRef.current.y - dragging.originPoint.y,
+              dragOrigin: dragging.dragOrigin
+            }
+          );
+        } else {
+          onUpdateCustomObject?.(
+            { kind: dragging.kind, id: dragging.id },
+            {
+              x: clampCoordinate(dragPointRef.current.x),
+              y: clampCoordinate(dragPointRef.current.y),
+              z: -12.2
+            }
+          );
+        }
       }
     }
   });
@@ -252,7 +294,7 @@ function CreativeSpaceContents({
             selected={selectedTarget?.kind === "custom-star" && selectedTarget.id === star.id}
             onSelectTarget={onSelectTarget}
             onStartDrag={(starId) => {
-              draggingStarRef.current = starId;
+              draggingObjectRef.current = { kind: "custom-star", id: starId };
             }}
           />
         ))}
@@ -262,8 +304,26 @@ function CreativeSpaceContents({
             planet={planet}
             selected={selectedTarget?.kind === "custom-planet" && selectedTarget.id === planet.id}
             onSelectTarget={onSelectTarget}
+            onStartDrag={(planetId) => {
+              draggingObjectRef.current = { kind: "custom-planet", id: planetId };
+            }}
           />
         ))}
+        {activeConstellationHandle ? (
+          <CreativeConstellationHandle
+            handle={activeConstellationHandle}
+            selected={selectedTarget?.kind === "custom-constellation" && selectedTarget.id === activeConstellationHandle.id}
+            onSelectTarget={onSelectTarget}
+            onStartDrag={(handleId, originPoint, stars) => {
+              draggingObjectRef.current = {
+                kind: "custom-constellation",
+                id: handleId,
+                originPoint,
+                dragOrigin: stars.map((star) => ({ id: star.id, x: star.x, y: star.y, z: star.z }))
+              };
+            }}
+          />
+        ) : null}
         {labelData.map((label) => (
           <TextSprite key={label.id} {...label} />
         ))}
@@ -772,7 +832,7 @@ function CreativeStar({ star, selected, onSelectTarget, onStartDrag }) {
   );
 }
 
-function CreativePlanet({ planet, selected, onSelectTarget }) {
+function CreativePlanet({ planet, selected, onSelectTarget, onStartDrag }) {
   const groupRef = useRef(null);
   const color = new THREE.Color(planet.color);
 
@@ -786,6 +846,11 @@ function CreativePlanet({ planet, selected, onSelectTarget }) {
     <group
       ref={groupRef}
       position={[planet.x, planet.y, planet.z]}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        onSelectTarget({ kind: "custom-planet", id: planet.id });
+        onStartDrag?.(planet.id);
+      }}
       onClick={(event) => {
         event.stopPropagation();
         onSelectTarget({ kind: "custom-planet", id: planet.id });
@@ -811,6 +876,32 @@ function CreativePlanet({ planet, selected, onSelectTarget }) {
           <meshBasicMaterial color="#f3dca8" transparent opacity={0.5} side={THREE.DoubleSide} depthWrite={false} />
         </mesh>
       ) : null}
+    </group>
+  );
+}
+
+function CreativeConstellationHandle({ handle, selected, onSelectTarget, onStartDrag }) {
+  return (
+    <group
+      position={[handle.x, handle.y, handle.z]}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        onSelectTarget({ kind: "custom-constellation", id: handle.id });
+        onStartDrag?.(handle.id, { x: handle.x, y: handle.y }, handle.stars);
+      }}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelectTarget({ kind: "custom-constellation", id: handle.id });
+      }}
+    >
+      <mesh>
+        <ringGeometry args={[0.62, 0.84, 48]} />
+        <meshBasicMaterial color={selected ? "#ffcf70" : "#8fd8ff"} transparent opacity={selected ? 0.72 : 0.42} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <mesh>
+        <circleGeometry args={[0.42, 32]} />
+        <meshBasicMaterial color="#06101d" transparent opacity={0.18} depthWrite={false} />
+      </mesh>
     </group>
   );
 }
