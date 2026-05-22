@@ -7,17 +7,6 @@ It is not meant to feel like an observatory dashboard or a study tool first. The
 
 The current release centers on one theme: the night sky.
 
-## Live Demo
-
-Current deployed build:
-
-- `http://168.107.51.224:8001`
-
-Local development:
-
-- Frontend viewer: `http://localhost:5173`
-- Backend API health: `http://localhost:8000/api/health`
-
 ## What It Does
 
 The project currently supports two connected experiences:
@@ -94,7 +83,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn app.main:app --reload
 ```
 
 ## Docker
@@ -104,10 +93,6 @@ Run the frontend and backend together:
 ```bash
 docker compose up --build
 ```
-
-App URL:
-
-- `http://localhost:5173`
 
 ## Environment
 
@@ -123,10 +108,8 @@ Backend `backend/.env`:
 ```text
 NASA_API_KEY=DEMO_KEY
 NASA_BASE_URL=https://api.nasa.gov
-FRONTEND_ORIGIN=http://127.0.0.1:5173
+FRONTEND_ORIGIN=
 ```
-
-When running with Vite, `/api` is proxied to `http://127.0.0.1:8000`.
 
 ## Deployment Flow
 
@@ -139,25 +122,6 @@ Key files:
 
 - [.github/workflows/ci-cd.yml](./.github/workflows/ci-cd.yml)
 - [scripts/deploy.sh](./scripts/deploy.sh)
-
-Required GitHub repository secrets:
-
-```text
-DEPLOY_HOST=168.107.51.224
-DEPLOY_PATH=/home/ubuntu/Planetarium
-DEPLOY_PORT=22
-DEPLOY_SSH_KEY=<private key contents>
-DEPLOY_USER=ubuntu
-```
-
-Recommended release flow:
-
-1. Work on `dev`
-2. Push `dev`
-3. Let validation pass
-4. Merge `dev` into `main`
-5. Push `main`
-6. Let GitHub Actions deploy the latest build
 
 ## Current Focus
 

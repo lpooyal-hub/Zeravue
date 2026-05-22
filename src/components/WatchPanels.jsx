@@ -256,11 +256,12 @@ function WatchInspectorPanel({
   dictionary,
   language,
   selectedStar,
-  currentViewConstellations,
+  currentViewConstellationDetails,
   focusedConstellation,
   setFocusedConstellation,
   focusConstellations,
-  sceneState
+  sceneState,
+  viewMode
 }) {
   return (
     <>
@@ -296,10 +297,22 @@ function WatchInspectorPanel({
 
       <section>
         <p className="eyebrow">{dictionary.viewer.constellationsInFrame}</p>
-        <div className="constellation-list">
-          {currentViewConstellations.map((name) => (
-            <button key={name} type="button" className={`constellation-pill ${focusedConstellation === name ? "is-active" : ""}`} onClick={() => setFocusedConstellation(name)}>
-              {dictionary.constellations?.[name]?.[language] || name}
+        {viewMode === "observer" ? <p className="helper-copy">{dictionary.viewer.observerConstellationHint}</p> : null}
+        <div className="saved-sketch-list">
+          {currentViewConstellationDetails.map((item) => (
+            <button
+              key={item.name}
+              type="button"
+              className={`saved-sketch-card saved-sketch-button ${focusedConstellation === item.name ? "is-active" : ""}`}
+              onClick={() => setFocusedConstellation(item.name)}
+            >
+              <strong>{dictionary.constellations?.[item.name]?.[language] || item.name}</strong>
+              <small>
+                {item.visibleStars} {dictionary.viewer.constellationVisibleStars} · {dictionary.viewer.altitude} {item.averageAltitude}°
+                {viewMode === "observer"
+                  ? ` · ${dictionary.viewer.lookingToward} ${getCompassDirectionLabel(item.averageAzimuth, dictionary, language)}`
+                  : ""}
+              </small>
             </button>
           ))}
         </div>

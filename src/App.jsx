@@ -215,7 +215,7 @@ export function App() {
     [customSpace.planets, selectedTarget]
   );
   const activeSketchName = sketchName.trim() || customSpace.name || dictionary.viewer.draftSketch;
-  const { currentViewConstellations, importableConstellations, focusConstellations, filteredConstellations, visibleFavoriteConstellations } =
+  const { currentViewConstellations, currentViewConstellationDetails, importableConstellations, focusConstellations, filteredConstellations, visibleFavoriteConstellations } =
     useConstellationCollections({
       stars: sceneState.data?.stars || [],
       backendVisibleConstellations: visibleConstellations,
@@ -976,11 +976,12 @@ export function App() {
               dictionary={dictionary}
               language={language}
               selectedStar={selectedStar}
-              currentViewConstellations={currentViewConstellations}
+              currentViewConstellationDetails={currentViewConstellationDetails}
               focusedConstellation={focusedConstellation}
               setFocusedConstellation={setFocusedConstellation}
               focusConstellations={focusConstellations}
               sceneState={sceneState}
+              viewMode={viewMode}
             />
           ) : (
             <SketchLibraryPanel

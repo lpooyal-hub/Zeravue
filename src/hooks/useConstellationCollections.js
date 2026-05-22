@@ -9,7 +9,7 @@ export function useConstellationCollections({
   favoriteConstellations,
   viewMode
 }) {
-  const currentViewConstellations = useMemo(() => {
+  const currentViewConstellationDetails = useMemo(() => {
     if (!stars.length) {
       return [];
     }
@@ -23,10 +23,11 @@ export function useConstellationCollections({
         return;
       }
 
-      const current = bucket.get(star.constellation) || { count: 0, altitude: 0, magnitude: 0 };
+      const current = bucket.get(star.constellation) || { count: 0, altitude: 0, azimuth: 0, magnitude: 0 };
       bucket.set(star.constellation, {
         count: current.count + 1,
         altitude: current.altitude + star.altitude,
+        azimuth: current.azimuth + star.azimuth,
         magnitude: current.magnitude + star.magnitude
       });
     });
@@ -35,12 +36,16 @@ export function useConstellationCollections({
       .filter(([, value]) => value.count >= minStars)
       .map(([name, value]) => ({
         name,
-        score: value.count * 3 + value.altitude / value.count / 14 - value.magnitude / value.count / 3
+        score: value.count * 3 + value.altitude / value.count / 14 - value.magnitude / value.count / 3,
+        visibleStars: value.count,
+        averageAltitude: Number((value.altitude / value.count).toFixed(1)),
+        averageAzimuth: Number((value.azimuth / value.count).toFixed(1))
       }))
       .sort((left, right) => right.score - left.score)
-      .slice(0, 10)
-      .map((item) => item.name);
+      .slice(0, 10);
   }, [stars, viewMode]);
+
+  const currentViewConstellations = useMemo(() => currentViewConstellationDetails.map((item) => item.name), [currentViewConstellationDetails]);
 
   const importableConstellations = useMemo(() => {
     if (!stars.length) {
@@ -111,6 +116,7 @@ export function useConstellationCollections({
 
   return {
     currentViewConstellations,
+    currentViewConstellationDetails,
     importableConstellations,
     focusConstellations,
     filteredConstellations,

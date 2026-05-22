@@ -341,6 +341,7 @@ export const translations = {
       aboveHorizon: "Above horizon",
       belowHorizon: "Below horizon",
       pickHint: "Pick a star to inspect it.",
+      observerConstellationHint: "These are the constellations sitting highest and most clearly in your current observer sky.",
       cardinals: {
         north: { en: "North", ko: "북" },
         east: { en: "East", ko: "동" },
@@ -643,6 +644,7 @@ export const translations = {
       aboveHorizon: "지평선 위",
       belowHorizon: "지평선 아래",
       pickHint: "별을 선택해 정보를 확인하세요.",
+      observerConstellationHint: "지금 관측자 하늘에서 비교적 높고 또렷하게 걸린 별자리들입니다.",
       cardinals: {
         north: { en: "North", ko: "북" },
         east: { en: "East", ko: "동" },
