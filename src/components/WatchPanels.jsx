@@ -29,6 +29,20 @@ function getCompassDirectionLabel(azimuth, dictionary, language) {
   return labels[index];
 }
 
+function getAltitudeBandLabel(altitude, dictionary) {
+  if (typeof altitude !== "number") {
+    return "--";
+  }
+
+  if (altitude >= 60) {
+    return dictionary.viewer.altitudeBands.high;
+  }
+  if (altitude >= 35) {
+    return dictionary.viewer.altitudeBands.mid;
+  }
+  return dictionary.viewer.altitudeBands.low;
+}
+
 function WatchControlsPanel({
   dictionary,
   language,
@@ -313,6 +327,7 @@ function WatchInspectorPanel({
                   ? ` · ${dictionary.viewer.lookingToward} ${getCompassDirectionLabel(item.averageAzimuth, dictionary, language)}`
                   : ""}
               </small>
+              {viewMode === "observer" ? <small>{getAltitudeBandLabel(item.averageAltitude, dictionary)}</small> : null}
             </button>
           ))}
         </div>

@@ -207,6 +207,11 @@ export const translations = {
       sketchControls: "Sketch controls",
       observerCue: "Observer cue",
       lookingToward: "Looking toward",
+      altitudeBands: {
+        high: "High overhead",
+        mid: "Comfortably in view",
+        low: "Closer to the horizon"
+      },
       tonightMood: "Tonight's story",
       constellationVisibleStars: "Visible stars in focus",
       brightestStar: "Brightest star",
@@ -266,6 +271,17 @@ export const translations = {
       pinSketch: "Pin",
       unpinSketch: "Unpin",
       sketchHint: "Pick a constellation, then add stars. Lines only connect stars inside that constellation. Planets stay separate.",
+      activeTool: "Current tool",
+      creativeTools: {
+        star: "Add stars",
+        planet: "Add planets",
+        delete: "Remove objects"
+      },
+      creativeToolHints: {
+        star: "Click into the canvas to place new stars inside the active constellation.",
+        planet: "Drop a planet into open space without linking it to constellation lines.",
+        delete: "Click a star or planet to remove it from the current sketch."
+      },
       addStarTool: "Add star",
       addPlanetTool: "Add planet",
       deleteTool: "Delete object",
@@ -274,6 +290,8 @@ export const translations = {
       presetConstellation: "Ready-made constellation",
       importConstellation: "Import constellation",
       noPresetConstellations: "No visible constellations",
+      arrangeTitle: "Arrange constellation",
+      arrangeHint: "Use these controls to nudge, scale, spread, or rotate the active constellation before you refine individual stars.",
       arrange: {
         left: "Move left",
         right: "Move right",
@@ -510,6 +528,11 @@ export const translations = {
       sketchControls: "스케치 제어",
       observerCue: "관측 안내",
       lookingToward: "바라보는 방향",
+      altitudeBands: {
+        high: "머리 위로 높이 떠 있음",
+        mid: "편하게 보기 좋은 높이",
+        low: "지평선 가까이에 걸려 있음"
+      },
       tonightMood: "오늘 밤의 분위기",
       constellationVisibleStars: "선택한 별자리의 별",
       brightestStar: "가장 밝은 별",
@@ -569,6 +592,17 @@ export const translations = {
       pinSketch: "고정",
       unpinSketch: "고정 해제",
       sketchHint: "별자리를 선택한 뒤 별을 추가하세요. 선은 해당 별자리 안의 별끼리만 이어지고, 행성은 따로 놓입니다.",
+      activeTool: "현재 도구",
+      creativeTools: {
+        star: "별 추가",
+        planet: "행성 추가",
+        delete: "오브젝트 삭제"
+      },
+      creativeToolHints: {
+        star: "캔버스를 눌러 활성 별자리 안에 새 별을 놓을 수 있습니다.",
+        planet: "별자리 선과 분리된 행성을 빈 우주 공간에 배치합니다.",
+        delete: "별이나 행성을 눌러 현재 스케치에서 바로 제거합니다."
+      },
       addStarTool: "별 추가",
       addPlanetTool: "행성 추가",
       deleteTool: "오브젝트 삭제",
@@ -577,6 +611,8 @@ export const translations = {
       presetConstellation: "완성된 별자리",
       importConstellation: "별자리 불러오기",
       noPresetConstellations: "불러올 별자리가 없습니다.",
+      arrangeTitle: "별자리 배치 조정",
+      arrangeHint: "활성 별자리를 조금씩 옮기고, 키우고, 퍼뜨리거나 회전한 뒤에 개별 별 위치를 다듬어 보세요.",
       arrange: {
         left: "왼쪽으로",
         right: "오른쪽으로",

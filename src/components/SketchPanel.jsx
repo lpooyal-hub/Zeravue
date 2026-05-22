@@ -34,6 +34,9 @@ function SketchControlsPanel({
   clearDraftSketch,
   saveDraftSketch
 }) {
+  const activeToolLabel = dictionary.viewer.creativeTools?.[creativeTool] || dictionary.viewer.addStarTool;
+  const activeToolHint = dictionary.viewer.creativeToolHints?.[creativeTool] || dictionary.viewer.sketchHint;
+
   return (
     <section>
       <p className="eyebrow">{dictionary.viewer.sketchLab}</p>
@@ -76,6 +79,12 @@ function SketchControlsPanel({
         </button>
       </div>
 
+      <div className="observer-moment-card">
+        <strong>{dictionary.viewer.activeTool}</strong>
+        <span>{activeToolLabel}</span>
+        <small>{activeToolHint}</small>
+      </div>
+
       <label className="stacked-field">
         <span>{dictionary.viewer.activeConstellation}</span>
         <select
@@ -109,6 +118,7 @@ function SketchControlsPanel({
         {dictionary.viewer.importConstellation}
       </button>
 
+      <p className="eyebrow section-subtle">{dictionary.viewer.arrangeTitle}</p>
       <div className="toggle-grid">
         <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(-0.7, 0)} disabled={!activeCustomConstellationStars.length}>
           {dictionary.viewer.arrange.left}
@@ -141,6 +151,7 @@ function SketchControlsPanel({
           {dictionary.viewer.arrange.rotateRight}
         </button>
       </div>
+      <p className="helper-copy">{dictionary.viewer.arrangeHint}</p>
 
       <label className="stacked-field">
         <span>{dictionary.viewer.constellationName}</span>

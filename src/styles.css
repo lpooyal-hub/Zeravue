@@ -652,6 +652,10 @@ input[type="range"] {
   line-height: 1.5;
 }
 
+.section-subtle {
+  margin-top: 14px;
+}
+
 .constellation-list {
   display: flex;
   flex-wrap: wrap;
@@ -731,6 +735,7 @@ input[type="range"] {
 
 .saved-sketch-button small {
   color: var(--muted);
+  line-height: 1.45;
 }
 
 .saved-sketch-actions {
