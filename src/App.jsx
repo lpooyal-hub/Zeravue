@@ -254,9 +254,34 @@ export function App() {
     return {
       visibleStars: constellationStars.length,
       brightestStar: constellationStars[0]?.name || null,
-      brightestMagnitude: constellationStars[0]?.magnitude ?? null
+      brightestMagnitude: constellationStars[0]?.magnitude ?? null,
+      brightestAltitude: constellationStars[0]?.altitude ?? null,
+      brightestAzimuth: constellationStars[0]?.azimuth ?? null
     };
   }, [activeConstellationKey, sceneState.data]);
+  const observerFocusSummary = useMemo(() => {
+    if (viewMode !== "observer") {
+      return null;
+    }
+
+    if (selectedStar?.visible) {
+      return {
+        name: selectedStar.name,
+        altitude: selectedStar.altitude,
+        azimuth: selectedStar.azimuth
+      };
+    }
+
+    if (activeConstellationStats?.brightestStar) {
+      return {
+        name: activeConstellationStats.brightestStar,
+        altitude: activeConstellationStats.brightestAltitude,
+        azimuth: activeConstellationStats.brightestAzimuth
+      };
+    }
+
+    return null;
+  }, [activeConstellationStats, selectedStar, viewMode]);
   const sketchViewDescription = dictionary.viewer.viewModeDescriptions[viewMode];
   const ambientStatusLabel = ambientTrackPending
     ? dictionary.viewer.ambient.preparing
@@ -768,6 +793,7 @@ export function App() {
               setTonightTimestamp={setTonightTimestamp}
               viewMode={viewMode}
               observerMomentLabel={observerMomentLabel}
+              observerFocusSummary={observerFocusSummary}
               setObserverHourTimestamp={setObserverHourTimestamp}
               observer={observer}
               updateObserver={updateObserver}

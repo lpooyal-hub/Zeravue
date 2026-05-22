@@ -1,5 +1,34 @@
 import { ConstellationFocusSection } from "./ConstellationFocusSection.jsx";
 
+function getCompassDirectionLabel(azimuth, dictionary, language) {
+  if (typeof azimuth !== "number") {
+    return "--";
+  }
+
+  const labels = [
+    dictionary.viewer.cardinals.north[language],
+    language === "ko"
+      ? `${dictionary.viewer.cardinals.north[language]}${dictionary.viewer.cardinals.east[language]}`
+      : "North-east",
+    dictionary.viewer.cardinals.east[language],
+    language === "ko"
+      ? `${dictionary.viewer.cardinals.south[language]}${dictionary.viewer.cardinals.east[language]}`
+      : "South-east",
+    dictionary.viewer.cardinals.south[language],
+    language === "ko"
+      ? `${dictionary.viewer.cardinals.south[language]}${dictionary.viewer.cardinals.west[language]}`
+      : "South-west",
+    dictionary.viewer.cardinals.west[language],
+    language === "ko"
+      ? `${dictionary.viewer.cardinals.north[language]}${dictionary.viewer.cardinals.west[language]}`
+      : "North-west"
+  ];
+
+  const normalized = ((azimuth % 360) + 360) % 360;
+  const index = Math.round(normalized / 45) % 8;
+  return labels[index];
+}
+
 function WatchControlsPanel({
   dictionary,
   language,
@@ -9,6 +38,7 @@ function WatchControlsPanel({
   setTonightTimestamp,
   viewMode,
   observerMomentLabel,
+  observerFocusSummary,
   setObserverHourTimestamp,
   observer,
   updateObserver,
@@ -84,6 +114,16 @@ function WatchControlsPanel({
                 {language === "ko" ? "새벽 03:00" : "3 AM"}
               </button>
             </div>
+            {observerFocusSummary ? (
+              <div className="observer-moment-card">
+                <strong>{dictionary.viewer.observerCue}</strong>
+                <span>{observerFocusSummary.name}</span>
+                <small>
+                  {dictionary.viewer.lookingToward}: {getCompassDirectionLabel(observerFocusSummary.azimuth, dictionary, language)} ·{" "}
+                  {dictionary.viewer.altitude} {observerFocusSummary.altitude}°
+                </small>
+              </div>
+            ) : null}
           </>
         ) : null}
         <div className="field-grid">
