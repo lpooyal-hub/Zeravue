@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
 import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
+import { SelectionInspectorPanel } from "./components/SelectionInspectorPanel.jsx";
 import { SketchControlsPanel, SketchLibraryPanel } from "./components/SketchPanel.jsx";
+import { ViewerHeader } from "./components/ViewerLayout.jsx";
 import { ViewerAmbientOverlay, ViewerFocusOverlay } from "./components/ViewerOverlays.jsx";
 import { WatchControlsPanel, WatchInspectorPanel } from "./components/WatchPanels.jsx";
 import { config } from "./config.js";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { useAmbientAudio } from "./hooks/useAmbientAudio.js";
 import { useConstellationCollections } from "./hooks/useConstellationCollections.js";
+import { useFavoriteConstellations } from "./hooks/useFavoriteConstellations.js";
 import { useNightSkyAmbientTrack } from "./hooks/useNightSkyAmbientTrack.js";
-
-const SKETCH_STORAGE_KEY = "planetarium-custom-space-scenes";
-const FAVORITE_CONSTELLATIONS_STORAGE_KEY = "planetarium-favorite-constellations";
+import { useSavedSketches } from "./hooks/useSavedSketches.js";
 
 const planetPresets = [
   { id: "amber", color: "#f3b46c", ring: false },
@@ -19,15 +20,6 @@ const planetPresets = [
   { id: "rose", color: "#f095b8", ring: false },
   { id: "saturn", color: "#d6bd8a", ring: true }
 ];
-
-function getInitialFavoriteConstellations() {
-  try {
-    const saved = JSON.parse(window.localStorage.getItem(FAVORITE_CONSTELLATIONS_STORAGE_KEY) || "[]");
-    return Array.isArray(saved) ? saved.filter((item) => typeof item === "string") : [];
-  } catch {
-    return [];
-  }
-}
 
 const defaultObserver = {
   latitude: 37.5665,
@@ -81,7 +73,12 @@ function clampCoordinate(value, min = -18, max = 18) {
   return Number(Math.min(max, Math.max(min, value)).toFixed(3));
 }
 
-const VIEW_MODE_ORDER = ["space", "observer", "panorama", "projection"];
+const VIEW_MODE_ORDER = [
+  "space",
+  "observer",
+  // "panorama", // Kept in code for possible return, but hidden from the current UI.
+  "projection"
+];
 
 export function App() {
   const viewerRef = useRef(null);
@@ -108,11 +105,11 @@ export function App() {
   const [planetPreset, setPlanetPreset] = useState(planetPresets[0].id);
   const [presetConstellationName, setPresetConstellationName] = useState("");
   const [sketchName, setSketchName] = useState("");
-  const [savedSketches, setSavedSketches] = useState([]);
   const [activeSketchId, setActiveSketchId] = useState("draft");
   const [customSpace, setCustomSpace] = useState(() => createBlankSpaceScene());
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [favoriteConstellations, setFavoriteConstellations] = useState(getInitialFavoriteConstellations);
+  const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
+  const { favoriteConstellations, setFavoriteConstellations } = useFavoriteConstellations();
   const { ambientTrackUrl, ambientTrackPending, ambientTrackError } = useNightSkyAmbientTrack(config.ambientTrackUrl);
   const { ambientEnabled, ambientVolume, setAmbientVolume, ambientStatus, toggleAmbientSound, wakeAmbient } = useAmbientAudio({
     trackUrl: ambientTrackUrl,
@@ -121,37 +118,9 @@ export function App() {
   const dictionary = translations[language];
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(SKETCH_STORAGE_KEY);
-    if (!saved) {
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        setSavedSketches(
-          parsed
-            .filter((scene) => Array.isArray(scene.stars) && Array.isArray(scene.planets) && Array.isArray(scene.constellations))
-            .map((scene) => ({ favorite: false, ...scene }))
-        );
-      }
-    } catch (error) {
-      console.warn("Failed to restore saved sketches:", error);
-    }
-  }, []);
-
-  useEffect(() => {
     document.documentElement.lang = language;
     window.localStorage.setItem("planetarium-language", language);
   }, [language]);
-
-  useEffect(() => {
-    window.localStorage.setItem(SKETCH_STORAGE_KEY, JSON.stringify(savedSketches));
-  }, [savedSketches]);
-
-  useEffect(() => {
-    window.localStorage.setItem(FAVORITE_CONSTELLATIONS_STORAGE_KEY, JSON.stringify(favoriteConstellations));
-  }, [favoriteConstellations]);
 
   useEffect(() => {
     function handleFullscreenChange() {
@@ -246,16 +215,6 @@ export function App() {
     [customSpace.planets, selectedTarget]
   );
   const activeSketchName = sketchName.trim() || customSpace.name || dictionary.viewer.draftSketch;
-  const sortedSavedSketches = useMemo(
-    () =>
-      [...savedSketches].sort((left, right) => {
-        if (left.favorite === right.favorite) {
-          return 0;
-        }
-        return left.favorite ? -1 : 1;
-      }),
-    [savedSketches]
-  );
   const { currentViewConstellations, importableConstellations, focusConstellations, filteredConstellations, visibleFavoriteConstellations } =
     useConstellationCollections({
       stars: sceneState.data?.stars || [],
@@ -776,38 +735,7 @@ export function App() {
 
   return (
     <div className="planetarium-app">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">{dictionary.viewer.eyebrow}</p>
-          <h1>{dictionary.viewer.title}</h1>
-          <p className="topbar-copy">{dictionary.viewer.subtitle}</p>
-        </div>
-        <div className="topbar-controls">
-          <div className="page-switcher" aria-label={dictionary.viewer.pageMode}>
-            <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
-              {dictionary.viewer.pages.watch}
-            </button>
-            <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")}>
-              {dictionary.viewer.pages.sketch}
-            </button>
-          </div>
-          <div className="language-switcher" aria-label="Language">
-            <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-              EN
-            </button>
-            <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-              KR
-            </button>
-          </div>
-        <div className="observer-pill">
-          <span>{dictionary.viewer.observer}</span>
-          <strong>{observer.label}</strong>
-          <small>
-            {observer.latitude.toFixed(2)}, {observer.longitude.toFixed(2)}
-          </small>
-        </div>
-        </div>
-      </header>
+      <ViewerHeader dictionary={dictionary} currentPage={currentPage} setCurrentPage={setCurrentPage} language={language} setLanguage={setLanguage} observer={observer} />
 
       <div className="workspace">
         <aside className="control-panel">
@@ -983,138 +911,19 @@ export function App() {
         </main>
 
         <aside className="inspector-panel">
-          <section>
-            <p className="eyebrow">{currentPage === "watch" ? dictionary.viewer.starInspector : dictionary.viewer.creationInspector}</p>
-            {currentPage === "sketch" && selectedCustomStar ? (
-              <>
-                <h2>{selectedCustomStar.name}</h2>
-                <p className="constellation-copy">{activeCustomConstellation?.name || dictionary.viewer.customConstellation}</p>
-                <label className="stacked-field">
-                  <span>{dictionary.viewer.objectName}</span>
-                  <input
-                    type="text"
-                    value={selectedCustomStar.name}
-                    onChange={(event) => updateCustomObject(selectedTarget, { name: event.target.value })}
-                  />
-                </label>
-                <label className="stacked-field">
-                  <span>
-                    {dictionary.viewer.objectSize}: {selectedCustomStar.size.toFixed(2)}
-                  </span>
-                  <input
-                    type="range"
-                    min="0.7"
-                    max="2.8"
-                    step="0.05"
-                    value={selectedCustomStar.size}
-                    onChange={(event) => updateCustomObject(selectedTarget, { size: Number(event.target.value) })}
-                  />
-                </label>
-                <label className="stacked-field">
-                  <span>{dictionary.viewer.objectColor}</span>
-                  <input type="color" value={selectedCustomStar.color} onChange={(event) => updateCustomObject(selectedTarget, { color: event.target.value })} />
-                </label>
-                <dl className="summary-list compact">
-                  <div>
-                    <dt>{dictionary.viewer.type}</dt>
-                    <dd>{dictionary.viewer.customStar}</dd>
-                  </div>
-                  <div>
-                    <dt>{dictionary.viewer.belongsTo}</dt>
-                    <dd>
-                      {customSpace.constellations.find((constellation) => constellation.id === selectedCustomStar.constellationId)?.name ||
-                        dictionary.viewer.customConstellation}
-                    </dd>
-                  </div>
-                </dl>
-                <button type="button" className="focus-chip" onClick={() => removeCustomObject(selectedTarget)}>
-                  {dictionary.viewer.removeObject}
-                </button>
-              </>
-            ) : currentPage === "sketch" && selectedCustomPlanet ? (
-              <>
-                <h2>{selectedCustomPlanet.name}</h2>
-                <p className="constellation-copy">{dictionary.viewer.customPlanet}</p>
-                <label className="stacked-field">
-                  <span>{dictionary.viewer.objectName}</span>
-                  <input
-                    type="text"
-                    value={selectedCustomPlanet.name}
-                    onChange={(event) => updateCustomObject(selectedTarget, { name: event.target.value })}
-                  />
-                </label>
-                <label className="stacked-field">
-                  <span>
-                    {dictionary.viewer.objectSize}: {selectedCustomPlanet.size.toFixed(2)}
-                  </span>
-                  <input
-                    type="range"
-                    min="0.9"
-                    max="4"
-                    step="0.05"
-                    value={selectedCustomPlanet.size}
-                    onChange={(event) => updateCustomObject(selectedTarget, { size: Number(event.target.value) })}
-                  />
-                </label>
-                <label className="stacked-field">
-                  <span>{dictionary.viewer.objectColor}</span>
-                  <input
-                    type="color"
-                    value={selectedCustomPlanet.color}
-                    onChange={(event) => updateCustomObject(selectedTarget, { color: event.target.value })}
-                  />
-                </label>
-                <label className="toggle-item">
-                  <input
-                    type="checkbox"
-                    checked={selectedCustomPlanet.ring}
-                    onChange={(event) => updateCustomObject(selectedTarget, { ring: event.target.checked })}
-                  />
-                  <span>{dictionary.viewer.planetRing}</span>
-                </label>
-                <dl className="summary-list compact">
-                  <div>
-                    <dt>{dictionary.viewer.type}</dt>
-                    <dd>{selectedCustomPlanet.ring ? dictionary.viewer.ringedPlanet : dictionary.viewer.customPlanet}</dd>
-                  </div>
-                  <div>
-                    <dt>{dictionary.viewer.planetStyle}</dt>
-                    <dd>{selectedCustomPlanet.color}</dd>
-                  </div>
-                </dl>
-                <button type="button" className="focus-chip" onClick={() => removeCustomObject(selectedTarget)}>
-                  {dictionary.viewer.removeObject}
-                </button>
-              </>
-            ) : currentPage === "watch" && selectedStar ? (
-              <>
-                <h2>{selectedStar.name}</h2>
-                <p className="constellation-copy">
-                  {dictionary.constellations?.[selectedStar.constellation]?.[language] || selectedStar.constellation}
-                </p>
-                <dl className="summary-list compact">
-                  <div>
-                    <dt>{dictionary.viewer.magnitude}</dt>
-                    <dd>{selectedStar.magnitude}</dd>
-                  </div>
-                  <div>
-                    <dt>{dictionary.viewer.altitude}</dt>
-                    <dd>{selectedStar.altitude} deg</dd>
-                  </div>
-                  <div>
-                    <dt>{dictionary.viewer.azimuth}</dt>
-                    <dd>{selectedStar.azimuth} deg</dd>
-                  </div>
-                  <div>
-                    <dt>{dictionary.viewer.visibility}</dt>
-                    <dd>{selectedStar.visible ? dictionary.viewer.aboveHorizon : dictionary.viewer.belowHorizon}</dd>
-                  </div>
-                </dl>
-              </>
-            ) : (
-              <p className="helper-copy">{currentPage === "watch" ? dictionary.viewer.pickHint : dictionary.viewer.creationPickHint}</p>
-            )}
-          </section>
+          <SelectionInspectorPanel
+            dictionary={dictionary}
+            language={language}
+            currentPage={currentPage}
+            selectedCustomStar={selectedCustomStar}
+            activeCustomConstellation={activeCustomConstellation}
+            updateCustomObject={updateCustomObject}
+            selectedTarget={selectedTarget}
+            customSpace={customSpace}
+            removeCustomObject={removeCustomObject}
+            selectedCustomPlanet={selectedCustomPlanet}
+            selectedStar={selectedStar}
+          />
 
           {currentPage === "watch" ? (
             <WatchInspectorPanel
