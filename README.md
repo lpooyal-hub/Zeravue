@@ -1,48 +1,100 @@
-# Celestial Atlas Planetarium
+# Planetarium
 
-React frontend + Python FastAPI backend portfolio project for an interactive planetarium.
+`Open a scene, breathe, stay for a while.`
 
-## Features
+Planetarium is a healing-focused night-sky experience built with React, Three.js, and FastAPI.  
+It is not meant to feel like an observatory dashboard or a study tool first. The goal is to let someone open the sky, settle into a mood, and spend a quiet minute with it.
 
-- React-based multilingual UI: English and Korean
-- Animated canvas planetarium with planets, stars, zodiac lines, and shooting stars
-- NASA APOD API through the Python backend
-- Real NASA planet imagery in the planet cards and tracking panel
-- Browser geolocation plus backend visibility calculation for zodiac constellations
-- Client-side fallback if the backend is temporarily unavailable
+The current release centers on one theme: the night sky.
 
-## Structure
+## Live Demo
+
+Current deployed build:
+
+- `http://168.107.51.224:8001`
+
+Local development:
+
+- Frontend viewer: `http://localhost:5173`
+- Backend API health: `http://localhost:8000/api/health`
+
+## What It Does
+
+The project currently supports two connected experiences:
+
+1. Night-sky viewing
+   - space drift view
+   - observer view
+   - dome projection view
+   - constellation focus, search, tracking, and favorites
+   - location-aware sky generation from the backend
+
+2. Night-sky sketching
+   - import finished constellations into a custom scene
+   - duplicate, move, rotate, spread, and scale constellations
+   - drag individual stars
+   - save and pin custom sketch layouts
+
+The result is somewhere between a gentle screensaver, a constellation viewer, and a personal sky canvas.
+
+## Why It Exists
+
+This project is the first theme in a broader healing panorama direction.
+
+The longer-term vision is one site with multiple quiet scene themes inside it, such as:
+
+- aurora skies
+- underwater drift
+- rainy forest scenes
+- cloud panoramas
+
+The night-sky theme is the reference experience that future themes will build on.
+
+## Stack
+
+- Frontend: React + Vite
+- 3D rendering: `@react-three/fiber` / Three.js
+- Backend: FastAPI
+- Data pipeline: Python astronomy services and HYG-based star scene generation
+- Deployment: Docker Compose + GitHub Actions + Oracle server hosting
+
+## Project Structure
 
 ```text
 backend/
   app/
     main.py
     routers/
-      apod.py
-      sky.py
     services/
-      observability.py
 src/
   App.jsx
-  main.jsx
   api/
-  astro/
+  components/
   data/
-  scene/
+  hooks/
   styles.css
+public/
+scripts/
 ```
 
-## Frontend
+## Running Locally
+
+Frontend:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Frontend URL:
+Backend:
 
-```text
-http://127.0.0.1:5173
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 ## Docker
@@ -55,38 +107,7 @@ docker compose up --build
 
 App URL:
 
-```text
-http://localhost:5173
-```
-
-API health check:
-
-```text
-http://localhost:8000/api/health
-```
-
-Production-style server access in the current Oracle setup:
-
-```text
-http://168.107.51.224:8001
-```
-
-## Backend
-
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-Backend health check:
-
-```text
-http://127.0.0.1:8000/api/health
-```
+- `http://localhost:5173`
 
 ## Environment
 
@@ -107,14 +128,17 @@ FRONTEND_ORIGIN=http://127.0.0.1:5173
 
 When running with Vite, `/api` is proxied to `http://127.0.0.1:8000`.
 
-## CI/CD
+## Deployment Flow
 
-This repository is set up for a GitHub Actions flow with direct server hosting:
+This repository uses a simple GitHub Actions flow:
 
-- `dev` push: build and validate the Docker app
-- `main` push: build, validate, then deploy to the Oracle server over SSH
+- push to `dev`: validate the Docker app
+- push to `main`: validate, then deploy to the Oracle server over SSH
 
-The workflow file lives at [.github/workflows/ci-cd.yml](./.github/workflows/ci-cd.yml) and uses [scripts/deploy.sh](./scripts/deploy.sh) on the server.
+Key files:
+
+- [.github/workflows/ci-cd.yml](./.github/workflows/ci-cd.yml)
+- [scripts/deploy.sh](./scripts/deploy.sh)
 
 Required GitHub repository secrets:
 
@@ -129,18 +153,31 @@ DEPLOY_USER=ubuntu
 Recommended release flow:
 
 1. Work on `dev`
-2. Push `dev` and let the validation job pass
-3. Merge `dev` into `main`
-4. Push `main`
-5. GitHub Actions connects to the Oracle server and runs `./scripts/deploy.sh main`
+2. Push `dev`
+3. Let validation pass
+4. Merge `dev` into `main`
+5. Push `main`
+6. Let GitHub Actions deploy the latest build
 
-If you continue editing directly on the server, it is safer to keep a separate production checkout path such as `/home/ubuntu/Planetarium-main` for automatic deployments. The deploy script intentionally uses `git pull --ff-only` so it fails instead of overwriting uncommitted server-side changes.
+## Current Focus
+
+The project has moved beyond early prototype stage and is now in the “raise the finish quality” phase.
+
+Current priorities:
+
+- reduce remaining UI clutter
+- keep splitting oversized frontend files into clearer components and hooks
+- make the night-sky theme feel more restful and polished
+- prepare the project structure for future theme expansion
 
 ## Notes
 
-The current location-based sky feature estimates visible zodiac constellations from latitude, longitude, local sidereal time, and approximate constellation center coordinates. It is meant as a portfolio-grade observing guide, not a precision ephemeris.
+- The sky scene is intended as an emotionally readable observing guide, not a precision astronomy simulator.
+- Ambient audio is being transitioned toward theme-based loop tracks.
+- Panorama view is currently hidden from the main UI while the core viewing modes are being tightened.
 
-NASA sources:
+## Related Docs
 
-- https://api.nasa.gov
-- https://science.nasa.gov/solar-system/planets/
+- [docs/PROJECT_VISION.md](./docs/PROJECT_VISION.md)
+- [docs/THEMES.md](./docs/THEMES.md)
+- [docs/STAR_THEME_ROADMAP.md](./docs/STAR_THEME_ROADMAP.md)

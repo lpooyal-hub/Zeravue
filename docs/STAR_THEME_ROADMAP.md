@@ -46,14 +46,14 @@ Finish the night-sky theme to a level where it feels polished, consistent, and r
 - [x] import finished constellations into sketch mode
 - [x] move, scale, spread, tighten, and rotate imported constellations
 - [x] duplicate a constellation
-- [ ] drag individual stars directly
-- [ ] save favorite sketch layouts
-- [ ] make custom constellations easier to rename and curate
+- [x] drag individual stars directly
+- [x] save favorite sketch layouts
+- [x] make custom constellations easier to rename and curate
 
 ### Stage 4: Ambience
 
 - [ ] replace fragile autoplay expectations with a dependable first-interaction start flow
-- [ ] clarify playback state in the interface
+- [x] clarify playback state in the interface
 - [ ] decide whether Web Audio stays or a looped audio asset replaces it
 
 ### Stage 5: Final Theme Polish

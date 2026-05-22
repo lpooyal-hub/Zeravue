@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 function buildStarTexture(color) {
@@ -57,7 +57,8 @@ export function PlanetariumCanvas({
   creativeMode = false,
   customSpace,
   creativeTool,
-  onCreativeSpaceClick
+  onCreativeSpaceClick,
+  onUpdateCustomObject
 }) {
   if (!scene && !creativeMode) {
     return <div className="scene-empty">{dictionary.viewer.loading}</div>;
@@ -81,6 +82,7 @@ export function PlanetariumCanvas({
           dictionary={dictionary}
           creativeTool={creativeTool}
           onCreativeSpaceClick={onCreativeSpaceClick}
+          onUpdateCustomObject={onUpdateCustomObject}
         />
       ) : (
         <SceneContents
@@ -117,12 +119,16 @@ function CreativeSpaceContents({
   language,
   dictionary,
   creativeTool,
-  onCreativeSpaceClick
+  onCreativeSpaceClick,
+  onUpdateCustomObject
 }) {
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
   const lookAnchor = useRef({ x: 0, y: 0, z: -11.8 });
-  const { camera } = useThree();
+  const draggingStarRef = useRef(null);
+  const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 12.2));
+  const dragPointRef = useRef(new THREE.Vector3());
+  const { camera, gl } = useThree();
   const labelData = useMemo(() => {
     if (!showLabels) {
       return [];
@@ -170,7 +176,20 @@ function CreativeSpaceContents({
     return labels;
   }, [customSpace, showLabels]);
 
-  useFrame((_, delta) => {
+  useEffect(() => {
+    function clearDrag() {
+      draggingStarRef.current = null;
+    }
+
+    gl.domElement.addEventListener("pointerup", clearDrag);
+    gl.domElement.addEventListener("pointerleave", clearDrag);
+    return () => {
+      gl.domElement.removeEventListener("pointerup", clearDrag);
+      gl.domElement.removeEventListener("pointerleave", clearDrag);
+    };
+  }, [gl]);
+
+  useFrame((state, delta) => {
     const targetCameraX = 0;
     const targetCameraY = 0.2;
     const targetCameraZ = -0.05;
@@ -198,6 +217,20 @@ function CreativeSpaceContents({
     camera.fov = THREE.MathUtils.damp(camera.fov, 42, 5.2, delta);
     camera.updateProjectionMatrix();
     camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
+
+    if (draggingStarRef.current) {
+      state.raycaster.setFromCamera(state.pointer, state.camera);
+      if (state.raycaster.ray.intersectPlane(dragPlaneRef.current, dragPointRef.current)) {
+        onUpdateCustomObject?.(
+          { kind: "custom-star", id: draggingStarRef.current },
+          {
+            x: clampCoordinate(dragPointRef.current.x),
+            y: clampCoordinate(dragPointRef.current.y),
+            z: -12.2
+          }
+        );
+      }
+    }
   });
 
   return (
@@ -218,6 +251,9 @@ function CreativeSpaceContents({
             star={star}
             selected={selectedTarget?.kind === "custom-star" && selectedTarget.id === star.id}
             onSelectTarget={onSelectTarget}
+            onStartDrag={(starId) => {
+              draggingStarRef.current = starId;
+            }}
           />
         ))}
         {customSpace?.planets.map((planet) => (
@@ -381,17 +417,17 @@ function SceneContents({
 
   useFrame(({ clock }, delta) => {
     const observerMode = viewMode === "observer";
-    const driftA = clock.elapsedTime * 0.085;
-    const driftB = clock.elapsedTime * 0.052;
+    const driftA = clock.elapsedTime * 0.106;
+    const driftB = clock.elapsedTime * 0.068;
     trackingBlend.current = THREE.MathUtils.damp(trackingBlend.current, trackedCenter ? 1 : 0, 3.2, delta);
     const trackWeight = trackingBlend.current;
-    const targetTiltX = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftB) * 0.018 : -pointer.y * 0.01;
-    const targetYawDrift = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftA) * 0.022 : pointer.x * 0.018;
-    const baseCameraX = projectionMode ? 0 : spaceMode ? Math.sin(driftA) * 0.55 : observerMode ? pointer.x * 0.04 : pointer.x * 0.26;
-    const baseCameraY = projectionMode ? 0 : spaceMode ? Math.cos(driftB) * 0.32 : observerMode ? pointer.y * 0.02 : -0.15 + pointer.y * 0.08;
-    const targetCameraZ = projectionMode ? -0.65 : spaceMode ? -11.8 + Math.sin(driftA * 0.7) * 0.18 : observerMode ? 0.3 : -0.42;
-    const baseLookX = projectionMode ? 0 : spaceMode ? Math.sin(driftA * 0.8) * 2.2 : observerMode ? pointer.x * 0.2 : pointer.x * 1.45;
-    const baseLookY = projectionMode ? 0 : spaceMode ? Math.cos(driftB * 1.15) * 0.85 : observerMode ? 10.2 + pointer.y * 0.12 : 2.35 + pointer.y * 0.46;
+    const targetTiltX = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftB) * 0.022 : -pointer.y * 0.01;
+    const targetYawDrift = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftA) * 0.028 : pointer.x * 0.018;
+    const baseCameraX = projectionMode ? 0 : spaceMode ? Math.sin(driftA) * 0.68 : observerMode ? pointer.x * 0.04 : pointer.x * 0.26;
+    const baseCameraY = projectionMode ? 0 : spaceMode ? Math.cos(driftB) * 0.42 : observerMode ? pointer.y * 0.02 : -0.15 + pointer.y * 0.08;
+    const targetCameraZ = projectionMode ? -0.65 : spaceMode ? -11.8 + Math.sin(driftA * 0.7) * 0.26 : observerMode ? 0.3 : -0.42;
+    const baseLookX = projectionMode ? 0 : spaceMode ? Math.sin(driftA * 0.8) * 2.8 : observerMode ? pointer.x * 0.2 : pointer.x * 1.45;
+    const baseLookY = projectionMode ? 0 : spaceMode ? Math.cos(driftB * 1.15) * 1.05 : observerMode ? 10.2 + pointer.y * 0.12 : 2.35 + pointer.y * 0.46;
     const baseLookZ = projectionMode ? -13.5 : spaceMode ? 0 : observerMode ? -0.9 : -14.6;
     const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * (spaceMode ? 0.03 : observerMode ? 0.04 : 0.06) : baseCameraX, trackWeight);
     const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * (observerMode ? 0.014 : spaceMode ? 0.02 : 0.028) : baseCameraY, trackWeight);
@@ -401,21 +437,21 @@ function SceneContents({
 
     if (groupRef.current) {
       if (autoRotate && !trackedCenter && !projectionMode && !observerMode) {
-        groupRef.current.rotation.y += delta * (spaceMode ? 0.013 : 0.008);
+        groupRef.current.rotation.y += delta * (spaceMode ? 0.017 : 0.008);
       }
-      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, spaceMode ? 2.1 : observerMode ? 7.5 : 5.4, delta);
-      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, spaceMode ? 2 : observerMode ? 7.5 : 4.8, delta);
+      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, spaceMode ? 2.35 : observerMode ? 7.5 : 5.4, delta);
+      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, spaceMode ? 2.3 : observerMode ? 7.5 : 4.8, delta);
       groupRef.current.rotation.x = rotationAnchor.current.x;
       groupRef.current.rotation.y += rotationAnchor.current.y * delta;
     }
 
-    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, spaceMode ? 2.1 : observerMode ? 7.8 : 5.1, delta);
-    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, spaceMode ? 2.1 : observerMode ? 7.8 : 5.1, delta);
-    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, spaceMode ? 2.4 : observerMode ? 8.1 : 5.4, delta);
+    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, spaceMode ? 2.35 : observerMode ? 7.8 : 5.1, delta);
+    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, spaceMode ? 2.35 : observerMode ? 7.8 : 5.1, delta);
+    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, spaceMode ? 2.55 : observerMode ? 8.1 : 5.4, delta);
 
-    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, spaceMode ? 2.2 : observerMode ? 7.4 : 5.4, delta);
-    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, spaceMode ? 2.2 : observerMode ? 7.4 : 5.4, delta);
-    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, spaceMode ? 2.4 : observerMode ? 7.8 : 5.7, delta);
+    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, spaceMode ? 2.45 : observerMode ? 7.4 : 5.4, delta);
+    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, spaceMode ? 2.45 : observerMode ? 7.4 : 5.4, delta);
+    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, spaceMode ? 2.6 : observerMode ? 7.8 : 5.7, delta);
 
     if (observerMode) {
       const observerLift = trackedCenter ? THREE.MathUtils.lerp(11.2, 7.2, zoomLevel) : THREE.MathUtils.lerp(12.6, 8.6, zoomLevel);
@@ -689,7 +725,7 @@ function CreativeConstellationLines({ customSpace }) {
   );
 }
 
-function CreativeStar({ star, selected, onSelectTarget }) {
+function CreativeStar({ star, selected, onSelectTarget, onStartDrag }) {
   const haloRef = useRef(null);
   const material = useMemo(
     () =>
@@ -719,6 +755,11 @@ function CreativeStar({ star, selected, onSelectTarget }) {
       ) : null}
       <sprite ref={haloRef} material={material} scale={[star.size * 2.6, star.size * 2.6, 1]} />
       <mesh
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          onSelectTarget({ kind: "custom-star", id: star.id });
+          onStartDrag?.(star.id);
+        }}
         onClick={(event) => {
           event.stopPropagation();
           onSelectTarget({ kind: "custom-star", id: star.id });
