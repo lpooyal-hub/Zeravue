@@ -25,6 +25,7 @@ function WatchControlsPanel({
   toggleFavoriteConstellation,
   visibleFavoriteConstellations,
   activeConstellationStory,
+  activeConstellationStats,
   atmosphereStrength,
   setAtmosphereStrength,
   starGlowStrength,
@@ -144,6 +145,22 @@ function WatchControlsPanel({
         <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
         <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
         <p>{activeConstellationStory}</p>
+        {activeConstellationStats ? (
+          <dl className="summary-list compact">
+            <div>
+              <dt>{dictionary.viewer.constellationVisibleStars}</dt>
+              <dd>{activeConstellationStats.visibleStars}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.brightestStar}</dt>
+              <dd>{activeConstellationStats.brightestStar || "--"}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.magnitude}</dt>
+              <dd>{activeConstellationStats.brightestMagnitude ?? "--"}</dd>
+            </div>
+          </dl>
+        ) : null}
       </section>
 
       <section>

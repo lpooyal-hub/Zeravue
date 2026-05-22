@@ -238,6 +238,25 @@ export function App() {
   const activeConstellationStory =
     (activeConstellationKey && dictionary.viewer.constellationMoods?.[activeConstellationKey]?.[language]) || dictionary.viewer.constellationFallback;
   const activeConstellationIsFavorite = Boolean(activeConstellationKey && favoriteConstellations.includes(activeConstellationKey));
+  const activeConstellationStats = useMemo(() => {
+    if (!activeConstellationKey || activeConstellationKey === "all" || !sceneState.data?.stars?.length) {
+      return null;
+    }
+
+    const constellationStars = sceneState.data.stars
+      .filter((star) => star.constellation === activeConstellationKey && star.visible)
+      .sort((left, right) => left.magnitude - right.magnitude);
+
+    if (!constellationStars.length) {
+      return null;
+    }
+
+    return {
+      visibleStars: constellationStars.length,
+      brightestStar: constellationStars[0]?.name || null,
+      brightestMagnitude: constellationStars[0]?.magnitude ?? null
+    };
+  }, [activeConstellationKey, sceneState.data]);
   const sketchViewDescription = dictionary.viewer.viewModeDescriptions[viewMode];
   const ambientStatusLabel = ambientTrackPending
     ? dictionary.viewer.ambient.preparing
@@ -765,6 +784,7 @@ export function App() {
               toggleFavoriteConstellation={toggleFavoriteConstellation}
               visibleFavoriteConstellations={visibleFavoriteConstellations}
               activeConstellationStory={activeConstellationStory}
+              activeConstellationStats={activeConstellationStats}
               atmosphereStrength={atmosphereStrength}
               setAtmosphereStrength={setAtmosphereStrength}
               starGlowStrength={starGlowStrength}
