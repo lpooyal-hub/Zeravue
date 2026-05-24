@@ -662,10 +662,20 @@ function SceneContents({
       <pointLight position={[0, 6, 14]} intensity={0.9} color="#b8d2ff" />
       <pointLight position={[-12, -4, -8]} intensity={0.25} color="#ffbf8a" />
       <group ref={groupRef}>
-        <MilkyWayBand viewMode={viewMode} />
-        <DeepSkyField viewMode={viewMode} atmosphereStrength={atmosphereStrength} />
-        {viewMode === "space" ? <SpaceDepthField atmosphereStrength={atmosphereStrength} /> : null}
-        {auroraEnabled ? <AuroraCurtains intensity={auroraIntensity} speed={auroraSpeed} /> : null}
+        {auroraEnabled ? (
+          <>
+            <AuroraSkyBackdrop intensity={auroraIntensity} />
+            <DeepSkyField viewMode={viewMode} atmosphereStrength={Math.max(0.2, atmosphereStrength * 0.48)} />
+            <AuroraCurtains intensity={auroraIntensity} speed={auroraSpeed} />
+            <AuroraHorizonSilhouette />
+          </>
+        ) : (
+          <>
+            <MilkyWayBand viewMode={viewMode} />
+            <DeepSkyField viewMode={viewMode} atmosphereStrength={atmosphereStrength} />
+            {viewMode === "space" ? <SpaceDepthField atmosphereStrength={atmosphereStrength} /> : null}
+          </>
+        )}
         <BackgroundStarField
           stars={projectedStars}
           focusedConstellation={focusedConstellation}
@@ -1500,6 +1510,8 @@ function SpaceDepthField({ atmosphereStrength = 0.7 }) {
 function AuroraCurtains({ intensity = 0.72, speed = 0.55 }) {
   const curtainA = useRef(null);
   const curtainB = useRef(null);
+  const curtainC = useRef(null);
+  const curtainD = useRef(null);
   const glowA = useRef(null);
   const glowB = useRef(null);
 
@@ -1507,17 +1519,31 @@ function AuroraCurtains({ intensity = 0.72, speed = 0.55 }) {
     const t = clock.elapsedTime * (0.42 + speed * 0.95);
 
     if (curtainA.current) {
-      curtainA.current.position.x = Math.sin(t * 0.42) * 1.6;
-      curtainA.current.position.y = 3.2 + Math.sin(t * 0.21) * 0.55;
-      curtainA.current.rotation.z = Math.sin(t * 0.28) * 0.06;
-      curtainA.current.material.opacity = 0.12 + intensity * 0.22 + Math.sin(t * 0.5) * 0.025;
+      curtainA.current.position.x = Math.sin(t * 0.34) * 2.8;
+      curtainA.current.position.y = 3.8 + Math.sin(t * 0.2) * 0.7;
+      curtainA.current.rotation.z = Math.sin(t * 0.22) * 0.05;
+      curtainA.current.material.opacity = 0.14 + intensity * 0.26 + Math.sin(t * 0.52) * 0.03;
     }
 
     if (curtainB.current) {
-      curtainB.current.position.x = -Math.sin(t * 0.36) * 1.9;
-      curtainB.current.position.y = 3.6 + Math.cos(t * 0.24) * 0.5;
-      curtainB.current.rotation.z = -Math.sin(t * 0.25) * 0.07;
-      curtainB.current.material.opacity = 0.1 + intensity * 0.19 + Math.cos(t * 0.46) * 0.022;
+      curtainB.current.position.x = -Math.sin(t * 0.3) * 2.4;
+      curtainB.current.position.y = 3.4 + Math.cos(t * 0.23) * 0.64;
+      curtainB.current.rotation.z = -Math.sin(t * 0.19) * 0.06;
+      curtainB.current.material.opacity = 0.12 + intensity * 0.24 + Math.cos(t * 0.47) * 0.028;
+    }
+
+    if (curtainC.current) {
+      curtainC.current.position.x = Math.sin(t * 0.28 + 1.4) * 2.1;
+      curtainC.current.position.y = 2.6 + Math.sin(t * 0.17 + 0.8) * 0.55;
+      curtainC.current.rotation.z = Math.sin(t * 0.21 + 0.5) * 0.07;
+      curtainC.current.material.opacity = 0.1 + intensity * 0.2 + Math.cos(t * 0.4) * 0.02;
+    }
+
+    if (curtainD.current) {
+      curtainD.current.position.x = -Math.sin(t * 0.25 + 0.7) * 2.7;
+      curtainD.current.position.y = 2.1 + Math.cos(t * 0.2 + 1.1) * 0.58;
+      curtainD.current.rotation.z = -Math.sin(t * 0.18 + 0.3) * 0.06;
+      curtainD.current.material.opacity = 0.08 + intensity * 0.18 + Math.sin(t * 0.44) * 0.018;
     }
 
     if (glowA.current) {
@@ -1533,21 +1559,73 @@ function AuroraCurtains({ intensity = 0.72, speed = 0.55 }) {
 
   return (
     <>
-      <mesh ref={curtainA} position={[0.2, 3.4, -13.8]} rotation={[0.18, 0.2, 0]}>
-        <planeGeometry args={[22, 12, 1, 1]} />
-        <meshBasicMaterial color="#6af2cf" transparent opacity={0.24} depthWrite={false} blending={THREE.AdditiveBlending} />
+      <mesh ref={curtainA} position={[0.5, 3.6, -14.5]} rotation={[0.28, 0.06, -0.24]}>
+        <planeGeometry args={[28, 15, 1, 1]} />
+        <meshBasicMaterial color="#65ffd6" transparent opacity={0.26} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
-      <mesh ref={curtainB} position={[-0.4, 3.8, -14.4]} rotation={[0.2, -0.26, 0]}>
-        <planeGeometry args={[24, 13, 1, 1]} />
-        <meshBasicMaterial color="#6bd3ff" transparent opacity={0.2} depthWrite={false} blending={THREE.AdditiveBlending} />
+      <mesh ref={curtainB} position={[-0.8, 3.3, -14.2]} rotation={[0.24, -0.09, 0.21]}>
+        <planeGeometry args={[27, 14, 1, 1]} />
+        <meshBasicMaterial color="#ff66d4" transparent opacity={0.25} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
-      <mesh ref={glowA} position={[0, 2.8, -12.8]} rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[5.8, 10.8, 64]} />
-        <meshBasicMaterial color="#59d7cf" transparent opacity={0.14} side={THREE.DoubleSide} depthWrite={false} />
+      <mesh ref={curtainC} position={[1.1, 2.7, -13.8]} rotation={[0.22, 0.04, -0.18]}>
+        <planeGeometry args={[25, 12.5, 1, 1]} />
+        <meshBasicMaterial color="#a36bff" transparent opacity={0.22} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
-      <mesh ref={glowB} position={[0, 1.7, -12.6]} rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[3.4, 8.6, 64]} />
-        <meshBasicMaterial color="#75d2ff" transparent opacity={0.12} side={THREE.DoubleSide} depthWrite={false} />
+      <mesh ref={curtainD} position={[-1.3, 2.2, -13.5]} rotation={[0.2, -0.04, 0.16]}>
+        <planeGeometry args={[22, 11.5, 1, 1]} />
+        <meshBasicMaterial color="#a6ff5e" transparent opacity={0.2} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
+      <mesh ref={glowA} position={[0, 2.7, -12.9]} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[6.2, 11.6, 64]} />
+        <meshBasicMaterial color="#49e8cf" transparent opacity={0.15} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <mesh ref={glowB} position={[0, 1.5, -12.7]} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[3.6, 9.4, 64]} />
+        <meshBasicMaterial color="#78adff" transparent opacity={0.13} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+    </>
+  );
+}
+
+function AuroraSkyBackdrop({ intensity = 0.72 }) {
+  const domeRef = useRef(null);
+
+  useFrame(({ clock }) => {
+    if (!domeRef.current) {
+      return;
+    }
+    domeRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.03) * 0.05;
+    domeRef.current.material.opacity = 0.2 + intensity * 0.25;
+  });
+
+  return (
+    <>
+      <mesh ref={domeRef} position={[0, 1.3, -14.6]} rotation={[-0.15, 0, 0]}>
+        <sphereGeometry args={[24, 48, 32, 0, Math.PI * 2, 0, Math.PI / 1.85]} />
+        <meshBasicMaterial color="#1f295e" transparent opacity={0.36} side={THREE.BackSide} depthWrite={false} />
+      </mesh>
+      <mesh position={[0, 1.9, -14.1]} rotation={[-0.2, 0, 0]}>
+        <planeGeometry args={[34, 16, 1, 1]} />
+        <meshBasicMaterial color="#2c1a5b" transparent opacity={0.21} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
+    </>
+  );
+}
+
+function AuroraHorizonSilhouette() {
+  return (
+    <>
+      <mesh position={[0, -3.6, -11.6]}>
+        <planeGeometry args={[34, 4.8]} />
+        <meshBasicMaterial color="#03060c" transparent opacity={0.92} depthWrite={false} />
+      </mesh>
+      <mesh position={[-7.4, -2.95, -11.45]} rotation={[0, 0, 0.06]}>
+        <circleGeometry args={[3.4, 64]} />
+        <meshBasicMaterial color="#04070d" transparent opacity={0.96} depthWrite={false} />
+      </mesh>
+      <mesh position={[8.2, -3.05, -11.45]} rotation={[0, 0, -0.05]}>
+        <circleGeometry args={[3.9, 64]} />
+        <meshBasicMaterial color="#04070d" transparent opacity={0.96} depthWrite={false} />
       </mesh>
     </>
   );
