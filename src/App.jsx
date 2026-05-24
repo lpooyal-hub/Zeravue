@@ -14,14 +14,14 @@ import { useFavoriteConstellations } from "./hooks/useFavoriteConstellations.js"
 import { useNightSkyAmbientTrack } from "./hooks/useNightSkyAmbientTrack.js";
 import { useSavedSketches } from "./hooks/useSavedSketches.js";
 import { useSketchWorkspace } from "./hooks/useSketchWorkspace.js";
+import { useWatchWorkspace } from "./hooks/useWatchWorkspace.js";
 import { useTheme } from "./context/ThemeContext.jsx";
 import {
   defaultObserver,
   getInitialObservedAt,
   planetPresets,
   setObserverHourTimestamp,
-  setTonightTimestamp,
-  shiftObservedTimestamp
+  setTonightTimestamp
 } from "./utils/viewerState.js";
 import { getThemeHeaderCopy, getThemeViewModes } from "./utils/themePresentation.js";
 
@@ -116,6 +116,25 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     removeCustomObject,
     updateCustomObject
   } = sketchWorkspace;
+  const watchWorkspace = useWatchWorkspace({
+    language,
+    currentPage,
+    isSketchWatch,
+    viewMode,
+    creativeTool,
+    sceneData: sceneState.data,
+    setObservedAt,
+    setObserver,
+    setFavoriteConstellations,
+    setSelectedTarget,
+    setFocusedConstellation,
+    removeCustomObject,
+    setZoomLevel,
+    setConstellationSearch,
+    setTrackConstellation,
+    setResetViewToken
+  });
+  const { updateObserver, requestLocation, toggleFavoriteConstellation, selectTarget, shiftTime, changeZoom, resetView } = watchWorkspace;
   const sketchEnabled = currentTheme?.features?.sketching !== false;
   const auroraEnabled = currentThemeId === "aurora-night";
   const { eyebrow: headerEyebrow, title: headerTitle, subtitle: headerSubtitle } = useMemo(
@@ -375,63 +394,6 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     };
   }, [currentPage, isSketchWatch, viewMode]);
 
-  function updateObserver(key, value) {
-    setObserver((current) => ({
-      ...current,
-      [key]: Number(value),
-      label: language === "ko" ? "사용자 위치" : "Custom observer"
-    }));
-  }
-
-  function requestLocation() {
-    if (!navigator.geolocation) {
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition((position) => {
-      setObserver({
-        latitude: Number(position.coords.latitude.toFixed(4)),
-        longitude: Number(position.coords.longitude.toFixed(4)),
-        label: language === "ko" ? "현재 위치" : "Live location"
-      });
-    });
-  }
-
-  function toggleFavoriteConstellation(name) {
-    if (!name || name === "all") {
-      return;
-    }
-    setFavoriteConstellations((current) => (current.includes(name) ? current.filter((item) => item !== name) : [name, ...current]));
-  }
-
-  function selectTarget(target) {
-    if ((currentPage === "sketch" || isSketchWatch) && target?.kind?.startsWith("custom-")) {
-      if (isSketchWatch) {
-        setSelectedTarget(target);
-        return;
-      }
-      if (creativeTool === "delete") {
-        removeCustomObject(target);
-        return;
-      }
-      setSelectedTarget(target);
-      return;
-    }
-
-    if (currentPage === "watch" && viewMode === "space") {
-      return;
-    }
-
-    setSelectedTarget(target);
-
-    if (target?.kind === "star") {
-      const star = sceneState.data?.stars.find((item) => item.id === target.id);
-      if (star?.constellation) {
-        setFocusedConstellation(star.constellation);
-      }
-    }
-  }
-
   async function toggleFullscreen() {
     if (!viewerRef.current) {
       return;
@@ -443,23 +405,6 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     }
 
     await viewerRef.current.requestFullscreen();
-  }
-
-  function shiftTime(hours) {
-    setObservedAt((current) => shiftObservedTimestamp(current, hours));
-  }
-
-  function changeZoom(delta) {
-    setZoomLevel((current) => Math.min(1, Math.max(0, Number((current + delta).toFixed(2)))));
-  }
-
-  function resetView() {
-    setZoomLevel(0.52);
-    setConstellationSearch("");
-    setFocusedConstellation("all");
-    setTrackConstellation(false);
-    setSelectedTarget(null);
-    setResetViewToken((current) => current + 1);
   }
 
   return (
