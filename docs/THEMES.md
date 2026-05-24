@@ -62,7 +62,8 @@ Current status:
 
 - Theme switcher skeleton is now connected in-app.
 - Aurora currently uses a visual style shell and shared sky mechanics.
-- Aurora-specific data and atmosphere layers are the next implementation step.
+- Aurora now includes a first atmospheric layer set (curtain-like glow + intensity/speed controls).
+- Aurora-specific data adaptation can follow after visual mood tuning.
 
 ## Theme 3: Underwater Panorama
 

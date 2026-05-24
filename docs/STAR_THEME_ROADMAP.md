@@ -75,6 +75,7 @@ Completion criteria live in [GOALS.md](./GOALS.md).
 - Hardened ambient playback startup and recovery behavior on first interaction and tab return.
 - Added a first Aurora Night theme skeleton (theme switcher + visual shell) without breaking Night Sky flow.
 - Switched from in-page theme toggling to a theme-home-first routing skeleton (`/`, `/night-sky`, `/aurora`).
+- Added first Aurora mood controls and animated curtain-like light layers for healing-focused viewing.
 
 ## Implementation Notes
 

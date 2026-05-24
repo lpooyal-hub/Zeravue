@@ -60,7 +60,10 @@ export function PlanetariumCanvas({
   onCreativeSpaceClick,
   onUpdateCustomObject,
   editingEnabled = true,
-  resetViewToken = 0
+  resetViewToken = 0,
+  auroraEnabled = false,
+  auroraIntensity = 0.72,
+  auroraSpeed = 0.55
 }) {
   if (!scene && !creativeMode) {
     return <div className="scene-empty">{dictionary.viewer.loading}</div>;
@@ -107,6 +110,9 @@ export function PlanetariumCanvas({
           drawMode={drawMode}
           customSketchStarIds={customSketchStarIds}
           resetViewToken={resetViewToken}
+          auroraEnabled={auroraEnabled}
+          auroraIntensity={auroraIntensity}
+          auroraSpeed={auroraSpeed}
         />
       )}
     </Canvas>
@@ -408,7 +414,10 @@ function SceneContents({
   trackConstellation,
   drawMode,
   customSketchStarIds,
-  resetViewToken
+  resetViewToken,
+  auroraEnabled,
+  auroraIntensity,
+  auroraSpeed
 }) {
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
@@ -656,6 +665,7 @@ function SceneContents({
         <MilkyWayBand viewMode={viewMode} />
         <DeepSkyField viewMode={viewMode} atmosphereStrength={atmosphereStrength} />
         {viewMode === "space" ? <SpaceDepthField atmosphereStrength={atmosphereStrength} /> : null}
+        {auroraEnabled ? <AuroraCurtains intensity={auroraIntensity} speed={auroraSpeed} /> : null}
         <BackgroundStarField
           stars={projectedStars}
           focusedConstellation={focusedConstellation}
@@ -1484,6 +1494,62 @@ function SpaceDepthField({ atmosphereStrength = 0.7 }) {
         alphaTest={0.08}
       />
     </points>
+  );
+}
+
+function AuroraCurtains({ intensity = 0.72, speed = 0.55 }) {
+  const curtainA = useRef(null);
+  const curtainB = useRef(null);
+  const glowA = useRef(null);
+  const glowB = useRef(null);
+
+  useFrame(({ clock }, delta) => {
+    const t = clock.elapsedTime * (0.42 + speed * 0.95);
+
+    if (curtainA.current) {
+      curtainA.current.position.x = Math.sin(t * 0.42) * 1.6;
+      curtainA.current.position.y = 3.2 + Math.sin(t * 0.21) * 0.55;
+      curtainA.current.rotation.z = Math.sin(t * 0.28) * 0.06;
+      curtainA.current.material.opacity = 0.12 + intensity * 0.22 + Math.sin(t * 0.5) * 0.025;
+    }
+
+    if (curtainB.current) {
+      curtainB.current.position.x = -Math.sin(t * 0.36) * 1.9;
+      curtainB.current.position.y = 3.6 + Math.cos(t * 0.24) * 0.5;
+      curtainB.current.rotation.z = -Math.sin(t * 0.25) * 0.07;
+      curtainB.current.material.opacity = 0.1 + intensity * 0.19 + Math.cos(t * 0.46) * 0.022;
+    }
+
+    if (glowA.current) {
+      glowA.current.rotation.y += delta * (0.04 + speed * 0.08);
+      glowA.current.material.opacity = 0.05 + intensity * 0.12;
+    }
+
+    if (glowB.current) {
+      glowB.current.rotation.y -= delta * (0.03 + speed * 0.07);
+      glowB.current.material.opacity = 0.045 + intensity * 0.1;
+    }
+  });
+
+  return (
+    <>
+      <mesh ref={curtainA} position={[0.2, 3.4, -13.8]} rotation={[0.18, 0.2, 0]}>
+        <planeGeometry args={[22, 12, 1, 1]} />
+        <meshBasicMaterial color="#6af2cf" transparent opacity={0.24} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
+      <mesh ref={curtainB} position={[-0.4, 3.8, -14.4]} rotation={[0.2, -0.26, 0]}>
+        <planeGeometry args={[24, 13, 1, 1]} />
+        <meshBasicMaterial color="#6bd3ff" transparent opacity={0.2} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
+      <mesh ref={glowA} position={[0, 2.8, -12.8]} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[5.8, 10.8, 64]} />
+        <meshBasicMaterial color="#59d7cf" transparent opacity={0.14} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <mesh ref={glowB} position={[0, 1.7, -12.6]} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[3.4, 8.6, 64]} />
+        <meshBasicMaterial color="#75d2ff" transparent opacity={0.12} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+    </>
   );
 }
 

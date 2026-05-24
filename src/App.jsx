@@ -104,6 +104,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [constellationSearch, setConstellationSearch] = useState("");
   const [trackConstellation, setTrackConstellation] = useState(false);
   const [resetViewToken, setResetViewToken] = useState(0);
+  const [auroraIntensity, setAuroraIntensity] = useState(0.72);
+  const [auroraSpeed, setAuroraSpeed] = useState(0.55);
   const [creativeTool, setCreativeTool] = useState("star");
   const [planetPreset, setPlanetPreset] = useState(planetPresets[0].id);
   const [presetConstellationName, setPresetConstellationName] = useState("");
@@ -121,6 +123,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   });
   const dictionary = translations[language];
   const sketchEnabled = currentTheme?.features?.sketching !== false;
+  const auroraEnabled = currentThemeId === "aurora-night";
   const themeViewModes = useMemo(() => {
     const supported = Array.isArray(currentTheme?.viewModes) && currentTheme.viewModes.length ? currentTheme.viewModes : VIEW_MODE_ORDER;
     return VIEW_MODE_ORDER.filter((mode) => supported.includes(mode));
@@ -1037,6 +1040,11 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               setAutoRotate={setAutoRotate}
               showGuides={showGuides}
               setShowGuides={setShowGuides}
+              auroraEnabled={auroraEnabled}
+              auroraIntensity={auroraIntensity}
+              setAuroraIntensity={setAuroraIntensity}
+              auroraSpeed={auroraSpeed}
+              setAuroraSpeed={setAuroraSpeed}
               isSketchWatch={isSketchWatch}
               activeSketchWatchName={watchedSketch?.name || dictionary.viewer.savedSketch}
               watchedSketchSummary={watchedSketchSummary}
@@ -1140,6 +1148,9 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             onUpdateCustomObject={currentPage === "sketch" ? updateCustomObject : undefined}
             editingEnabled={currentPage === "sketch"}
             resetViewToken={resetViewToken}
+            auroraEnabled={auroraEnabled}
+            auroraIntensity={auroraIntensity}
+            auroraSpeed={auroraSpeed}
           />
           {currentPage === "watch" && !isSketchWatch ? (
             <ViewerFocusOverlay

@@ -84,6 +84,11 @@ function WatchControlsPanel({
   setAutoRotate,
   showGuides,
   setShowGuides,
+  auroraEnabled,
+  auroraIntensity,
+  setAuroraIntensity,
+  auroraSpeed,
+  setAuroraSpeed,
   isSketchWatch,
   activeSketchWatchName,
   watchedSketchSummary,
@@ -290,6 +295,19 @@ function WatchControlsPanel({
           </label>
         </div>
       </section>
+      {auroraEnabled ? (
+        <section>
+          <p className="eyebrow">{language === "ko" ? "오로라 분위기" : "Aurora mood"}</p>
+          <label className="stacked-field">
+            <span>{language === "ko" ? `오로라 강도: ${Math.round(auroraIntensity * 100)}%` : `Aurora intensity: ${Math.round(auroraIntensity * 100)}%`}</span>
+            <input type="range" min="0.2" max="1" step="0.02" value={auroraIntensity} onChange={(event) => setAuroraIntensity(Number(event.target.value))} />
+          </label>
+          <label className="stacked-field">
+            <span>{language === "ko" ? `오로라 흐름 속도: ${Math.round(auroraSpeed * 100)}%` : `Aurora drift speed: ${Math.round(auroraSpeed * 100)}%`}</span>
+            <input type="range" min="0.2" max="1" step="0.02" value={auroraSpeed} onChange={(event) => setAuroraSpeed(Number(event.target.value))} />
+          </label>
+        </section>
+      ) : null}
     </>
   );
 }
