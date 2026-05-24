@@ -210,6 +210,16 @@ select {
   border-radius: 14px;
 }
 
+.observer-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(173, 211, 255, 0.32);
+  display: block;
+  margin-bottom: 8px;
+}
+
 .planetarium-app.theme-aurora-night {
   --accent: #7cefd8;
   --accent-2: #6dd1e9;
@@ -856,6 +866,14 @@ input[type="range"] {
 .theme-home-header {
   display: grid;
   gap: 10px;
+}
+
+.theme-home-brand-logo {
+  width: min(100%, 380px);
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
 }
 
 .theme-home-header h1 {

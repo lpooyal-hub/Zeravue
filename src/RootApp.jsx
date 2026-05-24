@@ -12,6 +12,7 @@ function normalizePath(pathname) {
 
 function HomePage({ language, setLanguage }) {
   const dictionary = translations[language];
+  const [showBrandLogo, setShowBrandLogo] = useState(true);
 
   return (
     <div className="theme-home">
@@ -24,6 +25,15 @@ function HomePage({ language, setLanguage }) {
             KR
           </button>
         </div>
+        {showBrandLogo ? (
+          <img
+            className="theme-home-brand-logo"
+            src="/branding/zeravue-logo.png"
+            alt="Zeravue logo"
+            loading="eager"
+            onError={() => setShowBrandLogo(false)}
+          />
+        ) : null}
         <p className="eyebrow">Zeravue</p>
         <h1>{language === "ko" ? "지금 머물고 싶은 장면을 고르세요." : "Choose the scene you want to rest in."}</h1>
         <p>{language === "ko" ? "메인에서 테마를 고르고, 각 테마 페이지에서 조용히 감상하세요." : "Pick a theme from home, then settle into a dedicated viewing page."}</p>

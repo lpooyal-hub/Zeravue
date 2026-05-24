@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 function ViewerHeader({
   dictionary,
   currentPage,
@@ -15,6 +17,8 @@ function ViewerHeader({
   showThemeSwitcher = true,
   homeHref = "/"
 }) {
+  const [showProfileImage, setShowProfileImage] = useState(true);
+
   return (
     <header className="topbar">
       <div>
@@ -52,6 +56,15 @@ function ViewerHeader({
           {language === "ko" ? "테마 홈" : "Themes"}
         </a>
         <div className="observer-pill">
+          {showProfileImage ? (
+            <img
+              className="observer-avatar"
+              src="/branding/zeravue-profile.png"
+              alt="Zeravue profile"
+              loading="lazy"
+              onError={() => setShowProfileImage(false)}
+            />
+          ) : null}
           <span>{dictionary.viewer.observer}</span>
           <strong>{observer.label}</strong>
           <small>
