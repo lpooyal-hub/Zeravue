@@ -14,72 +14,17 @@ import { useFavoriteConstellations } from "./hooks/useFavoriteConstellations.js"
 import { useNightSkyAmbientTrack } from "./hooks/useNightSkyAmbientTrack.js";
 import { useSavedSketches } from "./hooks/useSavedSketches.js";
 import { useTheme } from "./context/ThemeContext.jsx";
-
-const planetPresets = [
-  { id: "amber", color: "#f3b46c", ring: false },
-  { id: "blue", color: "#7db7ff", ring: false },
-  { id: "rose", color: "#f095b8", ring: false },
-  { id: "saturn", color: "#d6bd8a", ring: true }
-];
-
-const defaultObserver = {
-  latitude: 37.5665,
-  longitude: 126.978,
-  label: "Seoul"
-};
-
-function getInitialObservedAt() {
-  return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-}
-
-function shiftObservedTimestamp(value, hours) {
-  const date = new Date(value);
-  date.setHours(date.getHours() + hours);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-}
-
-function setTonightTimestamp(value) {
-  const date = new Date(value);
-  date.setHours(21, 0, 0, 0);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-}
-
-function setObserverHourTimestamp(value, hours, minutes = 0) {
-  const date = new Date(value);
-  date.setHours(hours, minutes, 0, 0);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-}
-
-function createBlankSpaceScene(name = "") {
-  const constellationId = `constellation-${Date.now()}`;
-  return {
-    id: `space-${Date.now()}`,
-    name,
-    activeConstellationId: constellationId,
-    stars: [],
-    planets: [],
-    constellations: [
-      {
-        id: constellationId,
-        name: "My Constellation",
-        color: "#ffcf70",
-        starIds: [],
-        segments: []
-      }
-    ]
-  };
-}
-
-function clampCoordinate(value, min = -18, max = 18) {
-  return Number(Math.min(max, Math.max(min, value)).toFixed(3));
-}
-
-const VIEW_MODE_ORDER = [
-  "space",
-  "observer",
-  // "panorama", // Kept in code for possible return, but hidden from the current UI.
-  "projection"
-];
+import {
+  clampCoordinate,
+  createBlankSpaceScene,
+  defaultObserver,
+  getInitialObservedAt,
+  planetPresets,
+  setObserverHourTimestamp,
+  setTonightTimestamp,
+  shiftObservedTimestamp
+} from "./utils/viewerState.js";
+import { getThemeHeaderCopy, getThemeViewModes } from "./utils/themePresentation.js";
 
 export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = true }) {
   const { currentTheme, currentThemeId, themes, switchTheme } = useTheme();
@@ -124,21 +69,11 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const dictionary = translations[language];
   const sketchEnabled = currentTheme?.features?.sketching !== false;
   const auroraEnabled = currentThemeId === "aurora-night";
-  const headerEyebrow = auroraEnabled ? "Zeravue · Aurora Night" : dictionary.viewer.eyebrow;
-  const headerTitle = auroraEnabled
-    ? language === "ko"
-      ? "오로라의 흐름을 천천히 바라보는 공간입니다."
-      : "A quiet space to watch the aurora drift."
-    : dictionary.viewer.title;
-  const headerSubtitle = auroraEnabled
-    ? language === "ko"
-      ? "별자리 분석보다 분위기 감상에 집중하세요."
-      : "Focus on atmosphere first, not star analysis."
-    : dictionary.viewer.subtitle;
-  const themeViewModes = useMemo(() => {
-    const supported = Array.isArray(currentTheme?.viewModes) && currentTheme.viewModes.length ? currentTheme.viewModes : VIEW_MODE_ORDER;
-    return VIEW_MODE_ORDER.filter((mode) => supported.includes(mode));
-  }, [currentTheme]);
+  const { eyebrow: headerEyebrow, title: headerTitle, subtitle: headerSubtitle } = useMemo(
+    () => getThemeHeaderCopy({ auroraEnabled, language, dictionary }),
+    [auroraEnabled, dictionary, language]
+  );
+  const themeViewModes = useMemo(() => getThemeViewModes(currentTheme), [currentTheme]);
 
   useEffect(() => {
     if (forcedLanguage && forcedLanguage !== language) {
