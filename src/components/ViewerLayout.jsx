@@ -8,7 +8,9 @@ function ViewerHeader({
   themes,
   currentThemeId,
   switchTheme,
-  sketchEnabled = true
+  sketchEnabled = true,
+  showThemeSwitcher = true,
+  homeHref = "/"
 }) {
   return (
     <header className="topbar">
@@ -26,13 +28,15 @@ function ViewerHeader({
             {dictionary.viewer.pages.sketch}
           </button>
         </div>
-        <div className="theme-switcher" aria-label={dictionary.viewer.themeLabel}>
-          {themes.map((theme) => (
-            <button key={theme.id} type="button" aria-pressed={currentThemeId === theme.id} onClick={() => switchTheme(theme.id)}>
-              {theme.displayName?.[language] || theme.name}
-            </button>
-          ))}
-        </div>
+        {showThemeSwitcher ? (
+          <div className="theme-switcher" aria-label={dictionary.viewer.themeLabel}>
+            {themes.map((theme) => (
+              <button key={theme.id} type="button" aria-pressed={currentThemeId === theme.id} onClick={() => switchTheme(theme.id)}>
+                {theme.displayName?.[language] || theme.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="language-switcher" aria-label="Language">
           <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
             EN
@@ -41,6 +45,9 @@ function ViewerHeader({
             KR
           </button>
         </div>
+        <a className="home-link-button" href={homeHref}>
+          {language === "ko" ? "테마 홈" : "Themes"}
+        </a>
         <div className="observer-pill">
           <span>{dictionary.viewer.observer}</span>
           <strong>{observer.label}</strong>

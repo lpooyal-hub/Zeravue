@@ -74,6 +74,7 @@ Completion criteria live in [GOALS.md](./GOALS.md).
 - Improved inspector and list readability with clearer section hierarchy and controlled scrolling.
 - Hardened ambient playback startup and recovery behavior on first interaction and tab return.
 - Added a first Aurora Night theme skeleton (theme switcher + visual shell) without breaking Night Sky flow.
+- Switched from in-page theme toggling to a theme-home-first routing skeleton (`/`, `/night-sky`, `/aurora`).
 
 ## Implementation Notes
 

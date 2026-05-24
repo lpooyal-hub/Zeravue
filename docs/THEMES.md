@@ -13,6 +13,12 @@ Each theme can have:
 
 But the overall product interaction should remain familiar.
 
+Navigation model:
+
+- `/` is the theme home (selection hub)
+- each theme has its own page (`/night-sky`, `/aurora`, ...)
+- theme pages can still reuse shared systems internally
+
 ## Theme 1: Night Sky
 
 Status: active primary theme

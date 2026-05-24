@@ -81,11 +81,11 @@ const VIEW_MODE_ORDER = [
   "projection"
 ];
 
-export function App() {
+export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = true }) {
   const { currentTheme, currentThemeId, themes, switchTheme } = useTheme();
   const viewerRef = useRef(null);
   const [currentPage, setCurrentPage] = useState("watch");
-  const [language, setLanguage] = useState(getInitialLanguage);
+  const [language, setLanguage] = useState(() => forcedLanguage || getInitialLanguage());
   const [observer, setObserver] = useState(defaultObserver);
   const [observedAt, setObservedAt] = useState(getInitialObservedAt);
   const [limitingMagnitude, setLimitingMagnitude] = useState(5.2);
@@ -127,9 +127,18 @@ export function App() {
   }, [currentTheme]);
 
   useEffect(() => {
+    if (forcedLanguage && forcedLanguage !== language) {
+      setLanguage(forcedLanguage);
+    }
+  }, [forcedLanguage, language]);
+
+  useEffect(() => {
     document.documentElement.lang = language;
     window.localStorage.setItem("planetarium-language", language);
-  }, [language]);
+    if (setForcedLanguage) {
+      setForcedLanguage(language);
+    }
+  }, [language, setForcedLanguage]);
 
   useEffect(() => {
     if (!sketchEnabled && currentPage === "sketch") {
@@ -980,6 +989,8 @@ export function App() {
         currentThemeId={currentThemeId}
         switchTheme={switchTheme}
         sketchEnabled={sketchEnabled}
+        showThemeSwitcher={showThemeSwitcher}
+        homeHref="/"
       />
 
       <div className="workspace">
