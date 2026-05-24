@@ -168,6 +168,7 @@ export const translations = {
       subtitle: "Open a scene, breathe, stay for a while.",
       observer: "Observer",
       pageMode: "Page mode",
+      themeLabel: "Theme",
       pages: {
         watch: "Night Sky",
         sketch: "Sketch Sky"
@@ -502,6 +503,7 @@ export const translations = {
       subtitle: "장면을 열고, 숨을 고르고, 잠시 머무르세요.",
       observer: "관측자",
       pageMode: "페이지 모드",
+      themeLabel: "테마",
       pages: {
         watch: "밤하늘 감상",
         sketch: "밤하늘 그리기"

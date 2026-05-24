@@ -123,6 +123,32 @@ select {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.theme-switcher {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.theme-switcher button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 750;
+  cursor: pointer;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.theme-switcher button[aria-pressed="true"] {
+  background: rgba(127, 219, 201, 0.28);
+  color: #dffef8;
+}
+
 .page-switcher {
   display: flex;
   gap: 6px;
@@ -168,6 +194,20 @@ select {
   min-width: 174px;
   padding: 10px 12px;
   border-radius: 14px;
+}
+
+.planetarium-app.theme-aurora-night {
+  --accent: #7cefd8;
+  --accent-2: #6dd1e9;
+  --line: rgba(120, 222, 207, 0.2);
+  --line-strong: rgba(120, 222, 207, 0.32);
+}
+
+.planetarium-app.theme-aurora-night .viewer {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(70, 210, 176, 0.24), transparent 44%),
+    radial-gradient(circle at 78% 24%, rgba(96, 182, 255, 0.2), transparent 40%),
+    linear-gradient(180deg, #020d15, #01101a 44%, #000b12);
 }
 
 .observer-pill span,

@@ -52,6 +52,12 @@ Why it is a good second theme:
 - can reuse much of the current sky system
 - feels distinct without requiring a new product structure
 
+Current status:
+
+- Theme switcher skeleton is now connected in-app.
+- Aurora currently uses a visual style shell and shared sky mechanics.
+- Aurora-specific data and atmosphere layers are the next implementation step.
+
 ## Theme 3: Underwater Panorama
 
 Concept:

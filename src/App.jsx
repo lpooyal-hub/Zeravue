@@ -13,6 +13,7 @@ import { useConstellationCollections } from "./hooks/useConstellationCollections
 import { useFavoriteConstellations } from "./hooks/useFavoriteConstellations.js";
 import { useNightSkyAmbientTrack } from "./hooks/useNightSkyAmbientTrack.js";
 import { useSavedSketches } from "./hooks/useSavedSketches.js";
+import { useTheme } from "./context/ThemeContext.jsx";
 
 const planetPresets = [
   { id: "amber", color: "#f3b46c", ring: false },
@@ -81,6 +82,7 @@ const VIEW_MODE_ORDER = [
 ];
 
 export function App() {
+  const { currentTheme, currentThemeId, themes, switchTheme } = useTheme();
   const viewerRef = useRef(null);
   const [currentPage, setCurrentPage] = useState("watch");
   const [language, setLanguage] = useState(getInitialLanguage);
@@ -118,11 +120,34 @@ export function App() {
     isReady: sceneState.status === "ready"
   });
   const dictionary = translations[language];
+  const sketchEnabled = currentTheme?.features?.sketching !== false;
+  const themeViewModes = useMemo(() => {
+    const supported = Array.isArray(currentTheme?.viewModes) && currentTheme.viewModes.length ? currentTheme.viewModes : VIEW_MODE_ORDER;
+    return VIEW_MODE_ORDER.filter((mode) => supported.includes(mode));
+  }, [currentTheme]);
 
   useEffect(() => {
     document.documentElement.lang = language;
     window.localStorage.setItem("planetarium-language", language);
   }, [language]);
+
+  useEffect(() => {
+    if (!sketchEnabled && currentPage === "sketch") {
+      setCurrentPage("watch");
+    }
+  }, [currentPage, sketchEnabled]);
+
+  useEffect(() => {
+    const defaultViewMode = currentTheme?.defaultViewMode;
+    if (defaultViewMode && themeViewModes.includes(defaultViewMode)) {
+      setViewMode(defaultViewMode);
+    } else if (!themeViewModes.includes(viewMode)) {
+      setViewMode(themeViewModes[0] || "space");
+    }
+    setFocusedConstellation("all");
+    setTrackConstellation(false);
+    setSelectedTarget(null);
+  }, [currentTheme?.id, themeViewModes, viewMode]);
 
   useEffect(() => {
     function handleFullscreenChange() {
@@ -943,8 +968,19 @@ export function App() {
   }
 
   return (
-    <div className="planetarium-app">
-      <ViewerHeader dictionary={dictionary} currentPage={currentPage} setCurrentPage={setCurrentPage} language={language} setLanguage={setLanguage} observer={observer} />
+    <div className={`planetarium-app theme-${currentThemeId}`}>
+      <ViewerHeader
+        dictionary={dictionary}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        language={language}
+        setLanguage={setLanguage}
+        observer={observer}
+        themes={themes}
+        currentThemeId={currentThemeId}
+        switchTheme={switchTheme}
+        sketchEnabled={sketchEnabled}
+      />
 
       <div className="workspace">
         <aside className="control-panel">
@@ -963,7 +999,7 @@ export function App() {
               observer={observer}
               updateObserver={updateObserver}
               requestLocation={requestLocation}
-              viewModeOrder={VIEW_MODE_ORDER}
+              viewModeOrder={themeViewModes}
               setViewMode={setViewMode}
               focusedConstellation={focusedConstellation}
               setFocusedConstellation={setFocusedConstellation}
@@ -1003,7 +1039,7 @@ export function App() {
                   dictionary={dictionary}
                   language={language}
                   viewMode={viewMode}
-                  viewModeOrder={VIEW_MODE_ORDER}
+                  viewModeOrder={themeViewModes}
                   setViewMode={setViewMode}
                   sketchViewDescription={sketchViewDescription}
                   creativeTool={creativeTool}

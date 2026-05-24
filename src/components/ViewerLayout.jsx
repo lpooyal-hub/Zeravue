@@ -1,4 +1,15 @@
-function ViewerHeader({ dictionary, currentPage, setCurrentPage, language, setLanguage, observer }) {
+function ViewerHeader({
+  dictionary,
+  currentPage,
+  setCurrentPage,
+  language,
+  setLanguage,
+  observer,
+  themes,
+  currentThemeId,
+  switchTheme,
+  sketchEnabled = true
+}) {
   return (
     <header className="topbar">
       <div>
@@ -11,9 +22,16 @@ function ViewerHeader({ dictionary, currentPage, setCurrentPage, language, setLa
           <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
             {dictionary.viewer.pages.watch}
           </button>
-          <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")}>
+          <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!sketchEnabled}>
             {dictionary.viewer.pages.sketch}
           </button>
+        </div>
+        <div className="theme-switcher" aria-label={dictionary.viewer.themeLabel}>
+          {themes.map((theme) => (
+            <button key={theme.id} type="button" aria-pressed={currentThemeId === theme.id} onClick={() => switchTheme(theme.id)}>
+              {theme.displayName?.[language] || theme.name}
+            </button>
+          ))}
         </div>
         <div className="language-switcher" aria-label="Language">
           <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
