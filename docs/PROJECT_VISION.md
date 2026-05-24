@@ -1,4 +1,4 @@
-# Planetarium Project Vision
+# Zeravue Project Vision
 
 ## Project Direction
 
@@ -53,7 +53,11 @@ Possible broader identity:
 - a quiet scene viewer
 - a theme-based rest experience
 
-The exact brand name can evolve later, but the emotional promise should stay consistent:
+Brand name:
+
+`Zeravue`
+
+The emotional promise should stay consistent:
 
 `Open a scene, breathe, stay for a while.`
 
@@ -96,4 +100,3 @@ Current priority order:
 3. improve sketching and favorites
 4. define theme architecture
 5. expand into new healing panoramas
-

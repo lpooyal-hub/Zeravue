@@ -163,9 +163,9 @@ export const translations = {
       video: "Open NASA video"
     },
     viewer: {
-      eyebrow: "3D planetarium",
+      eyebrow: "Zeravue · Night Sky",
       title: "Let the night sky open up around you.",
-      subtitle: "Draw it across the night sky.",
+      subtitle: "Open a scene, breathe, stay for a while.",
       observer: "Observer",
       pageMode: "Page mode",
       pages: {
@@ -496,9 +496,9 @@ export const translations = {
       video: "NASA 비디오 열기"
     },
     viewer: {
-      eyebrow: "3D 플라네타리움",
+      eyebrow: "Zeravue · Night Sky",
       title: "밤하늘을 천천히 바라볼 수 있는 공간입니다.",
-      subtitle: "밤하늘에 그려봐",
+      subtitle: "장면을 열고, 숨을 고르고, 잠시 머무르세요.",
       observer: "관측자",
       pageMode: "페이지 모드",
       pages: {

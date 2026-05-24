@@ -1,11 +1,11 @@
-# Planetarium
+# Zeravue
 
 `Open a scene, breathe, stay for a while.`
 
-Planetarium is a healing-focused night-sky experience built with React, Three.js, and FastAPI.  
+Zeravue is a healing-focused panorama platform built with React, Three.js, and FastAPI.  
 It is not meant to feel like an observatory dashboard or a study tool first. The goal is to let someone open the sky, settle into a mood, and spend a quiet minute with it.
 
-The current release centers on one theme: the night sky.
+The current release centers on one theme: Night Sky (the former Planetarium experience).
 
 ## What It Does
 
@@ -28,7 +28,7 @@ The result is somewhere between a gentle screensaver, a constellation viewer, an
 
 ## Why It Exists
 
-This project is the first theme in a broader healing panorama direction.
+The Night Sky experience is the first theme in a broader Zeravue direction.
 
 The longer-term vision is one site with multiple quiet scene themes inside it, such as:
 
@@ -37,7 +37,7 @@ The longer-term vision is one site with multiple quiet scene themes inside it, s
 - rainy forest scenes
 - cloud panoramas
 
-The night-sky theme is the reference experience that future themes will build on.
+Night Sky is the reference experience that future themes will build on.
 
 ## Stack
 

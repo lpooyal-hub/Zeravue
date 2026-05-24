@@ -1,8 +1,8 @@
-# Star Theme Roadmap
+# Zeravue Night Sky Theme Roadmap
 
 ## Goal
 
-Finish the night-sky theme to a level where it feels polished, consistent, and reusable as the base theme for the wider healing panorama product.
+Finish the Night Sky theme to a level where it feels polished, consistent, and reusable as the base theme for the wider Zeravue healing panorama product.
 
 ## Current Strengths
 

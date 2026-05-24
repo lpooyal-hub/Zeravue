@@ -1,8 +1,8 @@
-# Theme Expansion Notes
+# Zeravue Theme Expansion Notes
 
 ## Theme Strategy
 
-All themes should live inside one product and share a common viewer structure.
+All themes should live inside Zeravue and share a common viewer structure.
 
 Each theme can have:
 
@@ -134,4 +134,3 @@ The first expansion target should be:
 2. Underwater Panorama
 3. Rainforest in Rain
 4. Cloud Panorama
-
