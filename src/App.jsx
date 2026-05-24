@@ -59,6 +59,12 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     isReady: sceneState.status === "ready"
   });
   const dictionary = translations[language];
+  const updateLanguage = (nextLanguage) => {
+    setLanguage(nextLanguage);
+    if (setForcedLanguage) {
+      setForcedLanguage(nextLanguage);
+    }
+  };
   const sketchWorkspace = useSketchWorkspace({
     dictionary,
     language,
@@ -147,15 +153,12 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     if (forcedLanguage && forcedLanguage !== language) {
       setLanguage(forcedLanguage);
     }
-  }, [forcedLanguage, language]);
+  }, [forcedLanguage]);
 
   useEffect(() => {
     document.documentElement.lang = language;
     window.localStorage.setItem("planetarium-language", language);
-    if (setForcedLanguage) {
-      setForcedLanguage(language);
-    }
-  }, [language, setForcedLanguage]);
+  }, [language]);
 
   useEffect(() => {
     if (!sketchEnabled && currentPage === "sketch") {
@@ -414,7 +417,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         language={language}
-        setLanguage={setLanguage}
+        setLanguage={updateLanguage}
         observer={observer}
         headerEyebrow={headerEyebrow}
         headerTitle={headerTitle}
