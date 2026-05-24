@@ -10,12 +10,20 @@ function normalizePath(pathname) {
   return pathname.replace(/\/+$/, "") || "/";
 }
 
-function HomePage({ language }) {
+function HomePage({ language, setLanguage }) {
   const dictionary = translations[language];
 
   return (
     <div className="theme-home">
       <header className="theme-home-header">
+        <div className="language-switcher" aria-label="Language">
+          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
+            EN
+          </button>
+          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
+            KR
+          </button>
+        </div>
         <p className="eyebrow">Zeravue</p>
         <h1>{language === "ko" ? "지금 머물고 싶은 장면을 고르세요." : "Choose the scene you want to rest in."}</h1>
         <p>{language === "ko" ? "메인에서 테마를 고르고, 각 테마 페이지에서 조용히 감상하세요." : "Pick a theme from home, then settle into a dedicated viewing page."}</p>
@@ -49,6 +57,11 @@ export function RootApp() {
   }, []);
 
   useEffect(() => {
+    document.documentElement.lang = language;
+    window.localStorage.setItem("planetarium-language", language);
+  }, [language]);
+
+  useEffect(() => {
     if (path === "/aurora") {
       switchTheme("aurora-night");
       return;
@@ -60,14 +73,14 @@ export function RootApp() {
 
   const content = useMemo(() => {
     if (path === "/" || path === "/home") {
-      return <HomePage language={language} />;
+      return <HomePage language={language} setLanguage={setLanguage} />;
     }
 
     if (path === "/aurora" || path === "/night-sky") {
       return <NightSkyApp forcedLanguage={language} setForcedLanguage={setLanguage} showThemeSwitcher={false} />;
     }
 
-    return <HomePage language={language} />;
+    return <HomePage language={language} setLanguage={setLanguage} />;
   }, [language, path]);
 
   return content;

@@ -768,5 +768,5 @@ export function getInitialLanguage() {
     return saved;
   }
 
-  return navigator.language.toLowerCase().startsWith("ko") ? "ko" : "en";
+  return "en";
 }
