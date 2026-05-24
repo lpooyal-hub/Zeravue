@@ -3,8 +3,6 @@ export function ConstellationFocusSection({
   language,
   focusedConstellation,
   setFocusedConstellation,
-  trackConstellation,
-  setTrackConstellation,
   activeConstellationKey,
   activeConstellationName,
   activeConstellationIsFavorite,
@@ -21,27 +19,6 @@ export function ConstellationFocusSection({
             <dd>{activeConstellationName || dictionary.viewer.allSky}</dd>
           </div>
         </div>
-        <label className="toggle-item">
-          <input
-            type="checkbox"
-            checked={trackConstellation}
-            disabled={focusedConstellation === "all"}
-            onChange={(event) => setTrackConstellation(event.target.checked)}
-          />
-          <span>{dictionary.viewer.trackConstellation}</span>
-        </label>
-        {focusedConstellation !== "all" ? (
-          <button
-            type="button"
-            className="focus-chip"
-            onClick={() => {
-              setFocusedConstellation("all");
-              setTrackConstellation(false);
-            }}
-          >
-            {language === "ko" ? "선택 해제" : "Clear selection"}
-          </button>
-        ) : null}
         {activeConstellationKey ? (
           <button
             type="button"
@@ -53,8 +30,8 @@ export function ConstellationFocusSection({
         ) : null}
         <p className="helper-copy">
           {language === "ko"
-            ? "별자리 검색과 선택은 화면 안 오버레이에서 바로 할 수 있습니다."
-            : "Use the in-scene overlay to search for and choose a constellation."}
+            ? "검색, 추적, 선택 해제는 화면 안 오버레이에서 바로 할 수 있습니다."
+            : "Use the in-scene overlay for searching, tracking, and clearing selections."}
         </p>
       </section>
       <section>

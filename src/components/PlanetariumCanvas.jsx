@@ -59,7 +59,8 @@ export function PlanetariumCanvas({
   creativeTool,
   onCreativeSpaceClick,
   onUpdateCustomObject,
-  editingEnabled = true
+  editingEnabled = true,
+  resetViewToken = 0
 }) {
   if (!scene && !creativeMode) {
     return <div className="scene-empty">{dictionary.viewer.loading}</div>;
@@ -105,6 +106,7 @@ export function PlanetariumCanvas({
           trackConstellation={trackConstellation}
           drawMode={drawMode}
           customSketchStarIds={customSketchStarIds}
+          resetViewToken={resetViewToken}
         />
       )}
     </Canvas>
@@ -405,7 +407,8 @@ function SceneContents({
   focusedConstellation,
   trackConstellation,
   drawMode,
-  customSketchStarIds
+  customSketchStarIds,
+  resetViewToken
 }) {
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
@@ -490,6 +493,14 @@ function SceneContents({
 
     return { starLabels, constellationLabels };
   }, [constellationCenters, dictionary.constellations, featuredStars, focusedConstellation, language, showConstellations, showLabels]);
+
+  useEffect(() => {
+    cameraAnchor.current = { x: 0, y: 0, z: 0 };
+    lookAnchor.current = { x: 0, y: 1.8, z: -12.8 };
+    rotationAnchor.current = { x: 0, y: 0 };
+    trackingBlend.current = 0;
+    manualOrbit.current = { yaw: 0, pitch: 0 };
+  }, [resetViewToken]);
 
   useEffect(() => {
     const element = gl.domElement;

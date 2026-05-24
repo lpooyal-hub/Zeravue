@@ -4,6 +4,8 @@
 
 Finish the Night Sky theme to a level where it feels polished, consistent, and reusable as the base theme for the wider Zeravue healing panorama product.
 
+Completion criteria live in [GOALS.md](./GOALS.md).
+
 ## Current Strengths
 
 - multilingual UI
@@ -52,16 +54,25 @@ Finish the Night Sky theme to a level where it feels polished, consistent, and r
 
 ### Stage 4: Ambience
 
-- [ ] replace fragile autoplay expectations with a dependable first-interaction start flow
+- [x] replace fragile autoplay expectations with a dependable first-interaction start flow
 - [x] clarify playback state in the interface
 - [ ] decide whether Web Audio stays or a looped audio asset replaces it
 
 ### Stage 5: Final Theme Polish
 
-- [ ] refine overlay hierarchy
-- [ ] reduce any remaining clutter
+- [x] refine overlay hierarchy
+- [x] reduce any remaining clutter
 - [ ] tune colors, type, and panel density
 - [ ] define the final “restful night-sky” experience standard
+
+## Recent Progress
+
+- Rebranded product framing to Zeravue and positioned Night Sky as Theme 01.
+- Expanded space-view zoom range and added drag-based camera movement.
+- Reduced constellation line intensity for calmer star readability.
+- Added Reset View flow (button + keyboard shortcuts) and unified focus/clear handling in the in-scene overlay.
+- Improved inspector and list readability with clearer section hierarchy and controlled scrolling.
+- Hardened ambient playback startup and recovery behavior on first interaction and tab return.
 
 ## Implementation Notes
 
@@ -87,3 +98,11 @@ Suggested rhythm:
 3. commit
 4. push to `dev`
 5. continue to the next step
+
+## Status Rule
+
+Before moving to the next stage, confirm:
+
+1. user-facing change is testable in the running app
+2. related controls are still readable on desktop/tablet
+3. CI check remains green

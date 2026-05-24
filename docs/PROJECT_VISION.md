@@ -100,3 +100,14 @@ Current priority order:
 3. improve sketching and favorites
 4. define theme architecture
 5. expand into new healing panoramas
+
+## Goal Lens
+
+Day-to-day execution should always map to four goals:
+
+1. viewer comfort
+2. visual clarity
+3. interaction flow
+4. release reliability
+
+See [GOALS.md](./GOALS.md) for measurable completion criteria.

@@ -101,6 +101,7 @@ export function App() {
   const [focusedConstellation, setFocusedConstellation] = useState("all");
   const [constellationSearch, setConstellationSearch] = useState("");
   const [trackConstellation, setTrackConstellation] = useState(false);
+  const [resetViewToken, setResetViewToken] = useState(0);
   const [creativeTool, setCreativeTool] = useState("star");
   const [planetPreset, setPlanetPreset] = useState(planetPresets[0].id);
   const [presetConstellationName, setPresetConstellationName] = useState("");
@@ -358,6 +359,39 @@ export function App() {
     }
     setZoomLevel((current) => Number(Math.min(current, 0.44).toFixed(2)));
   }, [focusedConstellation, trackConstellation]);
+
+  useEffect(() => {
+    function handleKeydown(event) {
+      const target = event.target;
+      const tagName = target?.tagName?.toLowerCase();
+      const isTypingField = tagName === "input" || tagName === "textarea" || tagName === "select" || target?.isContentEditable;
+      if (isTypingField) {
+        return;
+      }
+
+      if (event.key.toLowerCase() === "r") {
+        event.preventDefault();
+        resetView();
+        return;
+      }
+
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        changeZoom(0.1);
+        return;
+      }
+
+      if (event.key === "-" || event.key === "_") {
+        event.preventDefault();
+        changeZoom(-0.1);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => {
+      window.removeEventListener("keydown", handleKeydown);
+    };
+  }, [currentPage, isSketchWatch, viewMode]);
 
   function updateObserver(key, value) {
     setObserver((current) => ({
@@ -899,6 +933,15 @@ export function App() {
     setZoomLevel((current) => Math.min(1, Math.max(0, Number((current + delta).toFixed(2)))));
   }
 
+  function resetView() {
+    setZoomLevel(0.52);
+    setConstellationSearch("");
+    setFocusedConstellation("all");
+    setTrackConstellation(false);
+    setSelectedTarget(null);
+    setResetViewToken((current) => current + 1);
+  }
+
   return (
     <div className="planetarium-app">
       <ViewerHeader dictionary={dictionary} currentPage={currentPage} setCurrentPage={setCurrentPage} language={language} setLanguage={setLanguage} observer={observer} />
@@ -924,8 +967,6 @@ export function App() {
               setViewMode={setViewMode}
               focusedConstellation={focusedConstellation}
               setFocusedConstellation={setFocusedConstellation}
-              trackConstellation={trackConstellation}
-              setTrackConstellation={setTrackConstellation}
               activeConstellationKey={activeConstellationKey}
               activeConstellationName={activeConstellationName}
               activeConstellationIsFavorite={activeConstellationIsFavorite}
@@ -1051,6 +1092,7 @@ export function App() {
             onCreativeSpaceClick={currentPage === "sketch" ? addCustomObject : undefined}
             onUpdateCustomObject={currentPage === "sketch" ? updateCustomObject : undefined}
             editingEnabled={currentPage === "sketch"}
+            resetViewToken={resetViewToken}
           />
           {currentPage === "watch" && !isSketchWatch ? (
             <ViewerFocusOverlay
@@ -1067,6 +1109,7 @@ export function App() {
               zoomLevel={zoomLevel}
               setZoomLevel={setZoomLevel}
               changeZoom={changeZoom}
+              resetView={resetView}
             />
           ) : null}
           <ViewerAmbientOverlay
@@ -1086,26 +1129,28 @@ export function App() {
         </main>
 
         <aside className="inspector-panel">
-          <SelectionInspectorPanel
-            dictionary={dictionary}
-            language={language}
-            currentPage={isSketchWatch ? "sketch" : currentPage}
-            selectedCustomStar={selectedCustomStar}
-            selectedCustomConstellation={selectedCustomConstellation}
-            activeCustomConstellation={
-              isSketchWatch
-                ? activeCreativeScene?.constellations.find((constellation) => constellation.id === activeCreativeScene.activeConstellationId) ||
-                  activeCreativeScene?.constellations?.[0] ||
-                  null
-                : activeCustomConstellation
-            }
-            updateCustomObject={updateCustomObject}
-            selectedTarget={selectedTarget}
-            customSpace={activeCreativeScene || customSpace}
-            removeCustomObject={removeCustomObject}
-            selectedCustomPlanet={selectedCustomPlanet}
-            selectedStar={selectedStar}
-          />
+          {currentPage === "sketch" ? (
+            <SelectionInspectorPanel
+              dictionary={dictionary}
+              language={language}
+              currentPage={isSketchWatch ? "sketch" : currentPage}
+              selectedCustomStar={selectedCustomStar}
+              selectedCustomConstellation={selectedCustomConstellation}
+              activeCustomConstellation={
+                isSketchWatch
+                  ? activeCreativeScene?.constellations.find((constellation) => constellation.id === activeCreativeScene.activeConstellationId) ||
+                    activeCreativeScene?.constellations?.[0] ||
+                    null
+                  : activeCustomConstellation
+              }
+              updateCustomObject={updateCustomObject}
+              selectedTarget={selectedTarget}
+              customSpace={activeCreativeScene || customSpace}
+              removeCustomObject={removeCustomObject}
+              selectedCustomPlanet={selectedCustomPlanet}
+              selectedStar={selectedStar}
+            />
+          ) : null}
 
           {currentPage === "watch" ? (
             <WatchInspectorPanel

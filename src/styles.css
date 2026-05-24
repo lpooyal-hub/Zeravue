@@ -217,6 +217,8 @@ label span,
   top: 12px;
   max-height: calc(100vh - 32px);
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(151, 178, 214, 0.4) transparent;
 }
 
 .control-panel section,
@@ -364,14 +366,14 @@ input[type="range"] {
   padding: 10px 12px;
   border: 1px solid rgba(173, 211, 255, 0.16);
   border-radius: 14px;
-  background: rgba(5, 9, 16, 0.62);
+  background: rgba(5, 9, 16, 0.78);
   backdrop-filter: blur(12px);
 }
 
 .overlay-focus-field span {
-  color: #a8b8cc;
-  font-size: 0.74rem;
-  font-weight: 650;
+  color: #b8c8de;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .overlay-focus-field select {
@@ -431,6 +433,13 @@ input[type="range"] {
 .overlay-zoom span {
   color: #8d9cb0;
   font-weight: 650;
+}
+
+.overlay-shortcut-hint {
+  color: #93a6c2;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 4px 0;
 }
 
 .overlay-zoom-controls {
@@ -674,6 +683,9 @@ input[type="range"] {
 
 .focus-list {
   gap: 10px;
+  max-height: 188px;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .focus-chip {
@@ -713,6 +725,21 @@ input[type="range"] {
 .saved-sketch-list {
   display: grid;
   gap: 10px;
+}
+
+.constellation-frame-list {
+  max-height: min(42vh, 360px);
+  overflow: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(151, 178, 214, 0.35) transparent;
+}
+
+.view-constellations-section .saved-sketch-button {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(173, 211, 255, 0.12);
+  background: rgba(8, 14, 24, 0.52);
 }
 
 .saved-sketch-card {

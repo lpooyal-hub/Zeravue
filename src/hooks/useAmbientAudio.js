@@ -21,6 +21,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
   const audioRef = useRef(null);
   const enabledRef = useRef(getInitialAmbientPreference());
   const volumeRef = useRef(getInitialAmbientVolume());
+  const interactionUnlockedRef = useRef(false);
   const [ambientEnabled, setAmbientEnabled] = useState(getInitialAmbientPreference);
   const [ambientVolume, setAmbientVolume] = useState(getInitialAmbientVolume);
   const [ambientStatus, setAmbientStatus] = useState(() => {
@@ -103,6 +104,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
       return;
     }
 
+    interactionUnlockedRef.current = true;
     attemptPlay().catch(() => {});
   }, [attemptPlay, isReady]);
 
@@ -121,6 +123,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
     audio.loop = true;
     audio.preload = "auto";
     audio.volume = volumeRef.current;
+    audio.playsInline = true;
     audioRef.current = audio;
 
     const handlePlaying = () => setAmbientStatus("playing");
@@ -142,6 +145,13 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
       }
     };
     const handleError = () => setAmbientStatus("error");
+    const handleEnded = () => {
+      // Defensive restart for environments where loop can be interrupted.
+      audio.currentTime = 0;
+      if (enabledRef.current) {
+        audio.play().catch(() => {});
+      }
+    };
 
     audio.addEventListener("playing", handlePlaying);
     audio.addEventListener("pause", handlePause);
@@ -149,6 +159,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("canplaythrough", handleCanPlay);
     audio.addEventListener("error", handleError);
+    audio.addEventListener("ended", handleEnded);
 
     if (ambientEnabled && isReady) {
       attemptPlay().catch(() => {});
@@ -162,6 +173,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
       audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("canplaythrough", handleCanPlay);
       audio.removeEventListener("error", handleError);
+      audio.removeEventListener("ended", handleEnded);
       audioRef.current = null;
     };
   }, [ambientEnabled, attemptPlay, isReady, trackUrl]);
@@ -171,6 +183,36 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
       attemptPlay().catch(() => {});
     }
   }, [ambientEnabled, isReady, attemptPlay]);
+
+  useEffect(() => {
+    function unlockAndPlay() {
+      if (!enabledRef.current || !isReady) {
+        return;
+      }
+      interactionUnlockedRef.current = true;
+      attemptPlay().catch(() => {});
+    }
+
+    function onVisibilityChange() {
+      if (document.visibilityState === "visible" && enabledRef.current && isReady && interactionUnlockedRef.current) {
+        attemptPlay().catch(() => {});
+      }
+    }
+
+    window.addEventListener("pointerdown", unlockAndPlay, { capture: true, passive: true });
+    window.addEventListener("keydown", unlockAndPlay, { capture: true });
+    window.addEventListener("touchstart", unlockAndPlay, { capture: true, passive: true });
+    window.addEventListener("focus", unlockAndPlay, { passive: true });
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockAndPlay, true);
+      window.removeEventListener("keydown", unlockAndPlay, true);
+      window.removeEventListener("touchstart", unlockAndPlay, true);
+      window.removeEventListener("focus", unlockAndPlay);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [attemptPlay, isReady]);
 
   return {
     ambientEnabled,

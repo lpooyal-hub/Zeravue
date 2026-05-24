@@ -11,7 +11,8 @@ export function ViewerFocusOverlay({
   setTrackConstellation,
   zoomLevel,
   setZoomLevel,
-  changeZoom
+  changeZoom,
+  resetView
 }) {
   return (
     <div className="viewer-focus-overlay">
@@ -76,6 +77,10 @@ export function ViewerFocusOverlay({
           </button>
         </div>
       </label>
+      <button type="button" className="overlay-button" onClick={resetView}>
+        {dictionary.viewer.resetView}
+      </button>
+      <span className="overlay-shortcut-hint">{language === "ko" ? "R: 시점 초기화  ·  +/-: 줌" : "R: reset view  ·  +/-: zoom"}</span>
     </div>
   );
 }

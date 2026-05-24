@@ -142,6 +142,7 @@ Current priorities:
 
 ## Related Docs
 
+- [docs/GOALS.md](./docs/GOALS.md)
 - [docs/PROJECT_VISION.md](./docs/PROJECT_VISION.md)
 - [docs/THEMES.md](./docs/THEMES.md)
 - [docs/STAR_THEME_ROADMAP.md](./docs/STAR_THEME_ROADMAP.md)
