@@ -33,7 +33,8 @@ function SketchControlsPanel({
   saveSketchLabel,
   startNewSketch,
   clearDraftSketch,
-  saveDraftSketch
+  saveDraftSketch,
+  saveSketchAsNew
 }) {
   const activeToolLabel = dictionary.viewer.creativeTools?.[creativeTool] || dictionary.viewer.addStarTool;
   const activeToolHint = dictionary.viewer.creativeToolHints?.[creativeTool] || dictionary.viewer.sketchHint;
@@ -235,6 +236,9 @@ function SketchControlsPanel({
         </button>
         <button type="button" className="focus-chip is-active" onClick={saveDraftSketch} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
           {saveSketchLabel}
+        </button>
+        <button type="button" className="focus-chip" onClick={saveSketchAsNew} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
+          {dictionary.viewer.saveSketchAsNew}
         </button>
       </div>
 

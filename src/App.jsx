@@ -432,6 +432,20 @@ export function App() {
     setSketchName("");
   }
 
+  function saveSketchAsNew() {
+    if (customSpace.stars.length === 0 && customSpace.planets.length === 0) {
+      return;
+    }
+
+    const name = sketchName.trim() || `${dictionary.viewer.savedSketch} ${savedSketches.length + 1}`;
+    const sketchId = `space-${Date.now()}`;
+    const nextSketch = { ...customSpace, id: sketchId, name, favorite: false };
+    setSavedSketches((current) => [nextSketch, ...current]);
+    setActiveSketchId(sketchId);
+    setCustomSpace((current) => ({ ...current, id: sketchId, name }));
+    setSketchName("");
+  }
+
   function loadSketch(sketchId) {
     const sketch = savedSketches.find((item) => item.id === sketchId);
     if (!sketch) {
@@ -909,6 +923,7 @@ export function App() {
                   startNewSketch={startNewSketch}
                   clearDraftSketch={clearDraftSketch}
                   saveDraftSketch={saveDraftSketch}
+                  saveSketchAsNew={saveSketchAsNew}
                 />
               </section>
               <section>
