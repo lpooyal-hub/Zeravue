@@ -222,6 +222,11 @@ export function App() {
     [customSpace.constellations, selectedTarget]
   );
   const activeSketchName = sketchName.trim() || customSpace.name || dictionary.viewer.draftSketch;
+  const existingSavedSketch = useMemo(
+    () => savedSketches.find((sketch) => sketch.id === activeSketchId || sketch.id === customSpace.id) || null,
+    [activeSketchId, customSpace.id, savedSketches]
+  );
+  const saveSketchLabel = existingSavedSketch ? dictionary.viewer.updateSketch : dictionary.viewer.saveSketch;
   const { currentViewConstellations, currentViewConstellationDetails, importableConstellations, focusConstellations, filteredConstellations, visibleFavoriteConstellations } =
     useConstellationCollections({
       stars: sceneState.data?.stars || [],
@@ -416,11 +421,14 @@ export function App() {
       return;
     }
 
-    const name = sketchName.trim() || `${dictionary.viewer.savedSketch} ${savedSketches.length + 1}`;
-    const sketchId = customSpace.id.startsWith("space-") ? customSpace.id : `space-${Date.now()}`;
-    const nextSketch = { ...customSpace, id: sketchId, name };
+    const existingSketch = savedSketches.find((sketch) => sketch.id === activeSketchId || sketch.id === customSpace.id) || null;
+    const name = sketchName.trim() || existingSketch?.name || `${dictionary.viewer.savedSketch} ${savedSketches.length + 1}`;
+    const sketchId =
+      existingSketch?.id || (customSpace.id.startsWith("space-") ? customSpace.id : `space-${Date.now()}`);
+    const nextSketch = { ...customSpace, id: sketchId, name, favorite: existingSketch?.favorite || false };
     setSavedSketches((current) => [nextSketch, ...current.filter((sketch) => sketch.id !== sketchId)]);
     setActiveSketchId(sketchId);
+    setCustomSpace((current) => ({ ...current, id: sketchId, name }));
     setSketchName("");
   }
 
@@ -897,6 +905,7 @@ export function App() {
                   sketchName={sketchName}
                   setSketchName={setSketchName}
                   activeSketchName={activeSketchName}
+                  saveSketchLabel={saveSketchLabel}
                   startNewSketch={startNewSketch}
                   clearDraftSketch={clearDraftSketch}
                   saveDraftSketch={saveDraftSketch}

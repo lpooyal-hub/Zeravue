@@ -30,6 +30,7 @@ function SketchControlsPanel({
   sketchName,
   setSketchName,
   activeSketchName,
+  saveSketchLabel,
   startNewSketch,
   clearDraftSketch,
   saveDraftSketch
@@ -233,7 +234,7 @@ function SketchControlsPanel({
           {dictionary.viewer.clearSketch}
         </button>
         <button type="button" className="focus-chip is-active" onClick={saveDraftSketch} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
-          {dictionary.viewer.saveSketch}
+          {saveSketchLabel}
         </button>
       </div>
 
