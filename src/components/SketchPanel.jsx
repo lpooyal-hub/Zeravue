@@ -99,6 +99,18 @@ function SketchControlsPanel({
         </select>
       </label>
 
+      <div className="observer-moment-card">
+        <strong>{activeCustomConstellation?.name || dictionary.viewer.activeConstellation}</strong>
+        <span>
+          {activeCustomConstellationStars.length} {dictionary.viewer.customStars}
+        </span>
+        <small>
+          {activeCustomConstellationStars.length > 0
+            ? dictionary.viewer.activeConstellationHintReady
+            : dictionary.viewer.activeConstellationHintEmpty}
+        </small>
+      </div>
+
       <label className="stacked-field">
         <span>{dictionary.viewer.presetConstellation}</span>
         <select value={presetConstellationName} onChange={(event) => setPresetConstellationName(event.target.value)}>

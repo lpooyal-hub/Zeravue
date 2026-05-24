@@ -281,11 +281,11 @@ function WatchInspectorPanel({
     <>
       <section>
         <p className="eyebrow">{dictionary.viewer.starInspector}</p>
-        {selectedStar ? (
-          <>
-            <h2>{selectedStar.name}</h2>
-            <p className="constellation-copy">{dictionary.constellations?.[selectedStar.constellation]?.[language] || selectedStar.constellation}</p>
-            <dl className="summary-list compact">
+      {selectedStar ? (
+        <>
+          <h2>{selectedStar.name}</h2>
+          <p className="constellation-copy">{dictionary.constellations?.[selectedStar.constellation]?.[language] || selectedStar.constellation}</p>
+          <dl className="summary-list compact">
               <div>
                 <dt>{dictionary.viewer.magnitude}</dt>
                 <dd>{selectedStar.magnitude}</dd>
@@ -300,13 +300,22 @@ function WatchInspectorPanel({
               </div>
               <div>
                 <dt>{dictionary.viewer.visibility}</dt>
-                <dd>{selectedStar.visible ? dictionary.viewer.aboveHorizon : dictionary.viewer.belowHorizon}</dd>
-              </div>
-            </dl>
-          </>
-        ) : (
-          <p className="helper-copy">{dictionary.viewer.pickHint}</p>
-        )}
+              <dd>{selectedStar.visible ? dictionary.viewer.aboveHorizon : dictionary.viewer.belowHorizon}</dd>
+            </div>
+          </dl>
+          {viewMode === "observer" ? (
+            <div className="observer-moment-card">
+              <strong>{dictionary.viewer.observerCue}</strong>
+              <span>
+                {dictionary.viewer.lookingToward} {getCompassDirectionLabel(selectedStar.azimuth, dictionary, language)}
+              </span>
+              <small>{getAltitudeBandLabel(selectedStar.altitude, dictionary)}</small>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <p className="helper-copy">{dictionary.viewer.pickHint}</p>
+      )}
       </section>
 
       <section>
