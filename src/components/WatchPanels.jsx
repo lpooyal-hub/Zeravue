@@ -88,6 +88,7 @@ function WatchControlsPanel({
   setShowGuides,
   isSketchWatch,
   activeSketchWatchName,
+  watchedSketchSummary,
   exitSketchWatch
 }) {
   return (
@@ -99,6 +100,22 @@ function WatchControlsPanel({
             <strong>{activeSketchWatchName}</strong>
             <small>{dictionary.viewer.watchingSketchHint}</small>
           </div>
+          {watchedSketchSummary ? (
+            <dl className="summary-list compact">
+              <div>
+                <dt>{dictionary.viewer.customStars}</dt>
+                <dd>{watchedSketchSummary.stars}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.customPlanets}</dt>
+                <dd>{watchedSketchSummary.planets}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.customConstellationsCount}</dt>
+                <dd>{watchedSketchSummary.constellations}</dd>
+              </div>
+            </dl>
+          ) : null}
           <button className="primary-button" type="button" onClick={exitSketchWatch}>
             {dictionary.viewer.returnLiveSky}
           </button>

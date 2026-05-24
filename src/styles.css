@@ -59,7 +59,13 @@ select {
   margin-bottom: 18px;
 }
 
+.topbar > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .topbar-controls {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -74,9 +80,13 @@ select {
 }
 
 .topbar h1 {
-  max-width: 760px;
+  max-width: none;
+  width: 100%;
   font-size: clamp(1.8rem, 3vw, 3.1rem);
   line-height: 1.02;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-copy {

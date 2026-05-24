@@ -207,6 +207,19 @@ export function App() {
       z: total.z / activeCustomConstellationStars.length
     };
   }, [activeCustomConstellationStars]);
+  const watchedSketch = useMemo(() => savedSketches.find((sketch) => sketch.id === watchSketchId) || null, [savedSketches, watchSketchId]);
+  const isSketchWatch = currentPage === "watch" && Boolean(watchedSketch);
+  const watchedSketchSummary = useMemo(() => {
+    if (!watchedSketch) {
+      return null;
+    }
+    return {
+      stars: watchedSketch.stars.length,
+      planets: watchedSketch.planets.length,
+      constellations: watchedSketch.constellations.length
+    };
+  }, [watchedSketch]);
+  const activeCreativeScene = currentPage === "sketch" ? customSpace : watchedSketch;
   const selectedCustomStar = useMemo(
     () => (selectedTarget?.kind === "custom-star" ? activeCreativeScene?.stars.find((star) => star.id === selectedTarget.id) || null : null),
     [activeCreativeScene, selectedTarget]
@@ -215,9 +228,6 @@ export function App() {
     () => (selectedTarget?.kind === "custom-planet" ? activeCreativeScene?.planets.find((planet) => planet.id === selectedTarget.id) || null : null),
     [activeCreativeScene, selectedTarget]
   );
-  const watchedSketch = useMemo(() => savedSketches.find((sketch) => sketch.id === watchSketchId) || null, [savedSketches, watchSketchId]);
-  const isSketchWatch = currentPage === "watch" && Boolean(watchedSketch);
-  const activeCreativeScene = currentPage === "sketch" ? customSpace : watchedSketch;
   const selectedCustomConstellation = useMemo(
     () =>
       selectedTarget?.kind === "custom-constellation"
@@ -941,6 +951,7 @@ export function App() {
               setShowGuides={setShowGuides}
               isSketchWatch={isSketchWatch}
               activeSketchWatchName={watchedSketch?.name || dictionary.viewer.savedSketch}
+              watchedSketchSummary={watchedSketchSummary}
               exitSketchWatch={exitSketchWatch}
             />
           ) : (
