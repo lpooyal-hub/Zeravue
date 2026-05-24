@@ -253,6 +253,7 @@ function SketchLibraryPanel({
   sortedSavedSketches,
   activeSketchId,
   loadSketch,
+  renameSketch,
   toggleSketchFavorite,
   removeSketch
 }) {
@@ -273,6 +274,9 @@ function SketchLibraryPanel({
                   </small>
                 </button>
                 <div className="saved-sketch-actions">
+                  <button type="button" className="focus-chip" onClick={() => renameSketch(sketch.id)}>
+                    {dictionary.viewer.renameSketch}
+                  </button>
                   <button type="button" className={`focus-chip ${sketch.favorite ? "is-active" : ""}`} onClick={() => toggleSketchFavorite(sketch.id)}>
                     {sketch.favorite ? dictionary.viewer.unpinSketch : dictionary.viewer.pinSketch}
                   </button>

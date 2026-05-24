@@ -470,6 +470,29 @@ export function App() {
     );
   }
 
+  function renameSketch(sketchId) {
+    const target = savedSketches.find((sketch) => sketch.id === sketchId);
+    if (!target) {
+      return;
+    }
+
+    const nextName = window.prompt(dictionary.viewer.renameSketchPrompt, target.name);
+    if (nextName === null) {
+      return;
+    }
+
+    const trimmed = nextName.trim();
+    if (!trimmed || trimmed === target.name) {
+      return;
+    }
+
+    setSavedSketches((current) => current.map((sketch) => (sketch.id === sketchId ? { ...sketch, name: trimmed } : sketch)));
+    if (activeSketchId === sketchId) {
+      setCustomSpace((current) => ({ ...current, name: trimmed }));
+      setSketchName(trimmed);
+    }
+  }
+
   function addCustomConstellation() {
     const nextId = `constellation-${Date.now()}`;
     setCustomSpace((current) => ({
@@ -1048,6 +1071,7 @@ export function App() {
               sortedSavedSketches={sortedSavedSketches}
               activeSketchId={activeSketchId}
               loadSketch={loadSketch}
+              renameSketch={renameSketch}
               toggleSketchFavorite={toggleSketchFavorite}
               removeSketch={removeSketch}
             />
