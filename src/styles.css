@@ -46,17 +46,17 @@ select {
 
 .planetarium-app {
   min-height: 100vh;
-  max-width: 1880px;
+  max-width: 2048px;
   margin: 0 auto;
-  padding: 16px 20px 22px;
+  padding: 14px 18px 18px;
 }
 
 .topbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
 .topbar > div:first-child {
@@ -83,17 +83,17 @@ select {
   max-width: none;
   width: 100%;
   font-size: clamp(1.8rem, 3vw, 3.1rem);
-  line-height: 1.02;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.08;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: initial;
 }
 
 .topbar-copy {
-  max-width: 560px;
-  margin: 10px 0 0;
+  max-width: 860px;
+  margin: 6px 0 0;
   color: var(--muted);
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
 .eyebrow {
@@ -165,8 +165,8 @@ select {
 }
 
 .observer-pill {
-  min-width: 196px;
-  padding: 12px 14px;
+  min-width: 174px;
+  padding: 10px 12px;
   border-radius: 14px;
 }
 
@@ -189,18 +189,18 @@ label span,
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(260px, 312px) minmax(0, 1fr) minmax(260px, 312px);
   align-items: start;
-  gap: 18px;
+  gap: 14px;
 }
 
 .control-panel,
 .inspector-panel {
   display: grid;
   align-content: start;
-  gap: 16px;
-  padding: 18px;
-  border-radius: 20px;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 16px;
 }
 
 .control-panel {
@@ -214,7 +214,7 @@ label span,
   grid-column: 3 / 4;
   grid-row: 1;
   position: sticky;
-  top: 16px;
+  top: 12px;
   max-height: calc(100vh - 32px);
   overflow: auto;
 }
@@ -321,13 +321,13 @@ input[type="range"] {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--line-strong);
-  border-radius: 24px;
-  min-height: calc(100vh - 120px);
+  border-radius: 16px;
+  min-height: calc(100vh - 108px);
   background:
     radial-gradient(circle at 50% 18%, rgba(36, 74, 132, 0.22), transparent 38%),
     radial-gradient(circle at 50% 72%, rgba(19, 37, 74, 0.2), transparent 44%),
     linear-gradient(180deg, #00050f, #00020a 42%, #000008);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+  box-shadow: 0 20px 54px rgba(0, 0, 0, 0.3);
 }
 
 .viewer canvas {
@@ -338,30 +338,30 @@ input[type="range"] {
 
 .viewer-overlay {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  right: 12px;
+  bottom: 12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: end;
-  gap: 7px;
-  max-width: min(520px, calc(100% - 32px));
+  gap: 6px;
+  max-width: min(500px, calc(100% - 24px));
 }
 
 .viewer-focus-overlay {
   position: absolute;
-  left: 16px;
-  top: 16px;
+  left: 12px;
+  top: 12px;
   z-index: 2;
   display: grid;
-  gap: 8px;
-  max-width: min(320px, calc(100% - 32px));
+  gap: 7px;
+  max-width: min(300px, calc(100% - 24px));
 }
 
 .overlay-focus-field {
   display: grid;
   gap: 7px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid rgba(173, 211, 255, 0.16);
   border-radius: 14px;
   background: rgba(5, 9, 16, 0.62);
@@ -575,13 +575,13 @@ input[type="range"] {
 }
 
 .viewer.is-fullscreen .viewer-overlay {
-  right: 24px;
-  bottom: 24px;
+  right: 20px;
+  bottom: 20px;
 }
 
 .viewer.is-fullscreen .viewer-focus-overlay {
-  left: 24px;
-  top: 24px;
+  left: 20px;
+  top: 20px;
 }
 
 .summary-list {
@@ -818,6 +818,10 @@ input[type="range"] {
   .topbar-controls {
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .topbar-copy {
+    max-width: 100%;
   }
 
   .observer-pill {

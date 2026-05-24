@@ -412,7 +412,14 @@ function SceneContents({
   const lookAnchor = useRef({ x: 0, y: 1.8, z: -12.8 });
   const rotationAnchor = useRef({ x: 0, y: 0 });
   const trackingBlend = useRef(0);
-  const { camera, pointer } = useThree();
+  const dragState = useRef({
+    active: false,
+    pointerId: null,
+    lastX: 0,
+    lastY: 0
+  });
+  const manualOrbit = useRef({ yaw: 0, pitch: 0 });
+  const { camera, pointer, gl } = useThree();
   const spaceMode = viewMode === "space";
   const projectionMode = viewMode === "projection";
   const projectedStars = useMemo(() => scene.stars.map((star) => ({ ...star, ...projectSkyPosition(star, viewMode) })), [scene.stars, viewMode]);
@@ -484,19 +491,90 @@ function SceneContents({
     return { starLabels, constellationLabels };
   }, [constellationCenters, dictionary.constellations, featuredStars, focusedConstellation, language, showConstellations, showLabels]);
 
+  useEffect(() => {
+    const element = gl.domElement;
+
+    function handlePointerDown(event) {
+      if (viewMode !== "space" || event.button !== 0) {
+        return;
+      }
+      dragState.current.active = true;
+      dragState.current.pointerId = event.pointerId;
+      dragState.current.lastX = event.clientX;
+      dragState.current.lastY = event.clientY;
+      try {
+        element.setPointerCapture(event.pointerId);
+      } catch {
+        // ignore capture failures on unsupported environments
+      }
+    }
+
+    function handlePointerMove(event) {
+      if (!dragState.current.active || dragState.current.pointerId !== event.pointerId || viewMode !== "space") {
+        return;
+      }
+      const deltaX = event.clientX - dragState.current.lastX;
+      const deltaY = event.clientY - dragState.current.lastY;
+      dragState.current.lastX = event.clientX;
+      dragState.current.lastY = event.clientY;
+
+      manualOrbit.current.yaw = THREE.MathUtils.clamp(manualOrbit.current.yaw - deltaX * 0.0065, -2.8, 2.8);
+      manualOrbit.current.pitch = THREE.MathUtils.clamp(manualOrbit.current.pitch + deltaY * 0.0055, -1.1, 1.1);
+    }
+
+    function endPointerDrag(event) {
+      if (dragState.current.pointerId !== event.pointerId) {
+        return;
+      }
+      dragState.current.active = false;
+      dragState.current.pointerId = null;
+      try {
+        element.releasePointerCapture(event.pointerId);
+      } catch {
+        // ignore capture release failures
+      }
+    }
+
+    element.addEventListener("pointerdown", handlePointerDown);
+    element.addEventListener("pointermove", handlePointerMove);
+    element.addEventListener("pointerup", endPointerDrag);
+    element.addEventListener("pointercancel", endPointerDrag);
+    element.addEventListener("pointerleave", endPointerDrag);
+
+    return () => {
+      element.removeEventListener("pointerdown", handlePointerDown);
+      element.removeEventListener("pointermove", handlePointerMove);
+      element.removeEventListener("pointerup", endPointerDrag);
+      element.removeEventListener("pointercancel", endPointerDrag);
+      element.removeEventListener("pointerleave", endPointerDrag);
+    };
+  }, [gl, viewMode]);
+
   useFrame(({ clock }, delta) => {
     const observerMode = viewMode === "observer";
     const driftA = clock.elapsedTime * 0.106;
     const driftB = clock.elapsedTime * 0.068;
     trackingBlend.current = THREE.MathUtils.damp(trackingBlend.current, trackedCenter ? 1 : 0, 3.2, delta);
     const trackWeight = trackingBlend.current;
-    const targetTiltX = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftB) * 0.022 : -pointer.y * 0.01;
-    const targetYawDrift = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftA) * 0.028 : pointer.x * 0.018;
-    const baseCameraX = projectionMode ? 0 : spaceMode ? Math.sin(driftA) * 0.68 : observerMode ? pointer.x * 0.04 : pointer.x * 0.26;
-    const baseCameraY = projectionMode ? 0 : spaceMode ? Math.cos(driftB) * 0.42 : observerMode ? pointer.y * 0.02 : -0.15 + pointer.y * 0.08;
+    const targetTiltX = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftB) * 0.022 + manualOrbit.current.pitch * 0.06 : -pointer.y * 0.01;
+    const targetYawDrift = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftA) * 0.028 + manualOrbit.current.yaw * 0.045 : pointer.x * 0.018;
+    const baseCameraX = projectionMode
+      ? 0
+      : spaceMode
+        ? Math.sin(driftA) * 0.68 + manualOrbit.current.yaw * 1.15
+        : observerMode
+          ? pointer.x * 0.04
+          : pointer.x * 0.26;
+    const baseCameraY = projectionMode
+      ? 0
+      : spaceMode
+        ? Math.cos(driftB) * 0.42 + manualOrbit.current.pitch * 0.82
+        : observerMode
+          ? pointer.y * 0.02
+          : -0.15 + pointer.y * 0.08;
     const targetCameraZ = projectionMode ? -0.65 : spaceMode ? -11.8 + Math.sin(driftA * 0.7) * 0.26 : observerMode ? 0.3 : -0.42;
-    const baseLookX = projectionMode ? 0 : spaceMode ? Math.sin(driftA * 0.8) * 2.8 : observerMode ? pointer.x * 0.2 : pointer.x * 1.45;
-    const baseLookY = projectionMode ? 0 : spaceMode ? Math.cos(driftB * 1.15) * 1.05 : observerMode ? 10.2 + pointer.y * 0.12 : 2.35 + pointer.y * 0.46;
+    const baseLookX = projectionMode ? 0 : spaceMode ? Math.sin(driftA * 0.8) * 2.8 + manualOrbit.current.yaw * 4.2 : observerMode ? pointer.x * 0.2 : pointer.x * 1.45;
+    const baseLookY = projectionMode ? 0 : spaceMode ? Math.cos(driftB * 1.15) * 1.05 + manualOrbit.current.pitch * 2.6 : observerMode ? 10.2 + pointer.y * 0.12 : 2.35 + pointer.y * 0.46;
     const baseLookZ = projectionMode ? -13.5 : spaceMode ? 0 : observerMode ? -0.9 : -14.6;
     const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * (spaceMode ? 0.03 : observerMode ? 0.04 : 0.06) : baseCameraX, trackWeight);
     const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * (observerMode ? 0.014 : spaceMode ? 0.02 : 0.028) : baseCameraY, trackWeight);
@@ -541,14 +619,18 @@ function SceneContents({
           : spaceMode
             ? 13.7
             : 9.4;
-      const zoomMultiplier = THREE.MathUtils.lerp(1.45, 0.7, zoomLevel);
+      const zoomMultiplier = spaceMode
+        ? THREE.MathUtils.lerp(2.85, 0.46, zoomLevel)
+        : THREE.MathUtils.lerp(1.45, 0.7, zoomLevel);
       camera.position.z = baseDistance * zoomMultiplier + cameraAnchor.current.z;
     }
     const targetFov = observerMode
       ? THREE.MathUtils.lerp(92, 62, zoomLevel)
       : projectionMode
         ? THREE.MathUtils.lerp(44, 26, zoomLevel)
-        : THREE.MathUtils.lerp(58, 30, zoomLevel);
+        : spaceMode
+          ? THREE.MathUtils.lerp(84, 23, zoomLevel)
+          : THREE.MathUtils.lerp(58, 30, zoomLevel);
     camera.fov = THREE.MathUtils.damp(camera.fov, targetFov, 5.2, delta);
     camera.updateProjectionMatrix();
     camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
@@ -1014,10 +1096,10 @@ function ConstellationLines({ lines, stars, focusedConstellation, viewMode, trac
     return { lineGeometry, highlightGeometry, densityFactor };
   }, [focusedConstellation, lines, stars, viewMode]);
 
-  const ambientOpacity = focusedConstellation === "all" ? 0.17 + geometry.densityFactor * 0.09 : tracking ? 0.026 : 0.05 + geometry.densityFactor * 0.03;
-  const ambientGlowOpacity = focusedConstellation === "all" ? 0.06 + geometry.densityFactor * 0.04 : tracking ? 0.012 : 0.02;
-  const highlightOpacity = tracking ? 0.98 + geometry.densityFactor * 0.08 : 0.78 + geometry.densityFactor * 0.14;
-  const highlightGlowOpacity = tracking ? 0.34 + geometry.densityFactor * 0.1 : 0.22 + geometry.densityFactor * 0.14;
+  const ambientOpacity = focusedConstellation === "all" ? 0.045 + geometry.densityFactor * 0.02 : tracking ? 0.01 : 0.018 + geometry.densityFactor * 0.01;
+  const ambientGlowOpacity = focusedConstellation === "all" ? 0.012 + geometry.densityFactor * 0.01 : tracking ? 0.004 : 0.007;
+  const highlightOpacity = tracking ? 0.2 + geometry.densityFactor * 0.03 : 0.14 + geometry.densityFactor * 0.04;
+  const highlightGlowOpacity = tracking ? 0.08 + geometry.densityFactor * 0.02 : 0.06 + geometry.densityFactor * 0.025;
 
   return (
     <>

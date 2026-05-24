@@ -375,30 +375,7 @@ function WatchInspectorPanel({
         </div>
       </section>
 
-      {isSketchWatch ? null : (
-        <section className="scene-status-section">
-          <p className="eyebrow">{dictionary.viewer.sceneStatus}</p>
-          <dl className="summary-list compact">
-            <div>
-              <dt>{dictionary.viewer.status}</dt>
-              <dd>{sceneState.status}</dd>
-            </div>
-            <div>
-              <dt>{dictionary.viewer.catalog}</dt>
-              <dd>{sceneState.data?.summary.catalog ?? "--"}</dd>
-            </div>
-            <div>
-              <dt>{dictionary.viewer.visibleStars}</dt>
-              <dd>{sceneState.data?.summary.visibleStars ?? "--"}</dd>
-            </div>
-            <div>
-              <dt>{dictionary.viewer.visibleConstellations}</dt>
-              <dd>{focusConstellations.length || "--"}</dd>
-            </div>
-          </dl>
-          {sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
-        </section>
-      )}
+      {!isSketchWatch && sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
     </>
   );
 }
