@@ -106,6 +106,7 @@ export function App() {
   const [presetConstellationName, setPresetConstellationName] = useState("");
   const [sketchName, setSketchName] = useState("");
   const [activeSketchId, setActiveSketchId] = useState("draft");
+  const [watchSketchId, setWatchSketchId] = useState(null);
   const [customSpace, setCustomSpace] = useState(() => createBlankSpaceScene());
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
@@ -207,19 +208,22 @@ export function App() {
     };
   }, [activeCustomConstellationStars]);
   const selectedCustomStar = useMemo(
-    () => (selectedTarget?.kind === "custom-star" ? customSpace.stars.find((star) => star.id === selectedTarget.id) || null : null),
-    [customSpace.stars, selectedTarget]
+    () => (selectedTarget?.kind === "custom-star" ? activeCreativeScene?.stars.find((star) => star.id === selectedTarget.id) || null : null),
+    [activeCreativeScene, selectedTarget]
   );
   const selectedCustomPlanet = useMemo(
-    () => (selectedTarget?.kind === "custom-planet" ? customSpace.planets.find((planet) => planet.id === selectedTarget.id) || null : null),
-    [customSpace.planets, selectedTarget]
+    () => (selectedTarget?.kind === "custom-planet" ? activeCreativeScene?.planets.find((planet) => planet.id === selectedTarget.id) || null : null),
+    [activeCreativeScene, selectedTarget]
   );
+  const watchedSketch = useMemo(() => savedSketches.find((sketch) => sketch.id === watchSketchId) || null, [savedSketches, watchSketchId]);
+  const isSketchWatch = currentPage === "watch" && Boolean(watchedSketch);
+  const activeCreativeScene = currentPage === "sketch" ? customSpace : watchedSketch;
   const selectedCustomConstellation = useMemo(
     () =>
       selectedTarget?.kind === "custom-constellation"
-        ? customSpace.constellations.find((constellation) => constellation.id === selectedTarget.id) || null
+        ? activeCreativeScene?.constellations.find((constellation) => constellation.id === selectedTarget.id) || null
         : null,
-    [customSpace.constellations, selectedTarget]
+    [activeCreativeScene, selectedTarget]
   );
   const activeSketchName = sketchName.trim() || customSpace.name || dictionary.viewer.draftSketch;
   const existingSavedSketch = useMemo(
@@ -375,7 +379,11 @@ export function App() {
   }
 
   function selectTarget(target) {
-    if (currentPage === "sketch" && target?.kind?.startsWith("custom-")) {
+    if ((currentPage === "sketch" || isSketchWatch) && target?.kind?.startsWith("custom-")) {
+      if (isSketchWatch) {
+        setSelectedTarget(target);
+        return;
+      }
       if (creativeTool === "delete") {
         removeCustomObject(target);
         return;
@@ -457,10 +465,32 @@ export function App() {
     setSelectedTarget(null);
   }
 
+  function previewSketchInWatch(sketchId) {
+    const sketch = savedSketches.find((item) => item.id === sketchId);
+    if (!sketch) {
+      return;
+    }
+
+    setWatchSketchId(sketch.id);
+    setCurrentPage("watch");
+    setSelectedTarget(null);
+    setViewMode("space");
+    setFocusedConstellation("all");
+    setTrackConstellation(false);
+  }
+
+  function exitSketchWatch() {
+    setWatchSketchId(null);
+    setSelectedTarget(null);
+  }
+
   function removeSketch(sketchId) {
     setSavedSketches((current) => current.filter((sketch) => sketch.id !== sketchId));
     if (activeSketchId === sketchId) {
       setActiveSketchId("draft");
+    }
+    if (watchSketchId === sketchId) {
+      setWatchSketchId(null);
     }
   }
 
@@ -789,6 +819,10 @@ export function App() {
       return;
     }
 
+    if (currentPage !== "sketch") {
+      return;
+    }
+
     setCustomSpace((current) => {
       if (target.kind === "custom-constellation") {
         const origin = Array.isArray(patch.dragOrigin) ? new Map(patch.dragOrigin.map((star) => [star.id, star])) : null;
@@ -905,6 +939,9 @@ export function App() {
               setAutoRotate={setAutoRotate}
               showGuides={showGuides}
               setShowGuides={setShowGuides}
+              isSketchWatch={isSketchWatch}
+              activeSketchWatchName={watchedSketch?.name || dictionary.viewer.savedSketch}
+              exitSketchWatch={exitSketchWatch}
             />
           ) : (
             <>
@@ -993,17 +1030,18 @@ export function App() {
             starGlowStrength={starGlowStrength}
             viewMode={viewMode}
             zoomLevel={zoomLevel}
-            focusedConstellation={currentPage === "watch" ? focusedConstellation : "all"}
-            trackConstellation={currentPage === "watch" ? trackConstellation : false}
+            focusedConstellation={currentPage === "watch" && !isSketchWatch ? focusedConstellation : "all"}
+            trackConstellation={currentPage === "watch" && !isSketchWatch ? trackConstellation : false}
             drawMode={currentPage === "sketch"}
             customSketchStarIds={[]}
-          creativeMode={currentPage === "sketch"}
-          customSpace={customSpace}
-          creativeTool={creativeTool}
-          onCreativeSpaceClick={addCustomObject}
-          onUpdateCustomObject={updateCustomObject}
-        />
-          {currentPage === "watch" ? (
+            creativeMode={currentPage === "sketch" || isSketchWatch}
+            customSpace={activeCreativeScene}
+            creativeTool={currentPage === "sketch" ? creativeTool : "none"}
+            onCreativeSpaceClick={currentPage === "sketch" ? addCustomObject : undefined}
+            onUpdateCustomObject={currentPage === "sketch" ? updateCustomObject : undefined}
+            editingEnabled={currentPage === "sketch"}
+          />
+          {currentPage === "watch" && !isSketchWatch ? (
             <ViewerFocusOverlay
               dictionary={dictionary}
               language={language}
@@ -1040,13 +1078,19 @@ export function App() {
           <SelectionInspectorPanel
             dictionary={dictionary}
             language={language}
-            currentPage={currentPage}
+            currentPage={isSketchWatch ? "sketch" : currentPage}
             selectedCustomStar={selectedCustomStar}
             selectedCustomConstellation={selectedCustomConstellation}
-            activeCustomConstellation={activeCustomConstellation}
+            activeCustomConstellation={
+              isSketchWatch
+                ? activeCreativeScene?.constellations.find((constellation) => constellation.id === activeCreativeScene.activeConstellationId) ||
+                  activeCreativeScene?.constellations?.[0] ||
+                  null
+                : activeCustomConstellation
+            }
             updateCustomObject={updateCustomObject}
             selectedTarget={selectedTarget}
-            customSpace={customSpace}
+            customSpace={activeCreativeScene || customSpace}
             removeCustomObject={removeCustomObject}
             selectedCustomPlanet={selectedCustomPlanet}
             selectedStar={selectedStar}
@@ -1057,12 +1101,13 @@ export function App() {
               dictionary={dictionary}
               language={language}
               selectedStar={selectedStar}
-              currentViewConstellationDetails={currentViewConstellationDetails}
+              currentViewConstellationDetails={isSketchWatch ? [] : currentViewConstellationDetails}
               focusedConstellation={focusedConstellation}
               setFocusedConstellation={setFocusedConstellation}
-              focusConstellations={focusConstellations}
+              focusConstellations={isSketchWatch ? [] : focusConstellations}
               sceneState={sceneState}
               viewMode={viewMode}
+              isSketchWatch={isSketchWatch}
             />
           ) : (
             <SketchLibraryPanel
@@ -1071,6 +1116,7 @@ export function App() {
               sortedSavedSketches={sortedSavedSketches}
               activeSketchId={activeSketchId}
               loadSketch={loadSketch}
+              previewSketchInWatch={previewSketchInWatch}
               renameSketch={renameSketch}
               toggleSketchFavorite={toggleSketchFavorite}
               removeSketch={removeSketch}

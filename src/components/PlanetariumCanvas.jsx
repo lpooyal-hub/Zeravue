@@ -58,7 +58,8 @@ export function PlanetariumCanvas({
   customSpace,
   creativeTool,
   onCreativeSpaceClick,
-  onUpdateCustomObject
+  onUpdateCustomObject,
+  editingEnabled = true
 }) {
   if (!scene && !creativeMode) {
     return <div className="scene-empty">{dictionary.viewer.loading}</div>;
@@ -83,6 +84,7 @@ export function PlanetariumCanvas({
           creativeTool={creativeTool}
           onCreativeSpaceClick={onCreativeSpaceClick}
           onUpdateCustomObject={onUpdateCustomObject}
+          editingEnabled={editingEnabled}
         />
       ) : (
         <SceneContents
@@ -120,7 +122,8 @@ function CreativeSpaceContents({
   dictionary,
   creativeTool,
   onCreativeSpaceClick,
-  onUpdateCustomObject
+  onUpdateCustomObject,
+  editingEnabled
 }) {
   const groupRef = useRef(null);
   const cameraAnchor = useRef({ x: 0, y: 0, z: 0 });
@@ -248,7 +251,7 @@ function CreativeSpaceContents({
     camera.updateProjectionMatrix();
     camera.lookAt(lookAnchor.current.x, lookAnchor.current.y, lookAnchor.current.z);
 
-    if (draggingObjectRef.current) {
+    if (editingEnabled && draggingObjectRef.current) {
       state.raycaster.setFromCamera(state.pointer, state.camera);
       if (state.raycaster.ray.intersectPlane(dragPlaneRef.current, dragPointRef.current)) {
         const dragging = draggingObjectRef.current;
@@ -285,7 +288,7 @@ function CreativeSpaceContents({
         <SpaceDepthField atmosphereStrength={0.36} />
         <CreativeCanvasPlane />
         {showGuides ? <CreativeCanvasGuides /> : null}
-        <CreativePlacementPlane creativeTool={creativeTool} onCreativeSpaceClick={onCreativeSpaceClick} />
+        <CreativePlacementPlane creativeTool={creativeTool} onCreativeSpaceClick={onCreativeSpaceClick} editingEnabled={editingEnabled} />
         <CreativeConstellationLines customSpace={customSpace} />
         {customSpace?.stars.map((star) => (
           <CreativeStar
@@ -294,8 +297,11 @@ function CreativeSpaceContents({
             selected={selectedTarget?.kind === "custom-star" && selectedTarget.id === star.id}
             onSelectTarget={onSelectTarget}
             onStartDrag={(starId) => {
-              draggingObjectRef.current = { kind: "custom-star", id: starId };
+              if (editingEnabled) {
+                draggingObjectRef.current = { kind: "custom-star", id: starId };
+              }
             }}
+            editingEnabled={editingEnabled}
           />
         ))}
         {customSpace?.planets.map((planet) => (
@@ -305,11 +311,14 @@ function CreativeSpaceContents({
             selected={selectedTarget?.kind === "custom-planet" && selectedTarget.id === planet.id}
             onSelectTarget={onSelectTarget}
             onStartDrag={(planetId) => {
-              draggingObjectRef.current = { kind: "custom-planet", id: planetId };
+              if (editingEnabled) {
+                draggingObjectRef.current = { kind: "custom-planet", id: planetId };
+              }
             }}
+            editingEnabled={editingEnabled}
           />
         ))}
-        {activeConstellationHandle ? (
+        {activeConstellationHandle && editingEnabled ? (
           <CreativeConstellationHandle
             handle={activeConstellationHandle}
             selected={selectedTarget?.kind === "custom-constellation" && selectedTarget.id === activeConstellationHandle.id}
@@ -723,11 +732,14 @@ function PassiveStarGlow({ star, dimmed, sketched, starGlowStrength = 0.8 }) {
   return <sprite ref={haloRef} material={spriteMaterial} position={[star.x, star.y, star.z]} scale={[radius * 5.8, radius * 5.8, 1]} />;
 }
 
-function CreativePlacementPlane({ creativeTool, onCreativeSpaceClick }) {
+function CreativePlacementPlane({ creativeTool, onCreativeSpaceClick, editingEnabled }) {
   return (
     <mesh
       position={[0, 0, -12.2]}
       onPointerDown={(event) => {
+        if (!editingEnabled) {
+          return;
+        }
         if (creativeTool === "delete") {
           return;
         }
@@ -785,7 +797,7 @@ function CreativeConstellationLines({ customSpace }) {
   );
 }
 
-function CreativeStar({ star, selected, onSelectTarget, onStartDrag }) {
+function CreativeStar({ star, selected, onSelectTarget, onStartDrag, editingEnabled }) {
   const haloRef = useRef(null);
   const material = useMemo(
     () =>
@@ -818,7 +830,9 @@ function CreativeStar({ star, selected, onSelectTarget, onStartDrag }) {
         onPointerDown={(event) => {
           event.stopPropagation();
           onSelectTarget({ kind: "custom-star", id: star.id });
-          onStartDrag?.(star.id);
+          if (editingEnabled) {
+            onStartDrag?.(star.id);
+          }
         }}
         onClick={(event) => {
           event.stopPropagation();
@@ -832,7 +846,7 @@ function CreativeStar({ star, selected, onSelectTarget, onStartDrag }) {
   );
 }
 
-function CreativePlanet({ planet, selected, onSelectTarget, onStartDrag }) {
+function CreativePlanet({ planet, selected, onSelectTarget, onStartDrag, editingEnabled }) {
   const groupRef = useRef(null);
   const color = new THREE.Color(planet.color);
 
@@ -849,7 +863,9 @@ function CreativePlanet({ planet, selected, onSelectTarget, onStartDrag }) {
       onPointerDown={(event) => {
         event.stopPropagation();
         onSelectTarget({ kind: "custom-planet", id: planet.id });
-        onStartDrag?.(planet.id);
+        if (editingEnabled) {
+          onStartDrag?.(planet.id);
+        }
       }}
       onClick={(event) => {
         event.stopPropagation();

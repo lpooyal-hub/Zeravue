@@ -85,10 +85,25 @@ function WatchControlsPanel({
   autoRotate,
   setAutoRotate,
   showGuides,
-  setShowGuides
+  setShowGuides,
+  isSketchWatch,
+  activeSketchWatchName,
+  exitSketchWatch
 }) {
   return (
     <>
+      {isSketchWatch ? (
+        <section>
+          <p className="eyebrow">{dictionary.viewer.watchingSketchTitle}</p>
+          <div className="observer-moment-card">
+            <strong>{activeSketchWatchName}</strong>
+            <small>{dictionary.viewer.watchingSketchHint}</small>
+          </div>
+          <button className="primary-button" type="button" onClick={exitSketchWatch}>
+            {dictionary.viewer.returnLiveSky}
+          </button>
+        </section>
+      ) : null}
       <section>
         <p className="eyebrow">{dictionary.viewer.controls}</p>
         <label className="stacked-field">
@@ -275,7 +290,8 @@ function WatchInspectorPanel({
   setFocusedConstellation,
   focusConstellations,
   sceneState,
-  viewMode
+  viewMode,
+  isSketchWatch
 }) {
   return (
     <>
@@ -320,7 +336,7 @@ function WatchInspectorPanel({
 
       <section>
         <p className="eyebrow">{dictionary.viewer.constellationsInFrame}</p>
-        {viewMode === "observer" ? <p className="helper-copy">{dictionary.viewer.observerConstellationHint}</p> : null}
+        {isSketchWatch ? <p className="helper-copy">{dictionary.viewer.watchingSketchHint}</p> : viewMode === "observer" ? <p className="helper-copy">{dictionary.viewer.observerConstellationHint}</p> : null}
         <div className="saved-sketch-list">
           {currentViewConstellationDetails.map((item) => (
             <button
@@ -342,28 +358,30 @@ function WatchInspectorPanel({
         </div>
       </section>
 
-      <section className="scene-status-section">
-        <p className="eyebrow">{dictionary.viewer.sceneStatus}</p>
-        <dl className="summary-list compact">
-          <div>
-            <dt>{dictionary.viewer.status}</dt>
-            <dd>{sceneState.status}</dd>
-          </div>
-          <div>
-            <dt>{dictionary.viewer.catalog}</dt>
-            <dd>{sceneState.data?.summary.catalog ?? "--"}</dd>
-          </div>
-          <div>
-            <dt>{dictionary.viewer.visibleStars}</dt>
-            <dd>{sceneState.data?.summary.visibleStars ?? "--"}</dd>
-          </div>
-          <div>
-            <dt>{dictionary.viewer.visibleConstellations}</dt>
-            <dd>{focusConstellations.length || "--"}</dd>
-          </div>
-        </dl>
-        {sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
-      </section>
+      {isSketchWatch ? null : (
+        <section className="scene-status-section">
+          <p className="eyebrow">{dictionary.viewer.sceneStatus}</p>
+          <dl className="summary-list compact">
+            <div>
+              <dt>{dictionary.viewer.status}</dt>
+              <dd>{sceneState.status}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.catalog}</dt>
+              <dd>{sceneState.data?.summary.catalog ?? "--"}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.visibleStars}</dt>
+              <dd>{sceneState.data?.summary.visibleStars ?? "--"}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.visibleConstellations}</dt>
+              <dd>{focusConstellations.length || "--"}</dd>
+            </div>
+          </dl>
+          {sceneState.error ? <p className="error-copy">{sceneState.error}</p> : null}
+        </section>
+      )}
     </>
   );
 }

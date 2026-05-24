@@ -253,6 +253,7 @@ function SketchLibraryPanel({
   sortedSavedSketches,
   activeSketchId,
   loadSketch,
+  previewSketchInWatch,
   renameSketch,
   toggleSketchFavorite,
   removeSketch
@@ -274,6 +275,9 @@ function SketchLibraryPanel({
                   </small>
                 </button>
                 <div className="saved-sketch-actions">
+                  <button type="button" className="focus-chip" onClick={() => previewSketchInWatch(sketch.id)}>
+                    {dictionary.viewer.previewInWatch}
+                  </button>
                   <button type="button" className="focus-chip" onClick={() => renameSketch(sketch.id)}>
                     {dictionary.viewer.renameSketch}
                   </button>
