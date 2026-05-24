@@ -5,6 +5,9 @@ function ViewerHeader({
   language,
   setLanguage,
   observer,
+  headerEyebrow,
+  headerTitle,
+  headerSubtitle,
   themes,
   currentThemeId,
   switchTheme,
@@ -15,9 +18,9 @@ function ViewerHeader({
   return (
     <header className="topbar">
       <div>
-        <p className="eyebrow">{dictionary.viewer.eyebrow}</p>
-        <h1>{dictionary.viewer.title}</h1>
-        <p className="topbar-copy">{dictionary.viewer.subtitle}</p>
+        <p className="eyebrow">{headerEyebrow || dictionary.viewer.eyebrow}</p>
+        <h1>{headerTitle || dictionary.viewer.title}</h1>
+        <p className="topbar-copy">{headerSubtitle || dictionary.viewer.subtitle}</p>
       </div>
       <div className="topbar-controls">
         <div className="page-switcher" aria-label={dictionary.viewer.pageMode}>

@@ -64,6 +64,7 @@ Current status:
 - Aurora currently uses a visual style shell and shared sky mechanics.
 - Aurora now includes a first atmospheric layer set (curtain-like glow + intensity/speed controls).
 - Aurora-specific data adaptation can follow after visual mood tuning.
+- Aurora page copy and inspector hierarchy now favor calm viewing over constellation-heavy UI.
 
 ## Theme 3: Underwater Panorama
 

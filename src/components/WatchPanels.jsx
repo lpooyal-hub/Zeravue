@@ -216,39 +216,43 @@ function WatchControlsPanel({
         <p className="helper-copy">{dictionary.viewer.viewModeDescriptions[viewMode]}</p>
       </section>
 
-      <ConstellationFocusSection
-        dictionary={dictionary}
-        language={language}
-        focusedConstellation={focusedConstellation}
-        setFocusedConstellation={setFocusedConstellation}
-        activeConstellationKey={activeConstellationKey}
-        activeConstellationName={activeConstellationName}
-        activeConstellationIsFavorite={activeConstellationIsFavorite}
-        toggleFavoriteConstellation={toggleFavoriteConstellation}
-        visibleFavoriteConstellations={visibleFavoriteConstellations}
-      />
+      {!auroraEnabled ? (
+        <ConstellationFocusSection
+          dictionary={dictionary}
+          language={language}
+          focusedConstellation={focusedConstellation}
+          setFocusedConstellation={setFocusedConstellation}
+          activeConstellationKey={activeConstellationKey}
+          activeConstellationName={activeConstellationName}
+          activeConstellationIsFavorite={activeConstellationIsFavorite}
+          toggleFavoriteConstellation={toggleFavoriteConstellation}
+          visibleFavoriteConstellations={visibleFavoriteConstellations}
+        />
+      ) : null}
 
-      <section className="story-card">
-        <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
-        <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
-        <p>{activeConstellationStory}</p>
-        {activeConstellationStats ? (
-          <dl className="summary-list compact">
-            <div>
-              <dt>{dictionary.viewer.constellationVisibleStars}</dt>
-              <dd>{activeConstellationStats.visibleStars}</dd>
-            </div>
-            <div>
-              <dt>{dictionary.viewer.brightestStar}</dt>
-              <dd>{activeConstellationStats.brightestStar || "--"}</dd>
-            </div>
-            <div>
-              <dt>{dictionary.viewer.magnitude}</dt>
-              <dd>{activeConstellationStats.brightestMagnitude ?? "--"}</dd>
-            </div>
-          </dl>
-        ) : null}
-      </section>
+      {!auroraEnabled ? (
+        <section className="story-card">
+          <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
+          <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
+          <p>{activeConstellationStory}</p>
+          {activeConstellationStats ? (
+            <dl className="summary-list compact">
+              <div>
+                <dt>{dictionary.viewer.constellationVisibleStars}</dt>
+                <dd>{activeConstellationStats.visibleStars}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.brightestStar}</dt>
+                <dd>{activeConstellationStats.brightestStar || "--"}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.magnitude}</dt>
+                <dd>{activeConstellationStats.brightestMagnitude ?? "--"}</dd>
+              </div>
+            </dl>
+          ) : null}
+        </section>
+      ) : null}
 
       <section>
         <p className="eyebrow">{dictionary.viewer.atmosphere}</p>
@@ -322,11 +326,13 @@ function WatchInspectorPanel({
   focusConstellations,
   sceneState,
   viewMode,
-  isSketchWatch
+  isSketchWatch,
+  auroraEnabled
 }) {
   return (
     <>
-      <section className="view-constellations-section">
+      {!auroraEnabled ? (
+        <section className="view-constellations-section">
         <p className="eyebrow">{dictionary.viewer.constellationsInFrame}</p>
         {isSketchWatch ? (
           <p className="helper-copy">{dictionary.viewer.watchingSketchHint}</p>
@@ -356,7 +362,17 @@ function WatchInspectorPanel({
             </button>
           ))}
         </div>
-      </section>
+        </section>
+      ) : (
+        <section className="view-constellations-section">
+          <p className="eyebrow">{language === "ko" ? "오로라 감상" : "Aurora viewing"}</p>
+          <p className="helper-copy">
+            {language === "ko"
+              ? "오로라 테마는 별자리 분석보다 분위기 감상을 우선합니다."
+              : "Aurora mode prioritizes atmosphere over constellation analysis."}
+          </p>
+        </section>
+      )}
 
       <section>
         <p className="eyebrow">{dictionary.viewer.starInspector}</p>

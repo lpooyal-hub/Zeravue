@@ -124,6 +124,17 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const dictionary = translations[language];
   const sketchEnabled = currentTheme?.features?.sketching !== false;
   const auroraEnabled = currentThemeId === "aurora-night";
+  const headerEyebrow = auroraEnabled ? "Zeravue · Aurora Night" : dictionary.viewer.eyebrow;
+  const headerTitle = auroraEnabled
+    ? language === "ko"
+      ? "오로라의 흐름을 천천히 바라보는 공간입니다."
+      : "A quiet space to watch the aurora drift."
+    : dictionary.viewer.title;
+  const headerSubtitle = auroraEnabled
+    ? language === "ko"
+      ? "별자리 분석보다 분위기 감상에 집중하세요."
+      : "Focus on atmosphere first, not star analysis."
+    : dictionary.viewer.subtitle;
   const themeViewModes = useMemo(() => {
     const supported = Array.isArray(currentTheme?.viewModes) && currentTheme.viewModes.length ? currentTheme.viewModes : VIEW_MODE_ORDER;
     return VIEW_MODE_ORDER.filter((mode) => supported.includes(mode));
@@ -988,6 +999,9 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
         language={language}
         setLanguage={setLanguage}
         observer={observer}
+        headerEyebrow={headerEyebrow}
+        headerTitle={headerTitle}
+        headerSubtitle={headerSubtitle}
         themes={themes}
         currentThemeId={currentThemeId}
         switchTheme={switchTheme}
@@ -1222,6 +1236,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               sceneState={sceneState}
               viewMode={viewMode}
               isSketchWatch={isSketchWatch}
+              auroraEnabled={auroraEnabled}
             />
           ) : (
             <SketchLibraryPanel
