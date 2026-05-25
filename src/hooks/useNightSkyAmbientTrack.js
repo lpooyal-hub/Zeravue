@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
+import { renderAuroraAmbientTrack } from "../audio/renderAuroraAmbientTrack.js";
 import { renderNightSkyAmbientTrack } from "../audio/renderNightSkyAmbientTrack.js";
 
-export function useNightSkyAmbientTrack(configuredTrackUrl = "") {
+const THEME_RENDERERS = {
+  "aurora-night": renderAuroraAmbientTrack
+};
+
+export function useNightSkyAmbientTrack({ configuredTrackUrl = "", themeId = "night-sky" } = {}) {
   const [generatedTrackUrl, setGeneratedTrackUrl] = useState("");
   const [trackPending, setTrackPending] = useState(!configuredTrackUrl);
   const [trackError, setTrackError] = useState("");
@@ -19,7 +24,9 @@ export function useNightSkyAmbientTrack(configuredTrackUrl = "") {
     setTrackPending(true);
     setTrackError("");
 
-    renderNightSkyAmbientTrack()
+    const renderTrack = THEME_RENDERERS[themeId] || renderNightSkyAmbientTrack;
+
+    renderTrack()
       .then((url) => {
         if (cancelled) {
           URL.revokeObjectURL(url);
@@ -45,7 +52,7 @@ export function useNightSkyAmbientTrack(configuredTrackUrl = "") {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [configuredTrackUrl]);
+  }, [configuredTrackUrl, themeId]);
 
   return {
     ambientTrackUrl: configuredTrackUrl || generatedTrackUrl,

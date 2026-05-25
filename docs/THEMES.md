@@ -65,6 +65,7 @@ Current status:
 - Aurora now includes a first atmospheric layer set (curtain-like glow + intensity/speed controls).
 - Aurora-specific data adaptation can follow after visual mood tuning.
 - Aurora page copy and inspector hierarchy now favor calm viewing over constellation-heavy UI.
+- Aurora now uses theme-specific ambient audio (cool, dreamy drone style).
 
 ## Theme 3: Underwater Panorama
 

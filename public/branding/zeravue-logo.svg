@@ -1,0 +1,27 @@
+<svg width="1200" height="360" viewBox="0 0 1200 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#021233"/>
+      <stop offset="1" stop-color="#050A16"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="200" y1="40" x2="200" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF2FF"/>
+      <stop offset="1" stop-color="#8FB9FF"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(210 182) rotate(90) scale(120 120)">
+      <stop stop-color="#BFD7FF" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#BFD7FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="360" rx="24" fill="url(#bg)"/>
+  <circle cx="210" cy="180" r="118" fill="url(#glow)"/>
+  <path d="M258 82C244 73 228 68 210 68C149 68 99 118 99 180C99 242 149 292 210 292C228 292 244 287 258 278C230 276 207 234 207 180C207 126 230 84 258 82Z" fill="url(#moon)"/>
+  <circle cx="297" cy="115" r="5" fill="#D4E6FF"/>
+  <circle cx="318" cy="142" r="2.8" fill="#EFF6FF"/>
+  <circle cx="292" cy="152" r="2.3" fill="#EFF6FF"/>
+  <circle cx="334" cy="166" r="2.1" fill="#D4E6FF"/>
+
+  <text x="392" y="184" fill="#F4F8FF" font-family="Inter, system-ui, sans-serif" font-size="92" letter-spacing="24">ZERAVUE</text>
+  <text x="395" y="242" fill="#A9BEDF" font-family="Inter, system-ui, sans-serif" font-size="30" letter-spacing="8">quiet digital experiences</text>
+</svg>

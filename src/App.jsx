@@ -48,12 +48,16 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [constellationSearch, setConstellationSearch] = useState("");
   const [trackConstellation, setTrackConstellation] = useState(false);
   const [resetViewToken, setResetViewToken] = useState(0);
-  const [auroraIntensity, setAuroraIntensity] = useState(0.72);
-  const [auroraSpeed, setAuroraSpeed] = useState(0.55);
+  const [auroraIntensity, setAuroraIntensity] = useState(0.54);
+  const [auroraSpeed, setAuroraSpeed] = useState(0.34);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
   const { favoriteConstellations, setFavoriteConstellations } = useFavoriteConstellations();
-  const { ambientTrackUrl, ambientTrackPending, ambientTrackError } = useNightSkyAmbientTrack(config.ambientTrackUrl);
+  const configuredAmbientTrackUrl = currentThemeId === "aurora-night" ? config.auroraAmbientTrackUrl || config.ambientTrackUrl : config.ambientTrackUrl;
+  const { ambientTrackUrl, ambientTrackPending, ambientTrackError } = useNightSkyAmbientTrack({
+    configuredTrackUrl: configuredAmbientTrackUrl,
+    themeId: currentThemeId
+  });
   const { ambientEnabled, ambientVolume, setAmbientVolume, ambientStatus, toggleAmbientSound, wakeAmbient } = useAmbientAudio({
     trackUrl: ambientTrackUrl,
     isReady: sceneState.status === "ready"
@@ -143,6 +147,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const { updateObserver, requestLocation, toggleFavoriteConstellation, selectTarget, shiftTime, changeZoom, resetView } = watchWorkspace;
   const sketchEnabled = currentTheme?.features?.sketching !== false;
   const auroraEnabled = currentThemeId === "aurora-night";
+  const effectiveSketchEnabled = auroraEnabled ? false : sketchEnabled;
   const { eyebrow: headerEyebrow, title: headerTitle, subtitle: headerSubtitle } = useMemo(
     () => getThemeHeaderCopy({ auroraEnabled, language, dictionary }),
     [auroraEnabled, dictionary, language]
@@ -161,10 +166,22 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   }, [language]);
 
   useEffect(() => {
-    if (!sketchEnabled && currentPage === "sketch") {
+    if (!effectiveSketchEnabled && currentPage === "sketch") {
       setCurrentPage("watch");
     }
-  }, [currentPage, sketchEnabled]);
+  }, [currentPage, effectiveSketchEnabled]);
+
+  useEffect(() => {
+    if (!auroraEnabled) {
+      return;
+    }
+    setCurrentPage("watch");
+    setViewMode("space");
+    setShowConstellations(false);
+    setShowLabels(false);
+    setFocusedConstellation("all");
+    setTrackConstellation(false);
+  }, [auroraEnabled]);
 
   useEffect(() => {
     const defaultViewMode = currentTheme?.defaultViewMode;
@@ -410,6 +427,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     await viewerRef.current.requestFullscreen();
   }
 
+  const auroraWatchLayout = auroraEnabled && currentPage === "watch";
+
   return (
     <div className={`planetarium-app theme-${currentThemeId}`}>
       <ViewerHeader
@@ -425,14 +444,37 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
         themes={themes}
         currentThemeId={currentThemeId}
         switchTheme={switchTheme}
-        sketchEnabled={sketchEnabled}
+        sketchEnabled={effectiveSketchEnabled}
         showThemeSwitcher={showThemeSwitcher}
         homeHref="/"
       />
 
-      <div className="workspace">
-        <aside className="control-panel">
-          {currentPage === "watch" ? (
+      <div className={`workspace ${auroraWatchLayout ? "workspace-aurora" : ""}`}>
+        {auroraWatchLayout ? (
+          <aside className="control-panel aurora-control-panel">
+            <section>
+              <p className="eyebrow">{language === "ko" ? "오로라 감상" : "Aurora viewing"}</p>
+              <p className="helper-copy">
+                {language === "ko"
+                  ? "차가운 파스텔 톤의 오로라를 천천히 바라보는 감상 페이지입니다."
+                  : "A quiet aurora page with cool pastel tones and slow movement."}
+              </p>
+            </section>
+            <section>
+              <p className="eyebrow">{language === "ko" ? "오로라 분위기" : "Aurora mood"}</p>
+              <label>
+                <span>{language === "ko" ? `오로라 강도: ${Math.round(auroraIntensity * 100)}%` : `Aurora intensity: ${Math.round(auroraIntensity * 100)}%`}</span>
+                <input type="range" min="0.25" max="0.9" step="0.01" value={auroraIntensity} onChange={(event) => setAuroraIntensity(Number(event.target.value))} />
+              </label>
+              <label>
+                <span>{language === "ko" ? `오로라 흐름 속도: ${Math.round(auroraSpeed * 100)}%` : `Aurora drift speed: ${Math.round(auroraSpeed * 100)}%`}</span>
+                <input type="range" min="0.15" max="0.72" step="0.01" value={auroraSpeed} onChange={(event) => setAuroraSpeed(Number(event.target.value))} />
+              </label>
+            </section>
+          </aside>
+        ) : (
+          <aside className="control-panel">
+            {currentPage === "watch" ? (
             <WatchControlsPanel
               dictionary={dictionary}
               language={language}
@@ -484,7 +526,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               watchedSketchSummary={watchedSketchSummary}
               exitSketchWatch={exitSketchWatch}
             />
-          ) : (
+            ) : (
             <>
               <section>
                 <p className="eyebrow">{dictionary.viewer.sketchControls}</p>
@@ -546,8 +588,9 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
                 </div>
               </section>
             </>
-          )}
-        </aside>
+            )}
+          </aside>
+        )}
 
         <main
           ref={viewerRef}
@@ -563,16 +606,16 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             onSelectTarget={selectTarget}
             language={language}
             dictionary={dictionary}
-            showLabels={showLabels}
+            showLabels={auroraWatchLayout ? false : showLabels}
             showGuides={showGuides}
-            showConstellations={showConstellations}
+            showConstellations={auroraWatchLayout ? false : showConstellations}
             autoRotate={autoRotate}
             atmosphereStrength={atmosphereStrength}
             starGlowStrength={starGlowStrength}
             viewMode={viewMode}
             zoomLevel={zoomLevel}
-            focusedConstellation={currentPage === "watch" && !isSketchWatch ? focusedConstellation : "all"}
-            trackConstellation={currentPage === "watch" && !isSketchWatch ? trackConstellation : false}
+            focusedConstellation={auroraWatchLayout ? "all" : currentPage === "watch" && !isSketchWatch ? focusedConstellation : "all"}
+            trackConstellation={auroraWatchLayout ? false : currentPage === "watch" && !isSketchWatch ? trackConstellation : false}
             drawMode={currentPage === "sketch"}
             customSketchStarIds={[]}
             creativeMode={currentPage === "sketch" || isSketchWatch}
@@ -586,7 +629,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             auroraIntensity={auroraIntensity}
             auroraSpeed={auroraSpeed}
           />
-          {currentPage === "watch" && !isSketchWatch ? (
+          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout ? (
             <ViewerFocusOverlay
               dictionary={dictionary}
               language={language}
@@ -620,7 +663,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           />
         </main>
 
-        <aside className="inspector-panel">
+        {!auroraWatchLayout ? (
+          <aside className="inspector-panel">
           {currentPage === "sketch" ? (
             <SelectionInspectorPanel
               dictionary={dictionary}
@@ -671,7 +715,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               removeSketch={removeSketch}
             />
           )}
-        </aside>
+          </aside>
+        ) : null}
       </div>
     </div>
   );

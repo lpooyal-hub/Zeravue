@@ -19,6 +19,52 @@ function buildPointTexture() {
   return texture;
 }
 
+function buildAuroraHdriTexture() {
+  const width = 2048;
+  const height = 1024;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+
+  const skyGradient = context.createLinearGradient(0, 0, 0, height);
+  skyGradient.addColorStop(0, "#11244d");
+  skyGradient.addColorStop(0.38, "#1b3564");
+  skyGradient.addColorStop(0.66, "#243a62");
+  skyGradient.addColorStop(0.82, "#1d2f4d");
+  skyGradient.addColorStop(1, "#101a2b");
+  context.fillStyle = skyGradient;
+  context.fillRect(0, 0, width, height);
+
+  const horizonGlow = context.createLinearGradient(0, height * 0.58, 0, height * 0.94);
+  horizonGlow.addColorStop(0, "rgba(122, 170, 225, 0.0)");
+  horizonGlow.addColorStop(0.45, "rgba(123, 171, 226, 0.2)");
+  horizonGlow.addColorStop(0.75, "rgba(79, 122, 180, 0.22)");
+  horizonGlow.addColorStop(1, "rgba(25, 42, 72, 0.0)");
+  context.fillStyle = horizonGlow;
+  context.fillRect(0, 0, width, height);
+
+  for (let index = 0; index < 5; index += 1) {
+    const bandY = height * (0.2 + index * 0.11);
+    const bandHeight = height * (0.09 + Math.random() * 0.05);
+    const gradient = context.createLinearGradient(0, bandY, 0, bandY + bandHeight);
+    gradient.addColorStop(0, "rgba(125, 180, 245, 0)");
+    gradient.addColorStop(0.3, "rgba(136, 196, 255, 0.08)");
+    gradient.addColorStop(0.65, "rgba(112, 170, 236, 0.12)");
+    gradient.addColorStop(1, "rgba(95, 144, 205, 0)");
+    context.fillStyle = gradient;
+    context.fillRect(0, bandY, width, bandHeight);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export function SpaceDepthField({ atmosphereStrength = 0.7 }) {
   const fieldRef = useRef(null);
   const pointTexture = useMemo(() => buildPointTexture(), []);
@@ -83,7 +129,7 @@ export function AuroraCurtains({ intensity = 0.72, speed = 0.55 }) {
   const glowB = useRef(null);
 
   useFrame(({ clock }, delta) => {
-    const t = clock.elapsedTime * (0.42 + speed * 0.95);
+    const t = clock.elapsedTime * (0.22 + speed * 0.58);
 
     if (curtainA.current) {
       curtainA.current.position.x = Math.sin(t * 0.34) * 2.8;
@@ -128,52 +174,219 @@ export function AuroraCurtains({ intensity = 0.72, speed = 0.55 }) {
     <>
       <mesh ref={curtainA} position={[0.5, 3.6, -14.5]} rotation={[0.28, 0.06, -0.24]}>
         <planeGeometry args={[28, 15, 1, 1]} />
-        <meshBasicMaterial color="#65ffd6" transparent opacity={0.26} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <meshBasicMaterial color="#8fd1ff" transparent opacity={0.24} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
       <mesh ref={curtainB} position={[-0.8, 3.3, -14.2]} rotation={[0.24, -0.09, 0.21]}>
         <planeGeometry args={[27, 14, 1, 1]} />
-        <meshBasicMaterial color="#ff66d4" transparent opacity={0.25} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <meshBasicMaterial color="#b5dfff" transparent opacity={0.22} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
       <mesh ref={curtainC} position={[1.1, 2.7, -13.8]} rotation={[0.22, 0.04, -0.18]}>
         <planeGeometry args={[25, 12.5, 1, 1]} />
-        <meshBasicMaterial color="#a36bff" transparent opacity={0.22} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <meshBasicMaterial color="#9bbcff" transparent opacity={0.2} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
       <mesh ref={curtainD} position={[-1.3, 2.2, -13.5]} rotation={[0.2, -0.04, 0.16]}>
         <planeGeometry args={[22, 11.5, 1, 1]} />
-        <meshBasicMaterial color="#a6ff5e" transparent opacity={0.2} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <meshBasicMaterial color="#c7e9ff" transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
       <mesh ref={glowA} position={[0, 2.7, -12.9]} rotation={[Math.PI / 2, 0, 0]}>
         <ringGeometry args={[6.2, 11.6, 64]} />
-        <meshBasicMaterial color="#49e8cf" transparent opacity={0.15} side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial color="#9ccfff" transparent opacity={0.13} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
       <mesh ref={glowB} position={[0, 1.5, -12.7]} rotation={[Math.PI / 2, 0, 0]}>
         <ringGeometry args={[3.6, 9.4, 64]} />
-        <meshBasicMaterial color="#78adff" transparent opacity={0.13} side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial color="#b8d9ff" transparent opacity={0.11} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
     </>
   );
 }
 
-export function AuroraSkyBackdrop({ intensity = 0.72 }) {
+export function AuroraHdriBackdrop({ intensity = 0.72 }) {
   const domeRef = useRef(null);
+  const hdriTexture = useMemo(() => buildAuroraHdriTexture(), []);
 
   useFrame(({ clock }) => {
     if (!domeRef.current) {
       return;
     }
-    domeRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.03) * 0.05;
-    domeRef.current.material.opacity = 0.2 + intensity * 0.25;
+    domeRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.015) * 0.04;
+    domeRef.current.material.opacity = 0.62 + intensity * 0.14;
+  });
+
+  return (
+    <mesh ref={domeRef} position={[0, 0, -10]} rotation={[0, 0.1, 0]}>
+      <sphereGeometry args={[62, 64, 48]} />
+      <meshBasicMaterial map={hdriTexture} side={THREE.BackSide} transparent opacity={0.72} depthWrite={false} />
+    </mesh>
+  );
+}
+
+export function AuroraShaderLayer({ intensity = 0.72, speed = 0.55 }) {
+  const meshRef = useRef(null);
+  const materialRef = useRef(null);
+
+  const shaderMaterial = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        uniforms: {
+          uTime: { value: 0 },
+          uIntensity: { value: intensity },
+          uColorA: { value: new THREE.Color("#8fd1ff") },
+          uColorB: { value: new THREE.Color("#b5e8ff") },
+          uColorC: { value: new THREE.Color("#9fb9ff") }
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          varying vec2 vUv;
+          uniform float uTime;
+          uniform float uIntensity;
+          uniform vec3 uColorA;
+          uniform vec3 uColorB;
+          uniform vec3 uColorC;
+
+          float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+          }
+
+          float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            float a = hash(i + vec2(0.0, 0.0));
+            float b = hash(i + vec2(1.0, 0.0));
+            float c = hash(i + vec2(0.0, 1.0));
+            float d = hash(i + vec2(1.0, 1.0));
+            return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+          }
+
+          void main() {
+            vec2 uv = vUv;
+            float t = uTime * 0.12;
+            float flow = noise(vec2(uv.x * 5.0 + t, uv.y * 2.2 - t * 0.4));
+            flow += noise(vec2(uv.x * 8.5 - t * 0.6, uv.y * 3.4 + t * 0.25)) * 0.55;
+            flow /= 1.55;
+
+            float curtainMask = smoothstep(0.0, 0.35, uv.y) * (1.0 - smoothstep(0.76, 1.0, uv.y));
+            float verticalBands = 0.45 + 0.55 * sin((uv.x * 10.0 + flow * 3.2) + t * 1.3);
+            float strength = curtainMask * verticalBands * (0.24 + flow * 0.76);
+
+            vec3 aurora = mix(uColorA, uColorB, flow);
+            aurora = mix(aurora, uColorC, smoothstep(0.55, 1.0, uv.x));
+
+            float alpha = strength * (0.22 + uIntensity * 0.34);
+            gl_FragColor = vec4(aurora, alpha);
+          }
+        `
+      }),
+    []
+  );
+
+  useFrame(({ clock }) => {
+    if (!materialRef.current || !meshRef.current) {
+      return;
+    }
+    materialRef.current.uniforms.uTime.value = clock.elapsedTime * (0.18 + speed * 0.52);
+    materialRef.current.uniforms.uIntensity.value = intensity;
+    meshRef.current.position.x = Math.sin(clock.elapsedTime * 0.05) * 0.4;
+  });
+
+  return (
+    <mesh ref={meshRef} position={[0, 2.0, -13.8]} rotation={[-0.22, 0.02, 0]}>
+      <planeGeometry args={[34, 15, 1, 1]} />
+      <primitive object={shaderMaterial} ref={materialRef} attach="material" />
+    </mesh>
+  );
+}
+
+export function AuroraAmbientParticles({ intensity = 0.72, speed = 0.55 }) {
+  const cloudRef = useRef(null);
+  const pointTexture = useMemo(() => buildPointTexture(), []);
+  const particles = useMemo(() => {
+    const positions = [];
+    const colors = [];
+    const sizes = [];
+
+    for (let index = 0; index < 1200; index += 1) {
+      const x = (Math.random() - 0.5) * 30;
+      const y = -2.2 + Math.random() * 9.4;
+      const z = -15.2 + Math.random() * 8.2;
+      positions.push(x, y, z);
+
+      const color = new THREE.Color(index % 4 === 0 ? "#c9e6ff" : index % 7 === 0 ? "#a8c9ff" : "#d9eeff");
+      colors.push(color.r, color.g, color.b);
+      sizes.push(0.03 + Math.random() * 0.05);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    return geometry;
+  }, []);
+
+  useFrame(({ clock }, delta) => {
+    if (!cloudRef.current) {
+      return;
+    }
+    cloudRef.current.rotation.y += delta * (0.0012 + speed * 0.0024);
+    cloudRef.current.position.x = Math.sin(clock.elapsedTime * 0.018) * 0.22;
+    cloudRef.current.position.y = Math.cos(clock.elapsedTime * 0.016) * 0.1;
+  });
+
+  return (
+    <points ref={cloudRef} geometry={particles}>
+      <pointsMaterial
+        size={0.05}
+        sizeAttenuation
+        vertexColors
+        transparent
+        opacity={0.05 + intensity * 0.09}
+        depthWrite={false}
+        map={pointTexture}
+        alphaMap={pointTexture}
+        alphaTest={0.05}
+      />
+    </points>
+  );
+}
+
+export function AuroraSkyBackdrop({ intensity = 0.72 }) {
+  const skyDomeRef = useRef(null);
+  const lowMistRef = useRef(null);
+
+  useFrame(({ clock }) => {
+    if (skyDomeRef.current) {
+      skyDomeRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.018) * 0.025;
+      skyDomeRef.current.material.opacity = 0.2 + intensity * 0.22;
+    }
+
+    if (lowMistRef.current) {
+      lowMistRef.current.position.x = Math.sin(clock.elapsedTime * 0.06) * 0.32;
+      lowMistRef.current.material.opacity = 0.1 + intensity * 0.1;
+    }
   });
 
   return (
     <>
-      <mesh ref={domeRef} position={[0, 1.3, -14.6]} rotation={[-0.15, 0, 0]}>
-        <sphereGeometry args={[24, 48, 32, 0, Math.PI * 2, 0, Math.PI / 1.85]} />
-        <meshBasicMaterial color="#1f295e" transparent opacity={0.36} side={THREE.BackSide} depthWrite={false} />
+      <mesh ref={skyDomeRef} position={[0, 0.9, -14.9]} rotation={[-0.2, 0, 0]}>
+        <sphereGeometry args={[26, 52, 36, 0, Math.PI * 2, 0, Math.PI / 1.9]} />
+        <meshBasicMaterial color="#1a2d56" transparent opacity={0.28} side={THREE.BackSide} depthWrite={false} />
       </mesh>
-      <mesh position={[0, 1.9, -14.1]} rotation={[-0.2, 0, 0]}>
-        <planeGeometry args={[34, 16, 1, 1]} />
-        <meshBasicMaterial color="#2c1a5b" transparent opacity={0.21} depthWrite={false} blending={THREE.AdditiveBlending} />
+      <mesh position={[0, 2.1, -13.7]} rotation={[-0.24, 0, 0]}>
+        <planeGeometry args={[36, 17, 1, 1]} />
+        <meshBasicMaterial color="#4168a2" transparent opacity={0.14} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
+      <mesh ref={lowMistRef} position={[0, -1.2, -11.2]} rotation={[-0.14, 0, 0]}>
+        <planeGeometry args={[34, 6, 1, 1]} />
+        <meshBasicMaterial color="#6f9ec7" transparent opacity={0.12} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
     </>
   );
@@ -182,17 +395,33 @@ export function AuroraSkyBackdrop({ intensity = 0.72 }) {
 export function AuroraHorizonSilhouette() {
   return (
     <>
-      <mesh position={[0, -3.6, -11.6]}>
-        <planeGeometry args={[34, 4.8]} />
-        <meshBasicMaterial color="#03060c" transparent opacity={0.92} depthWrite={false} />
+      <mesh position={[0, -4.1, -11.4]}>
+        <planeGeometry args={[36, 5.8]} />
+        <meshBasicMaterial color="#03060e" transparent opacity={0.98} depthWrite={false} />
       </mesh>
-      <mesh position={[-7.4, -2.95, -11.45]} rotation={[0, 0, 0.06]}>
-        <circleGeometry args={[3.4, 64]} />
-        <meshBasicMaterial color="#04070d" transparent opacity={0.96} depthWrite={false} />
+      <mesh position={[0, -3.3, -11.05]}>
+        <planeGeometry args={[36, 1.2]} />
+        <meshBasicMaterial color="#0a1730" transparent opacity={0.4} depthWrite={false} />
       </mesh>
-      <mesh position={[8.2, -3.05, -11.45]} rotation={[0, 0, -0.05]}>
-        <circleGeometry args={[3.9, 64]} />
-        <meshBasicMaterial color="#04070d" transparent opacity={0.96} depthWrite={false} />
+      <mesh position={[-6.8, -2.95, -11.25]} rotation={[0, 0, 0.08]}>
+        <circleGeometry args={[3.8, 64]} />
+        <meshBasicMaterial color="#040912" transparent opacity={0.98} depthWrite={false} />
+      </mesh>
+      <mesh position={[7.5, -2.9, -11.2]} rotation={[0, 0, -0.06]}>
+        <circleGeometry args={[4.1, 64]} />
+        <meshBasicMaterial color="#040912" transparent opacity={0.98} depthWrite={false} />
+      </mesh>
+      <mesh position={[0.5, -2.75, -11.18]}>
+        <coneGeometry args={[2.5, 2.6, 3]} />
+        <meshBasicMaterial color="#050b14" transparent opacity={0.95} depthWrite={false} />
+      </mesh>
+      <mesh position={[-2.6, -2.7, -11.16]}>
+        <coneGeometry args={[1.8, 2.2, 3]} />
+        <meshBasicMaterial color="#050b14" transparent opacity={0.94} depthWrite={false} />
+      </mesh>
+      <mesh position={[3.3, -2.68, -11.16]}>
+        <coneGeometry args={[1.6, 2.1, 3]} />
+        <meshBasicMaterial color="#050b14" transparent opacity={0.94} depthWrite={false} />
       </mesh>
     </>
   );

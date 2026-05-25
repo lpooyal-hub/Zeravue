@@ -13,6 +13,7 @@ function normalizePath(pathname) {
 function HomePage({ language, setLanguage }) {
   const dictionary = translations[language];
   const [showBrandLogo, setShowBrandLogo] = useState(true);
+  const [brandLogoSrc, setBrandLogoSrc] = useState("/branding/zeravue-logo.svg");
 
   return (
     <div className="theme-home">
@@ -28,10 +29,16 @@ function HomePage({ language, setLanguage }) {
         {showBrandLogo ? (
           <img
             className="theme-home-brand-logo"
-            src="/branding/zeravue-logo.png"
+            src={brandLogoSrc}
             alt="Zeravue logo"
             loading="eager"
-            onError={() => setShowBrandLogo(false)}
+            onError={() => {
+              if (brandLogoSrc.endsWith(".svg")) {
+                setBrandLogoSrc("/branding/zeravue-logo.png");
+                return;
+              }
+              setShowBrandLogo(false);
+            }}
           />
         ) : null}
         <p className="eyebrow">Zeravue</p>

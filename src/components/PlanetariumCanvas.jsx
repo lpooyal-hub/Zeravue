@@ -9,7 +9,10 @@ import {
   TextSprite as TextSpriteView
 } from "./canvas/ViewerGuides.jsx";
 import {
+  AuroraAmbientParticles as AuroraAmbientParticlesView,
+  AuroraHdriBackdrop as AuroraHdriBackdropView,
   AuroraCurtains as AuroraCurtainsView,
+  AuroraShaderLayer as AuroraShaderLayerView,
   AuroraHorizonSilhouette as AuroraHorizonSilhouetteView,
   AuroraSkyBackdrop as AuroraSkyBackdropView,
   DeepSkyField as DeepSkyFieldView,
@@ -276,29 +279,70 @@ function SceneContents({
 
   useFrame(({ clock }, delta) => {
     const observerMode = viewMode === "observer";
+    const auroraWatchMode = auroraEnabled && spaceMode;
     const driftA = clock.elapsedTime * 0.106;
     const driftB = clock.elapsedTime * 0.068;
     trackingBlend.current = THREE.MathUtils.damp(trackingBlend.current, trackedCenter ? 1 : 0, 3.2, delta);
     const trackWeight = trackingBlend.current;
-    const targetTiltX = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftB) * 0.022 + manualOrbit.current.pitch * 0.06 : -pointer.y * 0.01;
-    const targetYawDrift = trackedCenter || projectionMode || observerMode ? 0 : spaceMode ? Math.sin(driftA) * 0.028 + manualOrbit.current.yaw * 0.045 : pointer.x * 0.018;
+    const targetTiltX = trackedCenter || projectionMode || observerMode
+      ? 0
+      : auroraWatchMode
+        ? Math.sin(driftB * 0.58) * 0.009 + manualOrbit.current.pitch * 0.03
+        : spaceMode
+          ? Math.sin(driftB) * 0.022 + manualOrbit.current.pitch * 0.06
+          : -pointer.y * 0.01;
+    const targetYawDrift = trackedCenter || projectionMode || observerMode
+      ? 0
+      : auroraWatchMode
+        ? Math.sin(driftA * 0.52) * 0.011 + manualOrbit.current.yaw * 0.024
+        : spaceMode
+          ? Math.sin(driftA) * 0.028 + manualOrbit.current.yaw * 0.045
+          : pointer.x * 0.018;
     const baseCameraX = projectionMode
       ? 0
-      : spaceMode
-        ? Math.sin(driftA) * 0.68 + manualOrbit.current.yaw * 1.15
+      : auroraWatchMode
+        ? Math.sin(driftA * 0.5) * 0.24 + manualOrbit.current.yaw * 0.52
+        : spaceMode
+          ? Math.sin(driftA) * 0.68 + manualOrbit.current.yaw * 1.15
         : observerMode
           ? pointer.x * 0.04
           : pointer.x * 0.26;
     const baseCameraY = projectionMode
       ? 0
-      : spaceMode
-        ? Math.cos(driftB) * 0.42 + manualOrbit.current.pitch * 0.82
+      : auroraWatchMode
+        ? Math.cos(driftB * 0.54) * 0.18 + manualOrbit.current.pitch * 0.34
+        : spaceMode
+          ? Math.cos(driftB) * 0.42 + manualOrbit.current.pitch * 0.82
         : observerMode
           ? pointer.y * 0.02
           : -0.15 + pointer.y * 0.08;
-    const targetCameraZ = projectionMode ? -0.65 : spaceMode ? -11.8 + Math.sin(driftA * 0.7) * 0.26 : observerMode ? 0.3 : -0.42;
-    const baseLookX = projectionMode ? 0 : spaceMode ? Math.sin(driftA * 0.8) * 2.8 + manualOrbit.current.yaw * 4.2 : observerMode ? pointer.x * 0.2 : pointer.x * 1.45;
-    const baseLookY = projectionMode ? 0 : spaceMode ? Math.cos(driftB * 1.15) * 1.05 + manualOrbit.current.pitch * 2.6 : observerMode ? 10.2 + pointer.y * 0.12 : 2.35 + pointer.y * 0.46;
+    const targetCameraZ = projectionMode
+      ? -0.65
+      : auroraWatchMode
+        ? -11.25 + Math.sin(driftA * 0.36) * 0.09
+        : spaceMode
+          ? -11.8 + Math.sin(driftA * 0.7) * 0.26
+          : observerMode
+            ? 0.3
+            : -0.42;
+    const baseLookX = projectionMode
+      ? 0
+      : auroraWatchMode
+        ? Math.sin(driftA * 0.48) * 0.95 + manualOrbit.current.yaw * 1.6
+        : spaceMode
+          ? Math.sin(driftA * 0.8) * 2.8 + manualOrbit.current.yaw * 4.2
+          : observerMode
+            ? pointer.x * 0.2
+            : pointer.x * 1.45;
+    const baseLookY = projectionMode
+      ? 0
+      : auroraWatchMode
+        ? Math.cos(driftB * 0.5) * 0.46 + manualOrbit.current.pitch * 0.98
+        : spaceMode
+          ? Math.cos(driftB * 1.15) * 1.05 + manualOrbit.current.pitch * 2.6
+          : observerMode
+            ? 10.2 + pointer.y * 0.12
+            : 2.35 + pointer.y * 0.46;
     const baseLookZ = projectionMode ? -13.5 : spaceMode ? 0 : observerMode ? -0.9 : -14.6;
     const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * (spaceMode ? 0.03 : observerMode ? 0.04 : 0.06) : baseCameraX, trackWeight);
     const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * (observerMode ? 0.014 : spaceMode ? 0.02 : 0.028) : baseCameraY, trackWeight);
@@ -308,21 +352,21 @@ function SceneContents({
 
     if (groupRef.current) {
       if (autoRotate && !trackedCenter && !projectionMode && !observerMode) {
-        groupRef.current.rotation.y += delta * (spaceMode ? 0.017 : 0.008);
+        groupRef.current.rotation.y += delta * (auroraWatchMode ? 0.0052 : spaceMode ? 0.017 : 0.008);
       }
-      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, spaceMode ? 2.35 : observerMode ? 7.5 : 5.4, delta);
-      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, spaceMode ? 2.3 : observerMode ? 7.5 : 4.8, delta);
+      rotationAnchor.current.x = THREE.MathUtils.damp(rotationAnchor.current.x, targetTiltX, auroraWatchMode ? 1.35 : spaceMode ? 2.35 : observerMode ? 7.5 : 5.4, delta);
+      rotationAnchor.current.y = THREE.MathUtils.damp(rotationAnchor.current.y, targetYawDrift, auroraWatchMode ? 1.25 : spaceMode ? 2.3 : observerMode ? 7.5 : 4.8, delta);
       groupRef.current.rotation.x = rotationAnchor.current.x;
       groupRef.current.rotation.y += rotationAnchor.current.y * delta;
     }
 
-    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, spaceMode ? 2.35 : observerMode ? 7.8 : 5.1, delta);
-    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, spaceMode ? 2.35 : observerMode ? 7.8 : 5.1, delta);
-    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, spaceMode ? 2.55 : observerMode ? 8.1 : 5.4, delta);
+    cameraAnchor.current.x = THREE.MathUtils.damp(cameraAnchor.current.x, targetCameraX, auroraWatchMode ? 1.3 : spaceMode ? 2.35 : observerMode ? 7.8 : 5.1, delta);
+    cameraAnchor.current.y = THREE.MathUtils.damp(cameraAnchor.current.y, targetCameraY, auroraWatchMode ? 1.3 : spaceMode ? 2.35 : observerMode ? 7.8 : 5.1, delta);
+    cameraAnchor.current.z = THREE.MathUtils.damp(cameraAnchor.current.z, targetCameraZ, auroraWatchMode ? 1.4 : spaceMode ? 2.55 : observerMode ? 8.1 : 5.4, delta);
 
-    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, spaceMode ? 2.45 : observerMode ? 7.4 : 5.4, delta);
-    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, spaceMode ? 2.45 : observerMode ? 7.4 : 5.4, delta);
-    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, spaceMode ? 2.6 : observerMode ? 7.8 : 5.7, delta);
+    lookAnchor.current.x = THREE.MathUtils.damp(lookAnchor.current.x, targetLookX, auroraWatchMode ? 1.35 : spaceMode ? 2.45 : observerMode ? 7.4 : 5.4, delta);
+    lookAnchor.current.y = THREE.MathUtils.damp(lookAnchor.current.y, targetLookY, auroraWatchMode ? 1.35 : spaceMode ? 2.45 : observerMode ? 7.4 : 5.4, delta);
+    lookAnchor.current.z = THREE.MathUtils.damp(lookAnchor.current.z, targetLookZ, auroraWatchMode ? 1.45 : spaceMode ? 2.6 : observerMode ? 7.8 : 5.7, delta);
 
     if (observerMode) {
       const observerLift = trackedCenter ? THREE.MathUtils.lerp(11.2, 7.2, zoomLevel) : THREE.MathUtils.lerp(12.6, 8.6, zoomLevel);
@@ -340,10 +384,14 @@ function SceneContents({
             : 12.4
         : projectionMode
           ? 14.8
-          : spaceMode
+          : auroraWatchMode
+            ? 16.4
+            : spaceMode
             ? 13.7
             : 9.4;
-      const zoomMultiplier = spaceMode
+      const zoomMultiplier = auroraWatchMode
+        ? THREE.MathUtils.lerp(1.38, 0.82, zoomLevel)
+        : spaceMode
         ? THREE.MathUtils.lerp(2.85, 0.46, zoomLevel)
         : THREE.MathUtils.lerp(1.45, 0.7, zoomLevel);
       camera.position.z = baseDistance * zoomMultiplier + cameraAnchor.current.z;
@@ -352,7 +400,9 @@ function SceneContents({
       ? THREE.MathUtils.lerp(92, 62, zoomLevel)
       : projectionMode
         ? THREE.MathUtils.lerp(44, 26, zoomLevel)
-        : spaceMode
+        : auroraWatchMode
+          ? THREE.MathUtils.lerp(72, 44, zoomLevel)
+          : spaceMode
           ? THREE.MathUtils.lerp(84, 23, zoomLevel)
           : THREE.MathUtils.lerp(58, 30, zoomLevel);
     camera.fov = THREE.MathUtils.damp(camera.fov, targetFov, 5.2, delta);
@@ -368,8 +418,10 @@ function SceneContents({
       <group ref={groupRef}>
         {auroraEnabled ? (
           <>
+            <AuroraHdriBackdropView intensity={auroraIntensity} />
             <AuroraSkyBackdropView intensity={auroraIntensity} />
-            <DeepSkyFieldView viewMode={viewMode} atmosphereStrength={Math.max(0.2, atmosphereStrength * 0.48)} />
+            <AuroraAmbientParticlesView intensity={auroraIntensity} speed={auroraSpeed} />
+            <AuroraShaderLayerView intensity={auroraIntensity} speed={auroraSpeed} />
             <AuroraCurtainsView intensity={auroraIntensity} speed={auroraSpeed} />
             <AuroraHorizonSilhouetteView />
           </>
@@ -380,12 +432,14 @@ function SceneContents({
             {viewMode === "space" ? <SpaceDepthFieldView atmosphereStrength={atmosphereStrength} /> : null}
           </>
         )}
-        <BackgroundStarField
-          stars={projectedStars}
-          focusedConstellation={focusedConstellation}
-          starGlowStrength={starGlowStrength}
-          tracking={trackConstellation && focusedConstellation !== "all"}
-        />
+        {!auroraEnabled ? (
+          <BackgroundStarField
+            stars={projectedStars}
+            focusedConstellation={focusedConstellation}
+            starGlowStrength={starGlowStrength}
+            tracking={trackConstellation && focusedConstellation !== "all"}
+          />
+        ) : null}
         {showGuides && !projectionMode && !observerMode ? <GuideGridView /> : null}
         {showGuides && observerMode ? <ObserverGuideView dictionary={dictionary} language={language} /> : null}
         {showGuides && projectionMode ? <ProjectionGuideView dictionary={dictionary} language={language} /> : null}
@@ -400,7 +454,7 @@ function SceneContents({
           />
         ) : null}
         {customSketchStarIds.length >= 2 ? <CustomSketchLines stars={projectedStars} starIds={customSketchStarIds} viewMode={viewMode} /> : null}
-        {spaceMode
+        {!auroraEnabled && spaceMode
           ? featuredStars.map((star) => (
               <PassiveStarGlow
                 key={star.id}
@@ -410,7 +464,8 @@ function SceneContents({
                 starGlowStrength={starGlowStrength}
               />
             ))
-          : featuredStars.map((star) => (
+          : !auroraEnabled
+            ? featuredStars.map((star) => (
               <StarMarker
                 key={star.id}
                 star={star}
@@ -420,13 +475,14 @@ function SceneContents({
                 sketched={customSketchStarIds.includes(star.id)}
                 drawMode={drawMode}
               />
-            ))}
-        {labelData.starLabels.map((label) => (
+            ))
+            : null}
+        {!auroraEnabled ? labelData.starLabels.map((label) => (
           <TextSpriteView key={label.id} {...label} />
-        ))}
-        {labelData.constellationLabels.map((label) => (
+        )) : null}
+        {!auroraEnabled ? labelData.constellationLabels.map((label) => (
           <TextSpriteView key={label.id} {...label} />
-        ))}
+        )) : null}
       </group>
     </>
   );

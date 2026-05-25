@@ -18,6 +18,7 @@ function ViewerHeader({
   homeHref = "/"
 }) {
   const [showProfileImage, setShowProfileImage] = useState(true);
+  const [profileImageSrc, setProfileImageSrc] = useState("/branding/zeravue-mark.svg");
 
   return (
     <header className="topbar">
@@ -59,10 +60,16 @@ function ViewerHeader({
           {showProfileImage ? (
             <img
               className="observer-avatar"
-              src="/branding/zeravue-profile.png"
+              src={profileImageSrc}
               alt="Zeravue profile"
               loading="lazy"
-              onError={() => setShowProfileImage(false)}
+              onError={() => {
+                if (profileImageSrc.endsWith(".svg")) {
+                  setProfileImageSrc("/branding/zeravue-profile.png");
+                  return;
+                }
+                setShowProfileImage(false);
+              }}
             />
           ) : null}
           <span>{dictionary.viewer.observer}</span>
