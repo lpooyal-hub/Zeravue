@@ -87,6 +87,7 @@ export function ViewerFocusOverlay({
 
 export function ViewerAmbientOverlay({
   dictionary,
+  language,
   ambientTrackPending,
   ambientTrackError,
   ambientEnabled,
@@ -96,6 +97,9 @@ export function ViewerAmbientOverlay({
   ambientVolume,
   setAmbientVolume,
   isFullscreen,
+  showHideControlsButton,
+  onToggleControlsHidden,
+  controlsHidden,
   toggleFullscreen,
   toggleAmbientSound
 }) {
@@ -123,6 +127,11 @@ export function ViewerAmbientOverlay({
       <button type="button" className="overlay-button" onClick={toggleFullscreen}>
         {isFullscreen ? dictionary.viewer.exitFullscreen : dictionary.viewer.enterFullscreen}
       </button>
+      {showHideControlsButton ? (
+        <button type="button" className="overlay-button" onClick={onToggleControlsHidden}>
+          {controlsHidden ? (language === "ko" ? "컨트롤 보이기" : "Show UI") : language === "ko" ? "컨트롤 숨기기" : "Hide UI"}
+        </button>
+      ) : null}
       <button type="button" className={`overlay-button ${ambientEnabled ? "is-active" : ""}`} onClick={toggleAmbientSound}>
         {ambientEnabled ? dictionary.viewer.ambient.off : dictionary.viewer.ambient.on}
       </button>

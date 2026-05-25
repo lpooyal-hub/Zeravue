@@ -11,6 +11,7 @@ import {
 import {
   AuroraAmbientParticles as AuroraAmbientParticlesView,
   AuroraHdriBackdrop as AuroraHdriBackdropView,
+  AuroraStarField as AuroraStarFieldView,
   AuroraCurtains as AuroraCurtainsView,
   AuroraShaderLayer as AuroraShaderLayerView,
   AuroraHorizonSilhouette as AuroraHorizonSilhouetteView,
@@ -310,7 +311,7 @@ function SceneContents({
     const baseCameraY = projectionMode
       ? 0
       : auroraWatchMode
-        ? Math.cos(driftB * 0.54) * 0.18 + manualOrbit.current.pitch * 0.34
+        ? -0.12 + Math.cos(driftB * 0.54) * 0.1 + manualOrbit.current.pitch * 0.2
         : spaceMode
           ? Math.cos(driftB) * 0.42 + manualOrbit.current.pitch * 0.82
         : observerMode
@@ -319,7 +320,7 @@ function SceneContents({
     const targetCameraZ = projectionMode
       ? -0.65
       : auroraWatchMode
-        ? -11.25 + Math.sin(driftA * 0.36) * 0.09
+        ? -11.55 + Math.sin(driftA * 0.36) * 0.08
         : spaceMode
           ? -11.8 + Math.sin(driftA * 0.7) * 0.26
           : observerMode
@@ -337,7 +338,7 @@ function SceneContents({
     const baseLookY = projectionMode
       ? 0
       : auroraWatchMode
-        ? Math.cos(driftB * 0.5) * 0.46 + manualOrbit.current.pitch * 0.98
+        ? 1.15 + Math.cos(driftB * 0.5) * 0.2 + manualOrbit.current.pitch * 0.45
         : spaceMode
           ? Math.cos(driftB * 1.15) * 1.05 + manualOrbit.current.pitch * 2.6
           : observerMode
@@ -420,6 +421,7 @@ function SceneContents({
           <>
             <AuroraHdriBackdropView intensity={auroraIntensity} />
             <AuroraSkyBackdropView intensity={auroraIntensity} />
+            <AuroraStarFieldView intensity={auroraIntensity} />
             <AuroraAmbientParticlesView intensity={auroraIntensity} speed={auroraSpeed} />
             <AuroraShaderLayerView intensity={auroraIntensity} speed={auroraSpeed} />
             <AuroraCurtainsView intensity={auroraIntensity} speed={auroraSpeed} />

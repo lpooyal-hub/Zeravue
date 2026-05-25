@@ -14,9 +14,29 @@ function HomePage({ language, setLanguage }) {
   const dictionary = translations[language];
   const [showBrandLogo, setShowBrandLogo] = useState(true);
   const [brandLogoSrc, setBrandLogoSrc] = useState("/branding/zeravue-logo.svg");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const enterTheme = (event, href) => {
+    event.preventDefault();
+    if (isTransitioning) {
+      return;
+    }
+
+    try {
+      window.sessionStorage.setItem("zeravue:auto-enter-target", href);
+      window.sessionStorage.setItem("zeravue:auto-enter-at", String(Date.now()));
+    } catch (error) {
+      console.warn("Failed to persist auto-enter flag:", error);
+    }
+
+    setIsTransitioning(true);
+    window.setTimeout(() => {
+      window.location.assign(href);
+    }, 420);
+  };
 
   return (
-    <div className="theme-home">
+    <div className={`theme-home ${isTransitioning ? "is-transitioning" : ""}`}>
       <header className="theme-home-header">
         <div className="language-switcher" aria-label="Language">
           <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
@@ -47,11 +67,11 @@ function HomePage({ language, setLanguage }) {
       </header>
 
       <div className="theme-home-grid">
-        <a className="theme-home-card" href="/night-sky">
+        <a className="theme-home-card" href="/night-sky" onClick={(event) => enterTheme(event, "/night-sky")}>
           <strong>{dictionary.viewer.pages.watch}</strong>
           <small>{language === "ko" ? "별자리와 밤하늘을 감상합니다." : "Observe stars and constellations in a quiet sky."}</small>
         </a>
-        <a className="theme-home-card" href="/aurora">
+        <a className="theme-home-card" href="/aurora" onClick={(event) => enterTheme(event, "/aurora")}>
           <strong>{language === "ko" ? "오로라 감상" : "Aurora Night"}</strong>
           <small>{language === "ko" ? "부드러운 오로라 분위기를 감상합니다." : "Enjoy a gentle aurora-focused atmosphere."}</small>
         </a>
@@ -83,6 +103,10 @@ export function RootApp() {
       switchTheme("aurora-night");
       return;
     }
+    if (path === "/aurora-live") {
+      switchTheme("aurora-night");
+      return;
+    }
     if (path === "/night-sky") {
       switchTheme("night-sky");
     }
@@ -93,7 +117,15 @@ export function RootApp() {
       return <HomePage language={language} setLanguage={setLanguage} />;
     }
 
-    if (path === "/aurora" || path === "/night-sky") {
+    if (path === "/aurora") {
+      return <NightSkyApp forcedLanguage={language} setForcedLanguage={setLanguage} showThemeSwitcher={false} auroraRenderer="css" />;
+    }
+
+    if (path === "/aurora-live") {
+      return <NightSkyApp forcedLanguage={language} setForcedLanguage={setLanguage} showThemeSwitcher={false} auroraRenderer="webgl" />;
+    }
+
+    if (path === "/night-sky") {
       return <NightSkyApp forcedLanguage={language} setForcedLanguage={setLanguage} showThemeSwitcher={false} />;
     }
 

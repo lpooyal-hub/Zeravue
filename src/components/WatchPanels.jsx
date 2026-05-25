@@ -125,6 +125,20 @@ function WatchControlsPanel({
         </section>
       ) : null}
       <section>
+        <p className="eyebrow">{language === "ko" ? "로컬 하늘" : "Your Local Sky"}</p>
+        <div className="observer-moment-card observer-local-card">
+          <strong>{observer.label}</strong>
+          <span>{language === "ko" ? "지금 이 위치의 밤하늘을 반영하고 있습니다." : "Reflecting the night sky above your current place."}</span>
+          <small>
+            {language === "ko" ? "좌표 정보는 고급 설정에서 확인할 수 있어요." : "Coordinates are available in advanced settings."}
+          </small>
+        </div>
+        <button className="primary-button" type="button" onClick={requestLocation}>
+          {language === "ko" ? "현재 위치로 맞추기" : "Use Current Location"}
+        </button>
+      </section>
+
+      <section>
         <p className="eyebrow">{dictionary.viewer.controls}</p>
         <label className="stacked-field">
           <span>{dictionary.viewer.observedAt}</span>
@@ -175,33 +189,33 @@ function WatchControlsPanel({
             ) : null}
           </>
         ) : null}
-        <div className="field-grid">
-          <label>
-            <span>{dictionary.viewer.latitude}</span>
-            <input
-              type="number"
-              min="-90"
-              max="90"
-              step="0.01"
-              value={observer.latitude}
-              onChange={(event) => updateObserver("latitude", event.target.value)}
-            />
-          </label>
-          <label>
-            <span>{dictionary.viewer.longitude}</span>
-            <input
-              type="number"
-              min="-180"
-              max="180"
-              step="0.01"
-              value={observer.longitude}
-              onChange={(event) => updateObserver("longitude", event.target.value)}
-            />
-          </label>
-        </div>
-        <button className="primary-button" type="button" onClick={requestLocation}>
-          {dictionary.viewer.useLocation}
-        </button>
+        <details className="advanced-location-details">
+          <summary>{language === "ko" ? "고급 위치 설정" : "Advanced Location Details"}</summary>
+          <div className="field-grid">
+            <label>
+              <span>{dictionary.viewer.latitude}</span>
+              <input
+                type="number"
+                min="-90"
+                max="90"
+                step="0.01"
+                value={observer.latitude}
+                onChange={(event) => updateObserver("latitude", event.target.value)}
+              />
+            </label>
+            <label>
+              <span>{dictionary.viewer.longitude}</span>
+              <input
+                type="number"
+                min="-180"
+                max="180"
+                step="0.01"
+                value={observer.longitude}
+                onChange={(event) => updateObserver("longitude", event.target.value)}
+              />
+            </label>
+          </div>
+        </details>
       </section>
 
       <section>

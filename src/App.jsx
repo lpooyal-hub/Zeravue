@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
 import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
+import { AuroraPanoramaScene } from "./components/AuroraPanoramaScene.jsx";
+import { AuroraLiveViewer } from "./components/AuroraLiveViewer.jsx";
 import { SelectionInspectorPanel } from "./components/SelectionInspectorPanel.jsx";
 import { SketchControlsPanel, SketchLibraryPanel } from "./components/SketchPanel.jsx";
 import { ViewerHeader } from "./components/ViewerLayout.jsx";
@@ -25,7 +27,7 @@ import {
 } from "./utils/viewerState.js";
 import { getThemeHeaderCopy, getThemeViewModes } from "./utils/themePresentation.js";
 
-export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = true }) {
+export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = true, auroraRenderer = "css" }) {
   const { currentTheme, currentThemeId, themes, switchTheme } = useTheme();
   const viewerRef = useRef(null);
   const [currentPage, setCurrentPage] = useState("watch");
@@ -51,6 +53,15 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [auroraIntensity, setAuroraIntensity] = useState(0.54);
   const [auroraSpeed, setAuroraSpeed] = useState(0.34);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showAuroraMoodControls, setShowAuroraMoodControls] = useState(false);
+  const [auroraViewerOpen, setAuroraViewerOpen] = useState(false);
+  const [immersiveIntro, setImmersiveIntro] = useState(null);
+  const auroraViewerRef = useRef(null);
+  const auroraUiTimerRef = useRef(null);
+  const [auroraUiVisible, setAuroraUiVisible] = useState(true);
+  const viewerUiTimerRef = useRef(null);
+  const [viewerUiVisible, setViewerUiVisible] = useState(true);
+  const [controlsHiddenInFullscreen, setControlsHiddenInFullscreen] = useState(false);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
   const { favoriteConstellations, setFavoriteConstellations } = useFavoriteConstellations();
   const configuredAmbientTrackUrl = currentThemeId === "aurora-night" ? config.auroraAmbientTrackUrl || config.ambientTrackUrl : config.ambientTrackUrl;
@@ -147,12 +158,37 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const { updateObserver, requestLocation, toggleFavoriteConstellation, selectTarget, shiftTime, changeZoom, resetView } = watchWorkspace;
   const sketchEnabled = currentTheme?.features?.sketching !== false;
   const auroraEnabled = currentThemeId === "aurora-night";
+  const auroraWatchLayout = auroraEnabled && currentPage === "watch";
   const effectiveSketchEnabled = auroraEnabled ? false : sketchEnabled;
   const { eyebrow: headerEyebrow, title: headerTitle, subtitle: headerSubtitle } = useMemo(
     () => getThemeHeaderCopy({ auroraEnabled, language, dictionary }),
     [auroraEnabled, dictionary, language]
   );
   const themeViewModes = useMemo(() => getThemeViewModes(currentTheme), [currentTheme]);
+  const autoEnterTargetRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const target = window.sessionStorage.getItem("zeravue:auto-enter-target");
+      const enteredAt = Number(window.sessionStorage.getItem("zeravue:auto-enter-at") || "0");
+      window.sessionStorage.removeItem("zeravue:auto-enter-target");
+      window.sessionStorage.removeItem("zeravue:auto-enter-at");
+      if (!target || !enteredAt) {
+        return;
+      }
+      const ageMs = Date.now() - enteredAt;
+      if (ageMs > 30_000) {
+        return;
+      }
+      const currentPath = window.location.pathname?.replace(/\/+$/, "") || "/";
+      const normalizedTarget = target.replace(/\/+$/, "") || "/";
+      if (currentPath === normalizedTarget) {
+        autoEnterTargetRef.current = normalizedTarget;
+      }
+    } catch (error) {
+      console.warn("Failed to read auto-enter flag:", error);
+    }
+  }, []);
 
   useEffect(() => {
     if (forcedLanguage && forcedLanguage !== language) {
@@ -205,6 +241,69 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setControlsHiddenInFullscreen(false);
+    }
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (!auroraViewerOpen) {
+      return;
+    }
+
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setAuroraViewerOpen(false);
+        setShowAuroraMoodControls(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [auroraViewerOpen]);
+
+  useEffect(() => {
+    const target = autoEnterTargetRef.current;
+    if (!target) {
+      return;
+    }
+
+    const intro =
+      target === "/aurora"
+        ? {
+            title: language === "ko" ? "오로라" : "Aurora",
+            subtitle: language === "ko" ? "조용히 흐르는 빛" : "quiet drifting lights"
+          }
+        : {
+            title: language === "ko" ? "밤하늘" : "Night Sky",
+            subtitle: language === "ko" ? "천천히 숨 고르는 밤" : "breathe and stay for a while"
+          };
+
+    setImmersiveIntro(intro);
+    const clearIntroTimer = window.setTimeout(() => setImmersiveIntro(null), 2800);
+
+    if (target === "/aurora" && auroraWatchLayout) {
+      startAuroraViewer();
+    }
+
+    if (target === "/night-sky" && !auroraWatchLayout && currentPage === "watch") {
+      setViewMode("space");
+      window.setTimeout(() => {
+        if (!viewerRef.current) {
+          return;
+        }
+        viewerRef.current.requestFullscreen?.().catch((error) => {
+          console.debug("Night Sky fullscreen auto-enter skipped:", error);
+        });
+        revealViewerUi();
+      }, 80);
+    }
+
+    autoEnterTargetRef.current = null;
+    return () => window.clearTimeout(clearIntroTimer);
+  }, [auroraWatchLayout, currentPage, language]);
 
   useEffect(() => {
     let cancelled = false;
@@ -383,6 +482,9 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
 
   useEffect(() => {
     function handleKeydown(event) {
+      if (currentPage === "watch" && !auroraWatchLayout) {
+        revealViewerUi();
+      }
       const target = event.target;
       const tagName = target?.tagName?.toLowerCase();
       const isTypingField = tagName === "input" || tagName === "textarea" || tagName === "select" || target?.isContentEditable;
@@ -412,7 +514,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     return () => {
       window.removeEventListener("keydown", handleKeydown);
     };
-  }, [currentPage, isSketchWatch, viewMode]);
+  }, [auroraWatchLayout, currentPage, isSketchWatch, viewMode]);
 
   async function toggleFullscreen() {
     if (!viewerRef.current) {
@@ -427,29 +529,209 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     await viewerRef.current.requestFullscreen();
   }
 
-  const auroraWatchLayout = auroraEnabled && currentPage === "watch";
+  async function startAuroraViewer() {
+    wakeAmbient();
+    setAuroraViewerOpen(true);
+    setAuroraUiVisible(true);
+
+    const target = auroraViewerRef.current;
+    if (!target?.requestFullscreen) {
+      return;
+    }
+
+    try {
+      await target.requestFullscreen();
+    } catch (error) {
+      console.error("Aurora fullscreen request failed:", error);
+    }
+  }
+
+  async function closeAuroraViewer() {
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+      } catch (error) {
+        console.error("Aurora fullscreen exit failed:", error);
+      }
+    }
+    setAuroraViewerOpen(false);
+    setShowAuroraMoodControls(false);
+    setAuroraUiVisible(true);
+    if (auroraUiTimerRef.current) {
+      clearTimeout(auroraUiTimerRef.current);
+      auroraUiTimerRef.current = null;
+    }
+  }
+
+  function revealAuroraUi() {
+    setAuroraUiVisible(true);
+    if (auroraUiTimerRef.current) {
+      clearTimeout(auroraUiTimerRef.current);
+    }
+    auroraUiTimerRef.current = setTimeout(() => {
+      setAuroraUiVisible(false);
+    }, 2800);
+  }
+
+  function revealViewerUi() {
+    setViewerUiVisible(true);
+    if (viewerUiTimerRef.current) {
+      clearTimeout(viewerUiTimerRef.current);
+    }
+    viewerUiTimerRef.current = setTimeout(() => {
+      setViewerUiVisible(false);
+    }, 2800);
+  }
+
+  const shouldShowAuroraPageChrome = auroraWatchLayout && !auroraViewerOpen;
+
+  useEffect(() => {
+    if (!auroraViewerOpen) {
+      return;
+    }
+    revealAuroraUi();
+    return () => {
+      if (auroraUiTimerRef.current) {
+        clearTimeout(auroraUiTimerRef.current);
+        auroraUiTimerRef.current = null;
+      }
+    };
+  }, [auroraViewerOpen]);
+
+  useEffect(() => {
+    if (auroraWatchLayout || currentPage !== "watch") {
+      setViewerUiVisible(true);
+      if (viewerUiTimerRef.current) {
+        clearTimeout(viewerUiTimerRef.current);
+        viewerUiTimerRef.current = null;
+      }
+      return;
+    }
+    revealViewerUi();
+    return () => {
+      if (viewerUiTimerRef.current) {
+        clearTimeout(viewerUiTimerRef.current);
+        viewerUiTimerRef.current = null;
+      }
+    };
+  }, [auroraWatchLayout, currentPage, viewMode]);
 
   return (
     <div className={`planetarium-app theme-${currentThemeId}`}>
-      <ViewerHeader
-        dictionary={dictionary}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        language={language}
-        setLanguage={updateLanguage}
-        observer={observer}
-        headerEyebrow={headerEyebrow}
-        headerTitle={headerTitle}
-        headerSubtitle={headerSubtitle}
-        themes={themes}
-        currentThemeId={currentThemeId}
-        switchTheme={switchTheme}
-        sketchEnabled={effectiveSketchEnabled}
-        showThemeSwitcher={showThemeSwitcher}
-        homeHref="/"
-      />
+      {auroraWatchLayout ? (
+        <div className={`aurora-page ${isFullscreen ? "is-fullscreen-view" : ""}`}>
+          {shouldShowAuroraPageChrome ? (
+            <>
+              <header className="aurora-floating-header aurora-landing-header">
+                <a className="aurora-header-logo-wrap" href="/" aria-label={language === "ko" ? "메인 홈으로 이동" : "Go to home"}>
+                  <img className="aurora-header-logo" src="/branding/zeravue-logo.svg" alt="Zeravue logo" />
+                </a>
+                <div className="aurora-header-controls">
+                  <div className="page-switcher" aria-label={dictionary.viewer.pageMode}>
+                    <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
+                      {dictionary.viewer.pages.watch}
+                    </button>
+                    <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!effectiveSketchEnabled}>
+                      {dictionary.viewer.pages.sketch}
+                    </button>
+                  </div>
+                  <div className="language-switcher" aria-label="Language">
+                    <button type="button" aria-pressed={language === "en"} onClick={() => updateLanguage("en")}>
+                      EN
+                    </button>
+                    <button type="button" aria-pressed={language === "ko"} onClick={() => updateLanguage("ko")}>
+                      KR
+                    </button>
+                  </div>
+                </div>
+              </header>
 
-      <div className={`workspace ${auroraWatchLayout ? "workspace-aurora" : ""}`}>
+              <section className="aurora-landing-content">
+                <p className="eyebrow">{headerEyebrow || dictionary.viewer.eyebrow}</p>
+                {auroraRenderer === "webgl" ? <p className="aurora-experimental-badge">Experimental WebGL</p> : null}
+                <h1 className="aurora-title">{headerTitle || dictionary.viewer.title}</h1>
+                <p className="aurora-subtitle">{headerSubtitle || dictionary.viewer.subtitle}</p>
+                <button type="button" className="primary-button aurora-start-button" onClick={startAuroraViewer}>
+                  {language === "ko" ? "감상 시작" : "Enter Aurora"}
+                </button>
+              </section>
+            </>
+          ) : null}
+
+          <section
+            ref={auroraViewerRef}
+            className={`aurora-live-shell ${auroraViewerOpen ? "is-open" : ""} ${auroraUiVisible ? "ui-visible" : ""}`}
+            onClickCapture={wakeAmbient}
+            onWheelCapture={wakeAmbient}
+            onPointerDownCapture={(event) => {
+              wakeAmbient(event);
+              revealAuroraUi();
+            }}
+            onTouchStartCapture={(event) => {
+              wakeAmbient(event);
+              revealAuroraUi();
+            }}
+            onPointerMoveCapture={revealAuroraUi}
+          >
+            {auroraRenderer === "webgl" ? <AuroraLiveViewer intensity={auroraIntensity} speed={auroraSpeed} /> : <AuroraPanoramaScene />}
+            {immersiveIntro ? (
+              <div className="ambient-intro-overlay">
+                <h2>{immersiveIntro.title}</h2>
+                <p>{immersiveIntro.subtitle}</p>
+              </div>
+            ) : null}
+            <section className={`aurora-soft-controls aurora-live-controls ${showAuroraMoodControls ? "is-open" : ""}`}>
+              <div className="aurora-live-quick-actions">
+                <button type="button" className="aurora-soft-controls-trigger" onClick={() => setShowAuroraMoodControls((current) => !current)}>
+                  {language === "ko" ? "설정" : "Settings"}
+                </button>
+                <button type="button" className="aurora-soft-controls-trigger" onClick={toggleAmbientSound}>
+                  {ambientEnabled ? (language === "ko" ? "음소거" : "Mute") : language === "ko" ? "소리" : "Sound"}
+                </button>
+                <button type="button" className="aurora-soft-controls-trigger" onClick={closeAuroraViewer}>
+                  {language === "ko" ? "종료" : "Close"}
+                </button>
+              </div>
+              {showAuroraMoodControls ? (
+                <div className="aurora-soft-controls-body">
+                  <label>
+                    <span>{language === "ko" ? `오로라 강도 ${Math.round(auroraIntensity * 100)}%` : `Intensity ${Math.round(auroraIntensity * 100)}%`}</span>
+                    <input type="range" min="0.25" max="0.9" step="0.01" value={auroraIntensity} onChange={(event) => setAuroraIntensity(Number(event.target.value))} />
+                  </label>
+                  <label>
+                    <span>{language === "ko" ? `오로라 흐름 ${Math.round(auroraSpeed * 100)}%` : `Flow ${Math.round(auroraSpeed * 100)}%`}</span>
+                    <input type="range" min="0.15" max="0.72" step="0.01" value={auroraSpeed} onChange={(event) => setAuroraSpeed(Number(event.target.value))} />
+                  </label>
+                  <label>
+                    <span>{language === "ko" ? `볼륨 ${Math.round(ambientVolume * 100)}%` : `Volume ${Math.round(ambientVolume * 100)}%`}</span>
+                    <input type="range" min="0.35" max="1" step="0.05" value={ambientVolume} onChange={(event) => setAmbientVolume(Number(event.target.value))} />
+                  </label>
+                </div>
+              ) : null}
+            </section>
+          </section>
+        </div>
+      ) : (
+        <>
+          <ViewerHeader
+            dictionary={dictionary}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            language={language}
+            setLanguage={updateLanguage}
+            observer={observer}
+            observedAt={observedAt}
+            headerEyebrow={headerEyebrow}
+            headerTitle={headerTitle}
+            headerSubtitle={headerSubtitle}
+            themes={themes}
+            currentThemeId={currentThemeId}
+            switchTheme={switchTheme}
+            sketchEnabled={effectiveSketchEnabled}
+            showThemeSwitcher={showThemeSwitcher}
+            homeHref="/"
+          />
+          <div className="workspace">
         {auroraWatchLayout ? (
           <aside className="control-panel aurora-control-panel">
             <section>
@@ -594,41 +876,73 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
 
         <main
           ref={viewerRef}
-          className={`viewer ${isFullscreen ? "is-fullscreen" : ""}`}
-          onClickCapture={wakeAmbient}
-          onWheelCapture={wakeAmbient}
-          onPointerDownCapture={wakeAmbient}
-          onTouchStartCapture={wakeAmbient}
+          className={`viewer ${auroraWatchLayout ? "viewer-aurora" : ""} ${isFullscreen ? "is-fullscreen" : ""} ${
+            currentPage === "watch" && !viewerUiVisible ? "ambient-ui-hidden" : ""
+          } ${controlsHiddenInFullscreen ? "ambient-ui-manual-hidden" : ""}`}
+          onClickCapture={(event) => {
+            wakeAmbient(event);
+            if (!auroraWatchLayout && currentPage === "watch") {
+              revealViewerUi();
+            }
+          }}
+          onWheelCapture={(event) => {
+            wakeAmbient(event);
+            if (!auroraWatchLayout && currentPage === "watch") {
+              revealViewerUi();
+            }
+          }}
+          onPointerDownCapture={(event) => {
+            wakeAmbient(event);
+            if (!auroraWatchLayout && currentPage === "watch") {
+              revealViewerUi();
+            }
+          }}
+          onTouchStartCapture={(event) => {
+            wakeAmbient(event);
+            if (!auroraWatchLayout && currentPage === "watch") {
+              revealViewerUi();
+            }
+          }}
         >
-          <PlanetariumCanvas
-            scene={sceneState.data}
-            selectedTarget={selectedTarget}
-            onSelectTarget={selectTarget}
-            language={language}
-            dictionary={dictionary}
-            showLabels={auroraWatchLayout ? false : showLabels}
-            showGuides={showGuides}
-            showConstellations={auroraWatchLayout ? false : showConstellations}
-            autoRotate={autoRotate}
-            atmosphereStrength={atmosphereStrength}
-            starGlowStrength={starGlowStrength}
-            viewMode={viewMode}
-            zoomLevel={zoomLevel}
-            focusedConstellation={auroraWatchLayout ? "all" : currentPage === "watch" && !isSketchWatch ? focusedConstellation : "all"}
-            trackConstellation={auroraWatchLayout ? false : currentPage === "watch" && !isSketchWatch ? trackConstellation : false}
-            drawMode={currentPage === "sketch"}
-            customSketchStarIds={[]}
-            creativeMode={currentPage === "sketch" || isSketchWatch}
-            customSpace={activeCreativeScene}
-            creativeTool={currentPage === "sketch" ? creativeTool : "none"}
-            onCreativeSpaceClick={currentPage === "sketch" ? addCustomObject : undefined}
-            onUpdateCustomObject={currentPage === "sketch" ? updateCustomObject : undefined}
-            editingEnabled={currentPage === "sketch"}
-            resetViewToken={resetViewToken}
-            auroraEnabled={auroraEnabled}
-            auroraIntensity={auroraIntensity}
-            auroraSpeed={auroraSpeed}
-          />
+          {immersiveIntro ? (
+            <div className="ambient-intro-overlay">
+              <h2>{immersiveIntro.title}</h2>
+              <p>{immersiveIntro.subtitle}</p>
+            </div>
+          ) : null}
+          {auroraWatchLayout ? (
+            <AuroraPanoramaScene />
+          ) : (
+            <PlanetariumCanvas
+              scene={sceneState.data}
+              selectedTarget={selectedTarget}
+              onSelectTarget={selectTarget}
+              language={language}
+              dictionary={dictionary}
+              showLabels={showLabels}
+              showGuides={showGuides}
+              showConstellations={showConstellations}
+              autoRotate={autoRotate}
+              atmosphereStrength={atmosphereStrength}
+              starGlowStrength={starGlowStrength}
+              viewMode={viewMode}
+              zoomLevel={zoomLevel}
+              focusedConstellation={currentPage === "watch" && !isSketchWatch ? focusedConstellation : "all"}
+              trackConstellation={currentPage === "watch" && !isSketchWatch ? trackConstellation : false}
+              drawMode={currentPage === "sketch"}
+              customSketchStarIds={[]}
+              creativeMode={currentPage === "sketch" || isSketchWatch}
+              customSpace={activeCreativeScene}
+              creativeTool={currentPage === "sketch" ? creativeTool : "none"}
+              onCreativeSpaceClick={currentPage === "sketch" ? addCustomObject : undefined}
+              onUpdateCustomObject={currentPage === "sketch" ? updateCustomObject : undefined}
+              editingEnabled={currentPage === "sketch"}
+              resetViewToken={resetViewToken}
+              auroraEnabled={auroraEnabled}
+              auroraIntensity={auroraIntensity}
+              auroraSpeed={auroraSpeed}
+            />
+          )}
           {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout ? (
             <ViewerFocusOverlay
               dictionary={dictionary}
@@ -649,6 +963,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           ) : null}
           <ViewerAmbientOverlay
             dictionary={dictionary}
+            language={language}
             ambientTrackPending={ambientTrackPending}
             ambientTrackError={ambientTrackError}
             ambientEnabled={ambientEnabled}
@@ -658,12 +973,26 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             ambientVolume={ambientVolume}
             setAmbientVolume={setAmbientVolume}
             isFullscreen={isFullscreen}
+            showHideControlsButton={isFullscreen && currentPage === "watch" && !auroraWatchLayout}
+            controlsHidden={controlsHiddenInFullscreen}
+            onToggleControlsHidden={() => setControlsHiddenInFullscreen((current) => !current)}
             toggleFullscreen={toggleFullscreen}
             toggleAmbientSound={toggleAmbientSound}
           />
+          {isFullscreen && currentPage === "watch" && !auroraWatchLayout && controlsHiddenInFullscreen ? (
+            <button
+              type="button"
+              className="viewer-unhide-button"
+              onClick={() => {
+                setControlsHiddenInFullscreen(false);
+                revealViewerUi();
+              }}
+            >
+              {language === "ko" ? "UI" : "UI"}
+            </button>
+          ) : null}
         </main>
 
-        {!auroraWatchLayout ? (
           <aside className="inspector-panel">
           {currentPage === "sketch" ? (
             <SelectionInspectorPanel
@@ -716,8 +1045,9 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             />
           )}
           </aside>
-        ) : null}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

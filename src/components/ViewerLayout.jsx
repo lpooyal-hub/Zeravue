@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 function ViewerHeader({
   dictionary,
@@ -7,6 +7,7 @@ function ViewerHeader({
   language,
   setLanguage,
   observer,
+  observedAt,
   headerEyebrow,
   headerTitle,
   headerSubtitle,
@@ -21,6 +22,16 @@ function ViewerHeader({
   const [profileImageSrc, setProfileImageSrc] = useState("/branding/zeravue-mark.svg");
   const [showHeaderLogo, setShowHeaderLogo] = useState(true);
   const [headerLogoSrc, setHeaderLogoSrc] = useState("/branding/zeravue-logo.svg");
+  const localTimeLabel = useMemo(() => {
+    const value = new Date(observedAt);
+    if (Number.isNaN(value.getTime())) {
+      return "--:--";
+    }
+    return new Intl.DateTimeFormat(language === "ko" ? "ko-KR" : "en-US", {
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(value);
+  }, [language, observedAt]);
 
   return (
     <header className="topbar">
@@ -89,11 +100,9 @@ function ViewerHeader({
               }}
             />
           ) : null}
-          <span>{dictionary.viewer.observer}</span>
-          <strong>{observer.label}</strong>
-          <small>
-            {observer.latitude.toFixed(2)}, {observer.longitude.toFixed(2)}
-          </small>
+          <span>{language === "ko" ? "오늘 밤 하늘" : "Tonight Sky"}</span>
+          <strong>{observer.label} · {language === "ko" ? "KR" : "KR"}</strong>
+          <small>{language === "ko" ? "현재 시각" : "Local Time"} · {localTimeLabel}</small>
         </div>
       </div>
     </header>
