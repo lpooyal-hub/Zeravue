@@ -48,7 +48,7 @@ select {
   min-height: 100vh;
   max-width: 2048px;
   margin: 0 auto;
-  padding: 14px 18px 18px;
+  padding: 4px 18px 18px;
 }
 
 .topbar {
@@ -56,12 +56,26 @@ select {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .topbar > div:first-child {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.topbar-brand {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.topbar-logo {
+  width: min(100%, 360px);
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(173, 211, 255, 0.16);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
 }
 
 .topbar-controls {
@@ -97,7 +111,7 @@ select {
 }
 
 .eyebrow {
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   color: var(--accent-2);
   font-size: 0.74rem;
   font-weight: 800;
@@ -989,7 +1003,7 @@ input[type="range"] {
 
 @media (max-width: 720px) {
   .planetarium-app {
-    padding: 14px;
+    padding: 8px 14px 14px;
   }
 
   .topbar-controls {

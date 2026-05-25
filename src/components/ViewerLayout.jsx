@@ -19,10 +19,27 @@ function ViewerHeader({
 }) {
   const [showProfileImage, setShowProfileImage] = useState(true);
   const [profileImageSrc, setProfileImageSrc] = useState("/branding/zeravue-mark.svg");
+  const [showHeaderLogo, setShowHeaderLogo] = useState(true);
+  const [headerLogoSrc, setHeaderLogoSrc] = useState("/branding/zeravue-logo.svg");
 
   return (
     <header className="topbar">
-      <div>
+      <div className="topbar-brand">
+        {showHeaderLogo ? (
+          <img
+            className="topbar-logo"
+            src={headerLogoSrc}
+            alt="Zeravue logo"
+            loading="eager"
+            onError={() => {
+              if (headerLogoSrc.endsWith(".svg")) {
+                setHeaderLogoSrc("/branding/zeravue-logo.png");
+                return;
+              }
+              setShowHeaderLogo(false);
+            }}
+          />
+        ) : null}
         <p className="eyebrow">{headerEyebrow || dictionary.viewer.eyebrow}</p>
         <h1>{headerTitle || dictionary.viewer.title}</h1>
         <p className="topbar-copy">{headerSubtitle || dictionary.viewer.subtitle}</p>
