@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { App as NightSkyApp } from "./App.jsx";
+import { AdminAnalyticsPage } from "./components/AdminAnalyticsPage.jsx";
 import { useTheme } from "./context/ThemeContext.jsx";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 
@@ -127,6 +128,10 @@ export function RootApp() {
 
     if (path === "/night-sky") {
       return <NightSkyApp forcedLanguage={language} setForcedLanguage={setLanguage} showThemeSwitcher={false} />;
+    }
+
+    if (path === "/admin") {
+      return <AdminAnalyticsPage language={language} onBackHome={() => window.location.assign("/")} />;
     }
 
     return <HomePage language={language} setLanguage={setLanguage} />;

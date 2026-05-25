@@ -19,6 +19,18 @@ import { useSketchWorkspace } from "./hooks/useSketchWorkspace.js";
 import { useWatchWorkspace } from "./hooks/useWatchWorkspace.js";
 import { useTheme } from "./context/ThemeContext.jsx";
 import {
+  endAnalyticsSession,
+  markAmbientOff,
+  markAmbientUsed,
+  markFullscreenEnter,
+  markFullscreenExit,
+  markSettingsOpen,
+  markThemeSwitch,
+  markThemeView,
+  markViewerEnter,
+  startAnalyticsSession
+} from "./lib/analyticsStore.js";
+import {
   defaultObserver,
   getInitialObservedAt,
   planetPresets,
@@ -30,6 +42,8 @@ import { getThemeHeaderCopy, getThemeViewModes } from "./utils/themePresentation
 export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = true, auroraRenderer = "css" }) {
   const { currentTheme, currentThemeId, themes, switchTheme } = useTheme();
   const viewerRef = useRef(null);
+  const analyticsSessionRef = useRef(null);
+  const hasMarkedAmbientRef = useRef(false);
   const [currentPage, setCurrentPage] = useState("watch");
   const [language, setLanguage] = useState(() => forcedLanguage || getInitialLanguage());
   const [observer, setObserver] = useState(defaultObserver);
@@ -197,9 +211,58 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   }, [forcedLanguage]);
 
   useEffect(() => {
+    const routePath = window.location.pathname || "/";
+    let cancelled = false;
+    startAnalyticsSession({
+      themeId: currentThemeId,
+      routePath
+    }).then((session) => {
+      if (cancelled) {
+        return;
+      }
+      analyticsSessionRef.current = session;
+      markThemeView(session, currentThemeId, routePath);
+    });
+    return () => {
+      cancelled = true;
+      endAnalyticsSession(analyticsSessionRef.current);
+      analyticsSessionRef.current = null;
+      hasMarkedAmbientRef.current = false;
+    };
+  }, [currentThemeId]);
+
+  useEffect(() => {
     document.documentElement.lang = language;
     window.localStorage.setItem("planetarium-language", language);
   }, [language]);
+
+  useEffect(() => {
+    if (!ambientEnabled || hasMarkedAmbientRef.current) {
+      return;
+    }
+    markAmbientUsed(analyticsSessionRef.current);
+    hasMarkedAmbientRef.current = true;
+  }, [ambientEnabled]);
+
+  useEffect(() => {
+    if (!ambientEnabled && hasMarkedAmbientRef.current) {
+      markAmbientOff(analyticsSessionRef.current);
+    }
+  }, [ambientEnabled]);
+
+  useEffect(() => {
+    function handleVisibilityOrHide() {
+      if (document.visibilityState === "hidden") {
+        endAnalyticsSession(analyticsSessionRef.current);
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityOrHide);
+    window.addEventListener("pagehide", handleVisibilityOrHide);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityOrHide);
+      window.removeEventListener("pagehide", handleVisibilityOrHide);
+    };
+  }, []);
 
   useEffect(() => {
     if (!effectiveSketchEnabled && currentPage === "sketch") {
@@ -233,14 +296,18 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
 
   useEffect(() => {
     function handleFullscreenChange() {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      const next = Boolean(document.fullscreenElement);
+      if (isFullscreen && !next) {
+        markFullscreenExit(analyticsSessionRef.current);
+      }
+      setIsFullscreen(next);
     }
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
-  }, []);
+  }, [isFullscreen]);
 
   useEffect(() => {
     if (!isFullscreen) {
@@ -526,6 +593,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       return;
     }
 
+    markViewerEnter(analyticsSessionRef.current, currentThemeId, window.location.pathname || "/");
+    markFullscreenEnter(analyticsSessionRef.current);
     await viewerRef.current.requestFullscreen();
   }
 
@@ -540,6 +609,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     }
 
     try {
+      markFullscreenEnter(analyticsSessionRef.current);
+      markViewerEnter(analyticsSessionRef.current, currentThemeId, window.location.pathname || "/");
       await target.requestFullscreen();
     } catch (error) {
       console.error("Aurora fullscreen request failed:", error);
@@ -581,6 +652,11 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     viewerUiTimerRef.current = setTimeout(() => {
       setViewerUiVisible(false);
     }, 2800);
+  }
+
+  function handleThemeSwitch(nextThemeId) {
+    markThemeSwitch(analyticsSessionRef.current, nextThemeId, window.location.pathname || "/");
+    switchTheme(nextThemeId);
   }
 
   const shouldShowAuroraPageChrome = auroraWatchLayout && !auroraViewerOpen;
@@ -682,9 +758,21 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             ) : null}
             <section className={`aurora-soft-controls aurora-live-controls ${showAuroraMoodControls ? "is-open" : ""}`}>
               <div className="aurora-live-quick-actions">
-                <button type="button" className="aurora-soft-controls-trigger" onClick={() => setShowAuroraMoodControls((current) => !current)}>
-                  {language === "ko" ? "설정" : "Settings"}
-                </button>
+                  <button
+                    type="button"
+                    className="aurora-soft-controls-trigger"
+                    onClick={() =>
+                      setShowAuroraMoodControls((current) => {
+                        const next = !current;
+                        if (next) {
+                          markSettingsOpen(analyticsSessionRef.current, currentThemeId, window.location.pathname || "/");
+                        }
+                        return next;
+                      })
+                    }
+                  >
+                    {language === "ko" ? "설정" : "Settings"}
+                  </button>
                 <button type="button" className="aurora-soft-controls-trigger" onClick={toggleAmbientSound}>
                   {ambientEnabled ? (language === "ko" ? "음소거" : "Mute") : language === "ko" ? "소리" : "Sound"}
                 </button>
@@ -726,7 +814,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             headerSubtitle={headerSubtitle}
             themes={themes}
             currentThemeId={currentThemeId}
-            switchTheme={switchTheme}
+            switchTheme={handleThemeSwitch}
             sketchEnabled={effectiveSketchEnabled}
             showThemeSwitcher={showThemeSwitcher}
             homeHref="/"
