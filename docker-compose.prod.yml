@@ -1,3 +1,5 @@
+name: zeravue-prod
+
 services:
   frontend:
     build:

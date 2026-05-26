@@ -2,73 +2,96 @@
 
 `Open a scene, breathe, stay for a while.`
 
-Zeravue is a healing-focused panorama platform built with React, Three.js, and FastAPI.  
-It is not meant to feel like an observatory dashboard or a study tool first. The goal is to let someone open the sky, settle into a mood, and spend a quiet minute with it.
+Zeravue is an ambient digital themes platform.  
+It is designed as a quiet immersive space first, not a dashboard-style app.
 
-The current release centers on one theme: Night Sky (the former Planetarium experience).
+Current active themes:
+- Night Sky
+- Aurora Night
 
-## What It Does
+Upcoming theme direction:
+- underwater
+- rainy forest
+- cloud and horizon scenes
 
-The project currently supports two connected experiences:
+## Product Direction
 
-1. Night-sky viewing
-   - space drift view
-   - observer view
-   - dome projection view
-   - constellation focus, search, tracking, and favorites
-   - location-aware sky generation from the backend
+Zeravue focuses on:
+- atmosphere before functionality
+- immersion before information
+- subtle motion before flashy effects
+- calm viewing flow across desktop and mobile
 
-2. Night-sky sketching
-   - import finished constellations into a custom scene
-   - duplicate, move, rotate, spread, and scale constellations
-   - drag individual stars
-   - save and pin custom sketch layouts
+Night Sky is the reference theme architecture.  
+Aurora is being developed to follow the same ambient viewing philosophy.
 
-The result is somewhere between a gentle screensaver, a constellation viewer, and a personal sky canvas.
+## Core Features
 
-## Why It Exists
+1. Immersive ambient viewer
+- fullscreen-first viewing flow
+- hidden/minimal controls during appreciation
+- ambient audio playback with theme-specific tracks
 
-The Night Sky experience is the first theme in a broader Zeravue direction.
+2. Night Sky interactions
+- observer and space-oriented sky views
+- constellation focus, search, tracking, favorites
+- night-sky sketch workspace with saveable layouts
+- backend-driven sky scene data
 
-The longer-term vision is one site with multiple quiet scene themes inside it, such as:
+3. Aurora theme
+- panorama-based calm scene
+- layered atmospheric effects
+- lightweight rendering path for broader device support
 
-- aurora skies
-- underwater drift
-- rainy forest scenes
-- cloud panoramas
+4. Analytics/Admin
+- anonymous visitor/session analytics
+- Supabase-backed metrics with local fallback mode
 
-Night Sky is the reference experience that future themes will build on.
-
-## Stack
+## Tech Stack
 
 - Frontend: React + Vite
-- 3D rendering: `@react-three/fiber` / Three.js
+- 3D/scene rendering: Three.js / React Three Fiber (theme-dependent)
 - Backend: FastAPI
-- Data pipeline: Python astronomy services and HYG-based star scene generation
-- Deployment: Docker Compose + GitHub Actions + Oracle server hosting
+- Data: HYG-based sky generation + analytics events
+- Infra: Docker Compose + Nginx reverse proxy + GitHub Actions + Oracle server
 
-## Project Structure
+## Repository Layout
 
 ```text
 backend/
   app/
-    main.py
-    routers/
-    services/
+docs/
+public/
 src/
-  App.jsx
   api/
   components/
+  context/
   data/
+    themes/
   hooks/
-  styles.css
-public/
+  lib/
+  utils/
 scripts/
+docker-compose.dev.yml
+docker-compose.prod.yml
 ```
 
-## Running Locally
+## Naming and Directory Convention
 
-Frontend:
+This project is now branded as **Zeravue**.
+
+- GitHub repository should use a Zeravue-aligned name.
+- Local working directory is recommended as `zeravue` (or `Zeravue`) instead of `Planetarium`.
+
+Current server directory example:
+
+```bash
+cd Zeravue
+```
+
+If you rename the folder, update any absolute paths used by deploy scripts, CI secrets, or shell aliases.
+
+## Local Run
 
 ```bash
 npm install
@@ -86,12 +109,22 @@ cp .env.example .env
 uvicorn app.main:app --reload
 ```
 
-## Docker
+## Docker Run
 
-Run the frontend and backend together:
+Default:
 
 ```bash
 docker compose up --build
+```
+
+Separated stacks:
+
+```bash
+# Dev stack (dev.zeravue.xyz target)
+docker compose -f docker-compose.dev.yml up -d
+
+# Prod stack (zeravue.xyz target)
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ## Environment
@@ -101,6 +134,8 @@ Frontend `.env`:
 ```text
 VITE_API_BASE_URL=
 VITE_NASA_API_KEY=DEMO_KEY
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
 ```
 
 Backend `backend/.env`:
@@ -111,34 +146,14 @@ NASA_BASE_URL=https://api.nasa.gov
 FRONTEND_ORIGIN=
 ```
 
-## Deployment Flow
+## Branch and Deploy Flow
 
-This repository uses a simple GitHub Actions flow:
+- `dev`: active development and validation
+- `main`: release branch, triggers production deployment
 
-- push to `dev`: validate the Docker app
-- push to `main`: validate, then deploy to the Oracle server over SSH
-
-Key files:
-
-- [.github/workflows/ci-cd.yml](./.github/workflows/ci-cd.yml)
-- [scripts/deploy.sh](./scripts/deploy.sh)
-
-## Current Focus
-
-The project has moved beyond early prototype stage and is now in the “raise the finish quality” phase.
-
-Current priorities:
-
-- reduce remaining UI clutter
-- keep splitting oversized frontend files into clearer components and hooks
-- make the night-sky theme feel more restful and polished
-- prepare the project structure for future theme expansion
-
-## Notes
-
-- The sky scene is intended as an emotionally readable observing guide, not a precision astronomy simulator.
-- Ambient audio is being transitioned toward theme-based loop tracks.
-- Panorama view is currently hidden from the main UI while the core viewing modes are being tightened.
+GitHub Actions:
+- validate on `dev`
+- validate + deploy on `main`
 
 ## Related Docs
 
@@ -146,3 +161,4 @@ Current priorities:
 - [docs/PROJECT_VISION.md](./docs/PROJECT_VISION.md)
 - [docs/THEMES.md](./docs/THEMES.md)
 - [docs/STAR_THEME_ROADMAP.md](./docs/STAR_THEME_ROADMAP.md)
+- [docs/BRAND.md](./docs/BRAND.md)

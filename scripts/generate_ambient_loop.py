@@ -13,7 +13,8 @@ LOOP_COUNT = 8
 DURATION_SECONDS = CHIME_INTERVAL_SECONDS * LOOP_COUNT
 FRAME_COUNT = int(SAMPLE_RATE * DURATION_SECONDS)
 DELAY_SAMPLES = int(SAMPLE_RATE * DELAY_SECONDS)
-OUTPUT_PATH = Path("/home/ubuntu/Planetarium/public/audio/night-sky-loop.wav")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+OUTPUT_PATH = PROJECT_ROOT / "public" / "audio" / "night-sky-loop.wav"
 
 
 def clamp(value: float, minimum: float, maximum: float) -> float:
