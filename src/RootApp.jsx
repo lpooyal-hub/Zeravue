@@ -16,6 +16,43 @@ function HomePage({ language, setLanguage }) {
   const [showBrandLogo, setShowBrandLogo] = useState(true);
   const [brandLogoSrc, setBrandLogoSrc] = useState("/branding/zeravue-logo.svg");
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showAdSlot, setShowAdSlot] = useState(false);
+  const adsenseClient = import.meta.env.VITE_ADSENSE_CLIENT || "";
+  const adsenseHomeSlot = import.meta.env.VITE_ADSENSE_HOME_SLOT || "";
+  const adsenseEnabled = Boolean(adsenseClient && adsenseHomeSlot);
+
+  useEffect(() => {
+    if (!adsenseEnabled) {
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      setShowAdSlot(true);
+    }, 10000);
+    return () => window.clearTimeout(timer);
+  }, [adsenseEnabled]);
+
+  useEffect(() => {
+    if (!showAdSlot || !adsenseEnabled) {
+      return;
+    }
+    const scriptId = "zeravue-adsense-script";
+    const hasScript = Boolean(document.getElementById(scriptId));
+    if (!hasScript) {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.async = true;
+      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`;
+      script.crossOrigin = "anonymous";
+      document.head.appendChild(script);
+    }
+    window.setTimeout(() => {
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (error) {
+        console.warn("AdSense slot init skipped:", error);
+      }
+    }, 0);
+  }, [adsenseClient, adsenseEnabled, showAdSlot]);
 
   const enterTheme = (event, href) => {
     event.preventDefault();
@@ -77,6 +114,18 @@ function HomePage({ language, setLanguage }) {
           <small>{language === "ko" ? "부드러운 오로라 분위기를 감상합니다." : "Enjoy a gentle aurora-focused atmosphere."}</small>
         </a>
       </div>
+      {adsenseEnabled && showAdSlot ? (
+        <section className="theme-home-ad" aria-label={language === "ko" ? "광고" : "Advertisement"}>
+          <ins
+            className="adsbygoogle zeravue-home-adsense"
+            style={{ display: "block" }}
+            data-ad-client={adsenseClient}
+            data-ad-slot={adsenseHomeSlot}
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          />
+        </section>
+      ) : null}
     </div>
   );
 }

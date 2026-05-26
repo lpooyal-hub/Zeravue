@@ -1903,6 +1903,21 @@ input[type="range"] {
   font-size: 0.88rem;
 }
 
+.theme-home-ad {
+  margin: 6px auto 0;
+  width: min(100%, 980px);
+  min-height: 54px;
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(6, 12, 24, 0.2);
+  border: 1px solid rgba(145, 173, 216, 0.12);
+  opacity: 0.72;
+}
+
+.theme-home-ad .zeravue-home-adsense {
+  min-height: 50px;
+}
+
 .ambient-admin-page {
   min-height: 100vh;
   max-width: 1180px;
