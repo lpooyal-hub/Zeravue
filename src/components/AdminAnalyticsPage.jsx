@@ -25,14 +25,28 @@ export function AdminAnalyticsPage({ language = "en", onBackHome }) {
   const [refreshTick, setRefreshTick] = useState(0);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [adminKeyInput, setAdminKeyInput] = useState("");
+  const [adminKey, setAdminKey] = useState(() => window.sessionStorage.getItem("zeravue-admin-key") || "");
+  const [authError, setAuthError] = useState("");
 
   useEffect(() => {
+    if (!adminKey) {
+      setLoading(false);
+      setSummary(null);
+      return undefined;
+    }
     let cancelled = false;
     setLoading(true);
-    getAnalyticsSummary()
+    getAnalyticsSummary(adminKey)
       .then((result) => {
         if (!cancelled) {
           setSummary(result);
+          setAuthError("");
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setAuthError(error?.message || "Failed to load analytics");
         }
       })
       .finally(() => {
@@ -43,9 +57,61 @@ export function AdminAnalyticsPage({ language = "en", onBackHome }) {
     return () => {
       cancelled = true;
     };
-  }, [refreshTick]);
+  }, [adminKey, refreshTick]);
 
   const modeInfo = useMemo(() => getAnalyticsModeInfo(), [refreshTick, summary]);
+  if (!adminKey) {
+    return (
+      <div className="ambient-admin-page">
+        <header className="ambient-admin-header">
+          <div>
+            <p className="eyebrow">Zeravue · Admin Access</p>
+            <h1>{language === "ko" ? "관리자 키를 입력하세요" : "Enter Admin Key"}</h1>
+            <p>{language === "ko" ? "/admin 페이지는 보호된 접근만 허용됩니다." : "The admin dashboard requires protected access."}</p>
+          </div>
+          <div className="ambient-admin-actions">
+            <button type="button" className="overlay-button is-active" onClick={onBackHome}>
+              {language === "ko" ? "홈으로" : "Back Home"}
+            </button>
+          </div>
+        </header>
+        <section className="ambient-admin-panel">
+          <h2>{language === "ko" ? "접근 인증" : "Access Authentication"}</h2>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            <input
+              type="password"
+              value={adminKeyInput}
+              onChange={(event) => setAdminKeyInput(event.target.value)}
+              placeholder={language === "ko" ? "ADMIN_DASHBOARD_KEY 입력" : "Enter ADMIN_DASHBOARD_KEY"}
+              style={{
+                minWidth: "280px",
+                padding: "10px 12px",
+                borderRadius: "10px",
+                border: "1px solid rgba(158, 181, 216, 0.28)",
+                background: "rgba(7, 15, 30, 0.72)",
+                color: "var(--text-primary)"
+              }}
+            />
+            <button
+              type="button"
+              className="overlay-button"
+              onClick={() => {
+                const nextKey = adminKeyInput.trim();
+                if (!nextKey) return;
+                window.sessionStorage.setItem("zeravue-admin-key", nextKey);
+                setAdminKey(nextKey);
+                setRefreshTick((value) => value + 1);
+              }}
+            >
+              {language === "ko" ? "접속" : "Unlock"}
+            </button>
+          </div>
+          {authError ? <p style={{ marginTop: "12px", color: "#ffafaf" }}>{authError}</p> : null}
+        </section>
+      </div>
+    );
+  }
+
   if (loading || !summary) {
     return <div className="ambient-admin-page">{language === "ko" ? "분석 데이터를 불러오는 중..." : "Loading analytics..."}</div>;
   }
@@ -84,6 +150,17 @@ export function AdminAnalyticsPage({ language = "en", onBackHome }) {
           </button>
           <button type="button" className="overlay-button is-active" onClick={onBackHome}>
             {language === "ko" ? "홈으로" : "Back Home"}
+          </button>
+          <button
+            type="button"
+            className="overlay-button"
+            onClick={() => {
+              window.sessionStorage.removeItem("zeravue-admin-key");
+              setAdminKey("");
+              setAdminKeyInput("");
+            }}
+          >
+            {language === "ko" ? "잠금" : "Lock"}
           </button>
         </div>
       </header>

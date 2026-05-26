@@ -395,126 +395,33 @@ export function clearAnalyticsSessions() {
   window.localStorage.removeItem(STORE_KEY);
 }
 
-export async function getAnalyticsSummary() {
+export async function getAnalyticsSummary(adminKey = "") {
   const local = summarizeLocal();
 
-  if (!isSupabaseConfigured || !supabase) {
+  if (!adminKey || !adminKey.trim()) {
     return {
       ...local,
       mode: "local",
-      fallbackReason: "supabase_not_configured"
+      fallbackReason: "admin_key_required"
     };
   }
 
   try {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const { data: sessions, error: sessionsError } = await supabase.from("analytics_sessions").select("*").order("started_at", { ascending: false }).limit(2000);
-    if (sessionsError) {
-      throw sessionsError;
-    }
-
-    const { data: events, error: eventsError } = await supabase.from("analytics_events").select("*").order("created_at", { ascending: false }).limit(1000);
-    if (eventsError) {
-      throw eventsError;
-    }
-
-    const completed = sessions.filter((session) => typeof session.duration_seconds === "number");
-    const activeSessions = sessions.filter((session) => !session.ended_at).length;
-    const avgSessionDurationSec = Math.round(average(completed.map((session) => session.duration_seconds || 0)));
-    const uniqueVisitors = new Set(sessions.map((session) => session.visitor_id).filter(Boolean)).size;
-    const sessionsToday = sessions.filter((session) => new Date(session.started_at).getTime() >= todayStart.getTime()).length;
-
-    const fullscreenSessionIds = new Set(events.filter((event) => event.event_name === "fullscreen_enter").map((event) => event.session_id));
-    const audioSessionIds = new Set(events.filter((event) => event.event_name === "audio_on").map((event) => event.session_id));
-    const fullscreenEnterRate = completed.length ? Math.round((fullscreenSessionIds.size / completed.length) * 100) : 0;
-    const ambientUsageRate = completed.length ? Math.round((audioSessionIds.size / completed.length) * 100) : 0;
-
-    const themeCounts = sessions.reduce((accumulator, session) => {
-      const key =
-        events.find((event) => event.session_id === session.id && event.event_name === "theme_view")?.theme_name ||
-        (session.landing_path?.includes("aurora") ? "aurora-night" : "night-sky");
-      accumulator[key] = (accumulator[key] || 0) + 1;
-      return accumulator;
-    }, {});
-
-    const themeDurations = completed.reduce((accumulator, session) => {
-      const key =
-        events.find((event) => event.session_id === session.id && event.event_name === "theme_view")?.theme_name ||
-        (session.landing_path?.includes("aurora") ? "aurora-night" : "night-sky");
-      const record = accumulator[key] || { total: 0, count: 0 };
-      record.total += session.duration_seconds || 0;
-      record.count += 1;
-      accumulator[key] = record;
-      return accumulator;
-    }, {});
-
-    const averageByTheme = Object.fromEntries(
-      Object.entries(themeDurations).map(([key, value]) => [key, Math.round(value.count ? value.total / value.count : 0)])
-    );
-
-    const deviceCounts = sessions.reduce((accumulator, session) => {
-      const key = session.device_type || "desktop";
-      accumulator[key] = (accumulator[key] || 0) + 1;
-      return accumulator;
-    }, {});
-
-    const visitorSessionCount = sessions.reduce((accumulator, session) => {
-      const key = session.visitor_id || "unknown";
-      accumulator[key] = (accumulator[key] || 0) + 1;
-      return accumulator;
-    }, {});
-    const returnVisitors = Object.values(visitorSessionCount).filter((count) => count > 1).length;
-    const returnVisitRate = uniqueVisitors ? Math.round((returnVisitors / uniqueVisitors) * 100) : 0;
-
-    const longestSessions = [...completed]
-      .sort((left, right) => (right.duration_seconds || 0) - (left.duration_seconds || 0))
-      .slice(0, 5)
-      .map((session) => ({
-        id: session.id,
-        themeId:
-          events.find((event) => event.session_id === session.id && event.event_name === "theme_view")?.theme_name ||
-          (session.landing_path?.includes("aurora") ? "aurora-night" : "night-sky"),
-        durationSec: session.duration_seconds || 0,
-        startedAt: session.started_at
-      }));
-
-    const now = Date.now();
-    const hourMs = 60 * 60 * 1000;
-    const sessionTimeline = Array.from({ length: 12 }, (_, offset) => {
-      const bucketStart = now - (11 - offset) * hourMs;
-      const bucketEnd = bucketStart + hourMs;
-      const count = sessions.filter((session) => {
-        const started = new Date(session.started_at).getTime();
-        return started >= bucketStart && started < bucketEnd;
-      }).length;
-      return { label: new Date(bucketStart).toISOString().slice(11, 16), count };
+    const response = await fetch("/api/admin/analytics", {
+      method: "GET",
+      headers: {
+        "X-Admin-Key": adminKey
+      }
     });
 
-    return {
-      mode: "supabase",
-      fallbackReason: "",
-      activeSessions,
-      totalVisitors: uniqueVisitors,
-      sessionsToday,
-      avgSessionDurationSec,
-      fullscreenEnterRate,
-      ambientUsageRate,
-      returnVisitRate,
-      totalSessions: completed.length,
-      themeCounts,
-      averageByTheme,
-      deviceCounts,
-      longestSessions,
-      sessionTimeline,
-      recentEvents: events.slice(0, 25).map((event) => ({
-        id: event.id,
-        eventName: event.event_name,
-        themeName: event.theme_name,
-        path: event.path,
-        createdAt: event.created_at
-      }))
-    };
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`admin_api_${response.status}:${text || "request_failed"}`);
+    }
+
+    const payload = await response.json();
+    runtimeState.mode = "supabase";
+    return payload;
   } catch (error) {
     rememberError(error);
     runtimeState.mode = "local";

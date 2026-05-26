@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import apod, sky
+from .routers import admin, apod, sky
 from .settings import settings
 
 app = FastAPI(title="Celestial Atlas API", version="0.1.0")
@@ -16,6 +16,7 @@ app.add_middleware(
 
 app.include_router(apod.router, prefix="/api", tags=["NASA"])
 app.include_router(sky.router, prefix="/api/sky", tags=["Sky"])
+app.include_router(admin.router, prefix="/api", tags=["Admin"])
 
 
 @app.get("/api/health")
