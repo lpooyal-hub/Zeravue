@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import {
   HorizonRing as HorizonRingView,
+  ObserverHorizonCue as ObserverHorizonCueView,
   ObserverGuide as ObserverGuideView,
   ProjectionGuide as ProjectionGuideView,
   GuideGrid as GuideGridView,
@@ -443,6 +444,7 @@ function SceneContents({
           />
         ) : null}
         {showGuides && !projectionMode && !observerMode ? <GuideGridView /> : null}
+        {observerMode ? <ObserverHorizonCueView /> : null}
         {showGuides && observerMode ? <ObserverGuideView dictionary={dictionary} language={language} /> : null}
         {showGuides && projectionMode ? <ProjectionGuideView dictionary={dictionary} language={language} /> : null}
         {showGuides && !projectionMode ? <HorizonRingView dictionary={dictionary} language={language} /> : null}

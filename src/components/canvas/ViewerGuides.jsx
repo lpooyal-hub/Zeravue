@@ -58,6 +58,51 @@ export function ObserverGuide({ dictionary, language }) {
   );
 }
 
+export function ObserverHorizonCue() {
+  const horizonGeometry = useMemo(() => {
+    const points = [];
+
+    for (let index = 0; index <= 160; index += 1) {
+      const angle = (index / 160) * Math.PI * 2;
+      points.push(Math.sin(angle) * 10.25, -0.02, -Math.cos(angle) * 10.25);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+    return geometry;
+  }, []);
+
+  const altitudeGeometries = useMemo(() => {
+    return [18, 42].map((altitude) => {
+      const points = [];
+      const radius = Math.cos((altitude * Math.PI) / 180) * 10;
+      const y = Math.sin((altitude * Math.PI) / 180) * 10;
+
+      for (let index = 0; index <= 128; index += 1) {
+        const angle = (index / 128) * Math.PI * 2;
+        points.push(Math.sin(angle) * radius, y, -Math.cos(angle) * radius);
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+      return geometry;
+    });
+  }, []);
+
+  return (
+    <>
+      <line geometry={horizonGeometry}>
+        <lineBasicMaterial color="#ffcf70" transparent opacity={0.18} depthWrite={false} />
+      </line>
+      {altitudeGeometries.map((geometry, index) => (
+        <line key={`observer-cue-${index}`} geometry={geometry}>
+          <lineBasicMaterial color="#8fb7dd" transparent opacity={0.075} depthWrite={false} />
+        </line>
+      ))}
+    </>
+  );
+}
+
 export function HorizonRing({ dictionary, language }) {
   const geometry = useMemo(() => {
     const points = [];

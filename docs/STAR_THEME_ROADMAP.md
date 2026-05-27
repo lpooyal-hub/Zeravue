@@ -29,7 +29,7 @@ Completion criteria live in [GOALS.md](./GOALS.md).
 
 ### Stage 1: Viewing Quality
 
-- [ ] make observer mode clearly different from space mode
+- [x] make observer mode clearly different from space mode
 - [ ] improve the sense of sky movement across time
 - [ ] refine skyline, zenith, and altitude reading
 - [ ] keep camera motion gentle and non-dizzy
@@ -70,6 +70,7 @@ Completion criteria live in [GOALS.md](./GOALS.md).
 
 - Added privacy and cookie notice pages for AdSense/CMP readiness.
 - Moved advanced sky tuning controls behind a collapsed section so first-time watching stays calmer.
+- Added always-on, low-opacity observer horizon and altitude cues so observer mode reads as an Earth-based sky view even when guide labels are hidden.
 - Confirmed constellation favorites and sketch favorite layouts are implemented.
 - Rebranded product framing to Zeravue and positioned Night Sky as Theme 01.
 - Expanded space-view zoom range and added drag-based camera movement.
