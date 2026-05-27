@@ -142,6 +142,7 @@ function SceneContents({
   const manualOrbit = useRef({ yaw: 0, pitch: 0 });
   const { camera, pointer, gl } = useThree();
   const spaceMode = viewMode === "space";
+  const observerMode = viewMode === "observer";
   const projectionMode = viewMode === "projection";
   const projectedStars = useMemo(() => scene.stars.map((star) => ({ ...star, ...projectSkyPosition(star, viewMode) })), [scene.stars, viewMode]);
 
@@ -280,7 +281,6 @@ function SceneContents({
   }, [gl, viewMode]);
 
   useFrame(({ clock }, delta) => {
-    const observerMode = viewMode === "observer";
     const auroraWatchMode = auroraEnabled && spaceMode;
     const driftA = clock.elapsedTime * 0.106;
     const driftB = clock.elapsedTime * 0.068;
