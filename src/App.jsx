@@ -284,15 +284,19 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
 
   useEffect(() => {
     const defaultViewMode = currentTheme?.defaultViewMode;
-    if (defaultViewMode && themeViewModes.includes(defaultViewMode)) {
-      setViewMode(defaultViewMode);
-    } else if (!themeViewModes.includes(viewMode)) {
-      setViewMode(themeViewModes[0] || "space");
-    }
+    setViewMode((current) => {
+      if (themeViewModes.includes(current)) {
+        return current;
+      }
+      if (defaultViewMode && themeViewModes.includes(defaultViewMode)) {
+        return defaultViewMode;
+      }
+      return themeViewModes[0] || "space";
+    });
     setFocusedConstellation("all");
     setTrackConstellation(false);
     setSelectedTarget(null);
-  }, [currentTheme?.id, themeViewModes, viewMode]);
+  }, [currentTheme?.id, themeViewModes]);
 
   useEffect(() => {
     function handleFullscreenChange() {
