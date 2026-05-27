@@ -2215,6 +2215,32 @@ input[type="range"] {
   text-transform: lowercase;
 }
 
+.viewer-time-shift-toast {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  z-index: 7;
+  min-width: 120px;
+  padding: 7px 12px;
+  border: 1px solid rgba(159, 216, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(7, 12, 20, 0.74);
+  color: #fff1ca;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.viewer-time-shift-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 @keyframes ambientIntroFade {
   0% {
     opacity: 0;

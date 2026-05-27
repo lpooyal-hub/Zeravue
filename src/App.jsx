@@ -566,6 +566,16 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       minute: "2-digit"
     }).format(date);
   }, [language, observedAt]);
+  const timeShiftOverlayLabel = useMemo(() => {
+    if (!timeShiftCue) {
+      return "";
+    }
+    const deltaHours = timeShiftCue.deltaHours;
+    if (deltaHours > 0) {
+      return language === "ko" ? `+${deltaHours}시간 이동` : `+${deltaHours}h jump`;
+    }
+    return language === "ko" ? `${deltaHours}시간 이동` : `${deltaHours}h jump`;
+  }, [language, timeShiftCue]);
 
   useEffect(() => {
     if (!importableConstellations.length) {
@@ -1040,6 +1050,11 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             <div className="ambient-intro-overlay">
               <h2>{immersiveIntro.title}</h2>
               <p>{immersiveIntro.subtitle}</p>
+            </div>
+          ) : null}
+          {currentPage === "watch" && !auroraWatchLayout ? (
+            <div className={`viewer-time-shift-toast ${timeShiftCue ? "is-visible" : ""}`} aria-live="polite">
+              {timeShiftOverlayLabel || "\u00a0"}
             </div>
           ) : null}
           {auroraWatchLayout ? (
