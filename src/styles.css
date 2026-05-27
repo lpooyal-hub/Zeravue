@@ -94,12 +94,22 @@ select {
 }
 
 .topbar-controls {
-  flex: 0 0 auto;
+  flex: 0 0 min(640px, 100%);
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.topbar-controls-row {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .topbar h1,
@@ -159,6 +169,13 @@ select {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.topbar-theme-row {
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .theme-switcher button {
@@ -234,7 +251,7 @@ select {
 }
 
 .observer-pill {
-  min-width: 174px;
+  width: 100%;
   padding: 10px 12px;
   border-radius: 14px;
   min-width: 0;
@@ -2324,7 +2341,7 @@ input[type="range"] {
 
   .topbar-controls {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .workspace {
