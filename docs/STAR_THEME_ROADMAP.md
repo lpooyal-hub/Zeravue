@@ -18,12 +18,12 @@ Completion criteria live in [GOALS.md](./GOALS.md).
 
 ## Current Gaps
 
-- ambient playback UX is still unreliable
-- observer mode still needs stronger clarity
+- ambient playback still needs a product decision: generated Web Audio vs. shipped loop asset
+- observer mode can still use stronger visual distinction from space mode
 - time changes should feel more visible in observer mode
-- favorites are not implemented yet
-- sketch mode can be richer and more intuitive
-- some controls still feel split across panels
+- constellation favorites exist, but need final polish and documentation
+- sketch mode is functional, but can be richer and more intuitive
+- some controls still feel split across panels or too advanced for first-time viewing
 
 ## Priority Order
 
@@ -40,7 +40,7 @@ Completion criteria live in [GOALS.md](./GOALS.md).
 - [x] quick clear selection action
 - [x] clickable constellations-in-frame list
 - [x] softer tracking camera
-- [ ] favorites for constellations
+- [x] favorites for constellations
 - [ ] better active-state storytelling around a focused constellation
 
 ### Stage 3: Sketch Mode
@@ -62,11 +62,15 @@ Completion criteria live in [GOALS.md](./GOALS.md).
 
 - [x] refine overlay hierarchy
 - [x] reduce any remaining clutter
+- [x] move advanced sky tuning behind progressive disclosure
 - [ ] tune colors, type, and panel density
 - [ ] define the final “restful night-sky” experience standard
 
 ## Recent Progress
 
+- Added privacy and cookie notice pages for AdSense/CMP readiness.
+- Moved advanced sky tuning controls behind a collapsed section so first-time watching stays calmer.
+- Confirmed constellation favorites and sketch favorite layouts are implemented.
 - Rebranded product framing to Zeravue and positioned Night Sky as Theme 01.
 - Expanded space-view zoom range and added drag-based camera movement.
 - Reduced constellation line intensity for calmer star readability.

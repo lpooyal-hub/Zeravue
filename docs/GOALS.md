@@ -18,6 +18,7 @@ Theme 01: Night Sky quality and stability.
 - Preserve star visibility first.
 - Keep constellation guides subtle and supportive.
 - Reduce UI clutter on top of the scene.
+- Use progressive disclosure for tuning controls so first-time viewing stays quiet.
 
 ### G3. Interaction Flow
 - Make focus/search/clear actions easy in one place.
@@ -39,6 +40,7 @@ Night Sky is considered "theme-complete" when:
 4. Sketch save/load/favorite flow is stable.
 5. UI remains readable on desktop and tablet breakpoints.
 6. Deploy pipeline is repeatable with no manual hotfix steps.
+7. Product docs match the implemented feature state before each release.
 
 ## After Theme-Complete
 

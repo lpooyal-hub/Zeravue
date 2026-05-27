@@ -270,48 +270,55 @@ function WatchControlsPanel({
 
       <section>
         <p className="eyebrow">{dictionary.viewer.atmosphere}</p>
-        <label className="stacked-field">
-          <span>
-            {dictionary.viewer.atmosphereDensity}: {Math.round(atmosphereStrength * 100)}%
-          </span>
-          <input type="range" min="0.2" max="1" step="0.05" value={atmosphereStrength} onChange={(event) => setAtmosphereStrength(Number(event.target.value))} />
-        </label>
-        <label className="stacked-field">
-          <span>
-            {dictionary.viewer.starGlow}: {Math.round(starGlowStrength * 100)}%
-          </span>
-          <input type="range" min="0.2" max="1" step="0.05" value={starGlowStrength} onChange={(event) => setStarGlowStrength(Number(event.target.value))} />
-        </label>
-        <label className="stacked-field">
-          <span>
-            {dictionary.viewer.limitingMagnitude}: {limitingMagnitude.toFixed(1)}
-          </span>
-          <input type="range" min="3" max="6" step="0.1" value={limitingMagnitude} onChange={(event) => setLimitingMagnitude(Number(event.target.value))} />
-        </label>
-        <label className="stacked-field">
-          <span>
-            {dictionary.viewer.maxStars}: {maxStars.toLocaleString()}
-          </span>
-          <input type="range" min="1800" max="6000" step="200" value={maxStars} onChange={(event) => setMaxStars(Number(event.target.value))} />
-        </label>
-        <div className="toggle-grid">
-          <label className="toggle-item">
-            <input type="checkbox" checked={showConstellations} onChange={(event) => setShowConstellations(event.target.checked)} />
-            <span>{dictionary.viewer.toggles.constellations}</span>
-          </label>
-          <label className="toggle-item">
-            <input type="checkbox" checked={showLabels} onChange={(event) => setShowLabels(event.target.checked)} />
-            <span>{dictionary.viewer.toggles.labels}</span>
-          </label>
-          <label className="toggle-item">
-            <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
-            <span>{dictionary.viewer.toggles.autoRotate}</span>
-          </label>
-          <label className="toggle-item">
-            <input type="checkbox" checked={showGuides} onChange={(event) => setShowGuides(event.target.checked)} />
-            <span>{dictionary.viewer.toggles.guides}</span>
-          </label>
+        <div className="observer-moment-card">
+          <strong>{language === "ko" ? "차분한 감상 설정" : "Calm viewing preset"}</strong>
+          <span>{language === "ko" ? "기본값은 별의 가독성과 부드러운 움직임을 우선합니다." : "Defaults favor star readability and gentle motion."}</span>
         </div>
+        <details className="advanced-location-details">
+          <summary>{language === "ko" ? "고급 하늘 조정" : "Advanced sky tuning"}</summary>
+          <label className="stacked-field">
+            <span>
+              {dictionary.viewer.atmosphereDensity}: {Math.round(atmosphereStrength * 100)}%
+            </span>
+            <input type="range" min="0.2" max="1" step="0.05" value={atmosphereStrength} onChange={(event) => setAtmosphereStrength(Number(event.target.value))} />
+          </label>
+          <label className="stacked-field">
+            <span>
+              {dictionary.viewer.starGlow}: {Math.round(starGlowStrength * 100)}%
+            </span>
+            <input type="range" min="0.2" max="1" step="0.05" value={starGlowStrength} onChange={(event) => setStarGlowStrength(Number(event.target.value))} />
+          </label>
+          <label className="stacked-field">
+            <span>
+              {dictionary.viewer.limitingMagnitude}: {limitingMagnitude.toFixed(1)}
+            </span>
+            <input type="range" min="3" max="6" step="0.1" value={limitingMagnitude} onChange={(event) => setLimitingMagnitude(Number(event.target.value))} />
+          </label>
+          <label className="stacked-field">
+            <span>
+              {dictionary.viewer.maxStars}: {maxStars.toLocaleString()}
+            </span>
+            <input type="range" min="1800" max="6000" step="200" value={maxStars} onChange={(event) => setMaxStars(Number(event.target.value))} />
+          </label>
+          <div className="toggle-grid">
+            <label className="toggle-item">
+              <input type="checkbox" checked={showConstellations} onChange={(event) => setShowConstellations(event.target.checked)} />
+              <span>{dictionary.viewer.toggles.constellations}</span>
+            </label>
+            <label className="toggle-item">
+              <input type="checkbox" checked={showLabels} onChange={(event) => setShowLabels(event.target.checked)} />
+              <span>{dictionary.viewer.toggles.labels}</span>
+            </label>
+            <label className="toggle-item">
+              <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
+              <span>{dictionary.viewer.toggles.autoRotate}</span>
+            </label>
+            <label className="toggle-item">
+              <input type="checkbox" checked={showGuides} onChange={(event) => setShowGuides(event.target.checked)} />
+              <span>{dictionary.viewer.toggles.guides}</span>
+            </label>
+          </div>
+        </details>
       </section>
       {auroraEnabled ? (
         <section>

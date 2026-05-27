@@ -1694,6 +1694,11 @@ input[type="range"] {
   margin-bottom: 10px;
 }
 
+.advanced-location-details[open] {
+  display: grid;
+  gap: 10px;
+}
+
 .advanced-location-details summary::-webkit-details-marker {
   display: none;
 }
