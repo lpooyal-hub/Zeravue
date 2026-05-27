@@ -127,12 +127,62 @@ function HomePage({ language, setLanguage }) {
         </section>
       ) : null}
       <footer className="theme-home-footer">
+        <a href="/about">{language === "ko" ? "소개" : "About"}</a>
         <a href="/privacy">{language === "ko" ? "개인정보 처리방침" : "Privacy Policy"}</a>
         <a href="/cookies">{language === "ko" ? "쿠키 및 광고 안내" : "Cookie & Ads Notice"}</a>
       </footer>
     </div>
   );
 }
+
+const aboutCopy = {
+  en: {
+    title: "About Zeravue",
+    updated: "Updated: May 27, 2026",
+    intro:
+      "Zeravue is a calm digital viewing experience for night-sky and aurora scenes. We focus on quiet visuals, light controls, and gentle pacing instead of noisy feeds.",
+    sections: [
+      {
+        heading: "What we build",
+        body:
+          "Zeravue provides theme-based immersive pages such as Night Sky and Aurora. Each theme is designed to help users pause, observe, and stay present."
+      },
+      {
+        heading: "How it works",
+        body:
+          "The viewer uses local rendering and lightweight state to keep interaction responsive. Optional analytics and ad settings are kept separate from core viewing controls."
+      },
+      {
+        heading: "Trust and contact",
+        body:
+          "We keep legal and ad notices public so visitors can understand privacy and cookie handling. For questions, partnerships, or corrections, contact cromege@gmail.com."
+      }
+    ]
+  },
+  ko: {
+    title: "Zeravue 소개",
+    updated: "업데이트: 2026년 5월 27일",
+    intro:
+      "Zeravue는 밤하늘과 오로라 장면을 차분하게 감상하는 디지털 뷰잉 서비스입니다. 자극적인 피드보다 조용한 시각 경험과 간결한 조작을 우선합니다.",
+    sections: [
+      {
+        heading: "우리가 만드는 것",
+        body:
+          "Zeravue는 Night Sky, Aurora 같은 테마 기반 몰입 페이지를 제공합니다. 각 테마는 잠시 멈추고 관찰하며 머물 수 있도록 설계됩니다."
+      },
+      {
+        heading: "동작 방식",
+        body:
+          "뷰어는 로컬 렌더링과 가벼운 상태 관리를 사용해 반응성을 유지합니다. 선택적 분석/광고 설정은 핵심 감상 제어와 분리해 운영합니다."
+      },
+      {
+        heading: "신뢰와 문의",
+        body:
+          "방문자가 개인정보와 쿠키 처리 방식을 이해할 수 있도록 관련 안내를 공개합니다. 문의, 제휴, 정정 요청은 cromege@gmail.com 으로 보내 주세요."
+      }
+    ]
+  }
+};
 
 const legalCopy = {
   privacy: {
@@ -289,6 +339,42 @@ function LegalPage({ type, language, setLanguage }) {
   );
 }
 
+function AboutPage({ language, setLanguage }) {
+  const copy = aboutCopy[language] || aboutCopy.en;
+
+  return (
+    <main className="legal-page">
+      <div className="legal-page-topbar">
+        <a className="home-link-button" href="/">
+          {language === "ko" ? "홈으로" : "Home"}
+        </a>
+        <div className="language-switcher" aria-label="Language">
+          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
+            EN
+          </button>
+          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
+            KR
+          </button>
+        </div>
+      </div>
+      <header className="legal-page-header">
+        <p className="eyebrow">Zeravue</p>
+        <h1>{copy.title}</h1>
+        <p>{copy.intro}</p>
+        <small>{copy.updated}</small>
+      </header>
+      <div className="legal-page-sections">
+        {copy.sections.map((section) => (
+          <section key={section.heading}>
+            <h2>{section.heading}</h2>
+            <p>{section.body}</p>
+          </section>
+        ))}
+      </div>
+    </main>
+  );
+}
+
 export function RootApp() {
   const { switchTheme } = useTheme();
   const [language, setLanguage] = useState(getInitialLanguage);
@@ -306,6 +392,57 @@ export function RootApp() {
     document.documentElement.lang = language;
     window.localStorage.setItem("planetarium-language", language);
   }, [language]);
+
+  useEffect(() => {
+    const seoByPath = {
+      "/": {
+        title: "Zeravue · Quiet Digital Experiences",
+        description: "Ambient digital themes for calm, immersive night-sky and aurora viewing."
+      },
+      "/home": {
+        title: "Zeravue · Quiet Digital Experiences",
+        description: "Ambient digital themes for calm, immersive night-sky and aurora viewing."
+      },
+      "/night-sky": {
+        title: "Night Sky Viewer · Zeravue",
+        description: "Explore constellations, observer time, and a calm night-sky viewer on Zeravue."
+      },
+      "/aurora": {
+        title: "Aurora Night · Zeravue",
+        description: "Enter Zeravue Aurora Night for a gentle, immersive aurora viewing experience."
+      },
+      "/about": {
+        title: "About Zeravue",
+        description: "Learn about Zeravue, our calm viewing goals, and how to contact us."
+      },
+      "/privacy": {
+        title: "Privacy Policy · Zeravue",
+        description: "Read how Zeravue handles privacy, data processing, and ad-related choices."
+      },
+      "/cookies": {
+        title: "Cookie & Ads Notice · Zeravue",
+        description: "Understand Zeravue cookie usage, browser storage, and AdSense notice details."
+      }
+    };
+    const defaults = seoByPath["/"];
+    const resolved = seoByPath[path] || defaults;
+    const baseUrl = window.location.origin || "https://zeravue.xyz";
+
+    document.title = resolved.title;
+
+    const descriptionMeta = document.querySelector('meta[name="description"]');
+    if (descriptionMeta) {
+      descriptionMeta.setAttribute("content", resolved.description);
+    }
+
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (!canonicalLink) {
+      canonicalLink = document.createElement("link");
+      canonicalLink.setAttribute("rel", "canonical");
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute("href", `${baseUrl}${path === "/home" ? "/" : path}`);
+  }, [path]);
 
   useEffect(() => {
     if (path === "/aurora") {
@@ -348,6 +485,10 @@ export function RootApp() {
 
     if (path === "/cookies") {
       return <LegalPage type="cookies" language={language} setLanguage={setLanguage} />;
+    }
+
+    if (path === "/about") {
+      return <AboutPage language={language} setLanguage={setLanguage} />;
     }
 
     return <HomePage language={language} setLanguage={setLanguage} />;
