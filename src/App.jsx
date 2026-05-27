@@ -76,6 +76,9 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const viewerUiTimerRef = useRef(null);
   const [viewerUiVisible, setViewerUiVisible] = useState(true);
   const [controlsHiddenInFullscreen, setControlsHiddenInFullscreen] = useState(false);
+  const [timeShiftCue, setTimeShiftCue] = useState(null);
+  const timeShiftCueTimerRef = useRef(null);
+  const previousObservedAtRef = useRef(observedAt);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
   const { favoriteConstellations, setFavoriteConstellations } = useFavoriteConstellations();
   const configuredAmbientTrackUrl = currentThemeId === "aurora-night" ? config.auroraAmbientTrackUrl || config.ambientTrackUrl : config.ambientTrackUrl;
@@ -269,6 +272,42 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       setCurrentPage("watch");
     }
   }, [currentPage, effectiveSketchEnabled]);
+
+  useEffect(() => {
+    const previousValue = previousObservedAtRef.current;
+    if (previousValue === observedAt) {
+      return;
+    }
+
+    previousObservedAtRef.current = observedAt;
+    const previousDate = new Date(previousValue);
+    const currentDate = new Date(observedAt);
+    if (Number.isNaN(previousDate.getTime()) || Number.isNaN(currentDate.getTime())) {
+      return;
+    }
+
+    const deltaMs = currentDate.getTime() - previousDate.getTime();
+    if (Math.abs(deltaMs) < 60 * 1000) {
+      return;
+    }
+
+    const deltaHours = Math.round((deltaMs / (60 * 60 * 1000)) * 10) / 10;
+    setTimeShiftCue({ deltaHours });
+    if (timeShiftCueTimerRef.current) {
+      clearTimeout(timeShiftCueTimerRef.current);
+    }
+    timeShiftCueTimerRef.current = setTimeout(() => {
+      setTimeShiftCue(null);
+    }, 1600);
+  }, [observedAt]);
+
+  useEffect(() => {
+    return () => {
+      if (timeShiftCueTimerRef.current) {
+        clearTimeout(timeShiftCueTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!auroraEnabled) {
@@ -863,6 +902,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               observer={observer}
               updateObserver={updateObserver}
               requestLocation={requestLocation}
+              timeShiftCue={timeShiftCue}
               viewModeOrder={themeViewModes}
               setViewMode={setViewMode}
               focusedConstellation={focusedConstellation}

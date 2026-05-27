@@ -57,6 +57,7 @@ function WatchControlsPanel({
   observer,
   updateObserver,
   requestLocation,
+  timeShiftCue,
   viewModeOrder,
   setViewMode,
   focusedConstellation,
@@ -94,6 +95,12 @@ function WatchControlsPanel({
   watchedSketchSummary,
   exitSketchWatch
 }) {
+  const timeShiftCueLabel = timeShiftCue
+    ? timeShiftCue.deltaHours > 0
+      ? `+${timeShiftCue.deltaHours}${language === "ko" ? "시간 이동" : "h jump"}`
+      : `${timeShiftCue.deltaHours}${language === "ko" ? "시간 이동" : "h jump"}`
+    : "";
+
   return (
     <>
       {isSketchWatch ? (
@@ -154,6 +161,9 @@ function WatchControlsPanel({
           <button type="button" className="focus-chip" onClick={() => shiftTime(3)}>
             {dictionary.viewer.timeJump.forward}
           </button>
+        </div>
+        <div className={`time-shift-cue ${timeShiftCue ? "is-visible" : ""}`} aria-live="polite">
+          {timeShiftCueLabel || "\u00a0"}
         </div>
         {viewMode === "observer" ? (
           <>
