@@ -88,6 +88,11 @@ select {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
 }
 
+.topbar-logo-link {
+  display: inline-block;
+  width: fit-content;
+}
+
 .topbar-controls {
   flex: 0 0 auto;
   display: flex;
@@ -232,6 +237,7 @@ select {
   min-width: 174px;
   padding: 10px 12px;
   border-radius: 14px;
+  min-width: 0;
 }
 
 .observer-avatar {
@@ -721,6 +727,8 @@ select {
 .observer-pill span,
 .observer-pill small {
   display: block;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .observer-pill span,
@@ -733,6 +741,9 @@ label span,
   display: block;
   margin: 4px 0 3px;
   font-size: 0.96rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
 }
 
 .workspace {
@@ -749,6 +760,7 @@ label span,
   gap: 14px;
   padding: 14px;
   border-radius: 16px;
+  min-width: 0;
 }
 
 .control-panel {
@@ -773,6 +785,7 @@ label span,
 .inspector-panel section {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .scene-status-section {
@@ -1643,6 +1656,8 @@ input[type="range"] {
   margin: -6px 0 4px;
   color: var(--muted);
   line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .story-card {
@@ -1682,11 +1697,15 @@ input[type="range"] {
   color: #fff1ca;
   font-size: 1rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .observer-moment-card small {
   color: #9db0c9;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .observer-local-card {

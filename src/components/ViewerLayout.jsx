@@ -37,19 +37,21 @@ function ViewerHeader({
     <header className="topbar">
       <div className="topbar-brand">
         {showHeaderLogo ? (
-          <img
-            className="topbar-logo"
-            src={headerLogoSrc}
-            alt="Zeravue logo"
-            loading="eager"
-            onError={() => {
-              if (headerLogoSrc.endsWith(".svg")) {
-                setHeaderLogoSrc("/branding/zeravue-logo.png");
-                return;
-              }
-              setShowHeaderLogo(false);
-            }}
-          />
+          <a className="topbar-logo-link" href={homeHref} aria-label={language === "ko" ? "메인 홈으로 이동" : "Go to home"}>
+            <img
+              className="topbar-logo"
+              src={headerLogoSrc}
+              alt="Zeravue logo"
+              loading="eager"
+              onError={() => {
+                if (headerLogoSrc.endsWith(".svg")) {
+                  setHeaderLogoSrc("/branding/zeravue-logo.png");
+                  return;
+                }
+                setShowHeaderLogo(false);
+              }}
+            />
+          </a>
         ) : null}
         <p className="eyebrow">{headerEyebrow || dictionary.viewer.eyebrow}</p>
         <h1>{headerTitle || dictionary.viewer.title}</h1>
