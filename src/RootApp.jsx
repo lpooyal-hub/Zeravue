@@ -170,12 +170,12 @@ const aboutCopy = {
     title: "About Zeravue",
     updated: "Updated: May 27, 2026",
     intro:
-      "Zeravue is a calm digital night-sky and aurora viewing platform with an interactive constellation viewer, observer-time controls, and healing-focused visual pacing.",
+      "Zeravue is a web-based immersive digital experience platform built around multiple calming themes and full-screen ambient viewing.",
     sections: [
       {
         heading: "What we build",
         body:
-          "Zeravue provides theme-based immersive pages such as Night Sky and Aurora. Each theme combines ambient motion, constellation visibility, and observer context to help users pause, observe, and stay present."
+          "Zeravue provides theme-based immersive pages with distinct moods and interaction styles. Each theme is designed to help users pause, observe, and stay present."
       },
       {
         heading: "How it works",
@@ -198,17 +198,17 @@ const aboutCopy = {
     title: "Zeravue 소개",
     updated: "업데이트: 2026년 5월 27일",
     intro:
-      "Zeravue는 밤하늘/오로라를 차분하게 감상하는 디지털 뷰잉 플랫폼입니다. 별자리 관측, 관측 시각 조정, 몰입형 분위기 연출을 안정적으로 제공합니다.",
+      "Zeravue는 여러 테마를 기반으로 몰입형 감상 경험을 제공하는 웹 기반 디지털 경험 플랫폼입니다.",
     sections: [
       {
         heading: "우리가 만드는 것",
         body:
-          "Zeravue는 Night Sky, Aurora 같은 테마 기반 몰입 페이지를 제공합니다. 각 테마는 별자리 가독성과 감상 리듬을 함께 고려해 잠시 멈추고 머물 수 있도록 설계됩니다."
+          "Zeravue는 서로 다른 분위기와 상호작용 방식을 가진 테마형 몰입 페이지를 제공합니다. 각 테마는 잠시 멈추고 머물 수 있는 감상 리듬을 중심으로 설계됩니다."
       },
       {
         heading: "동작 방식",
         body:
-          "뷰어는 로컬 렌더링과 가벼운 상태 관리를 사용해 반응성을 유지합니다. 별 표시, 라벨, 관측 시각 제어는 가독성을 기준으로 조정되며 선택적 분석/광고 설정은 핵심 감상 제어와 분리해 운영합니다."
+          "사용자는 전체 화면 환경에서 별자리, 하늘 변화, 분위기 연출을 관찰하며 조용한 디지털 휴식 시간을 가질 수 있습니다. 뷰어는 로컬 렌더링과 가벼운 상태 관리를 사용해 반응성을 유지하며, 별 표시와 관측 시각 제어는 가독성을 기준으로 조정됩니다."
       },
       {
         heading: "업데이트 공개",
