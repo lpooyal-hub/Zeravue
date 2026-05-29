@@ -4,6 +4,21 @@ import { AdminAnalyticsPage } from "./components/AdminAnalyticsPage.jsx";
 import { useTheme } from "./context/ThemeContext.jsx";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 
+const buildLogs = [
+  {
+    slug: "2026-05-29",
+    date: "2026-05-29",
+    title: {
+      en: "Watch UI density cleanup and stability improvements",
+      ko: "Watch UI 밀도 정리와 안정화 개선"
+    },
+    summary: {
+      en: "Moved key controls closer to the canvas, merged long left-panel blocks into a bottom dock, and stabilized observer time feedback.",
+      ko: "핵심 조작을 캔버스 근처로 옮기고 좌측 긴 카드들을 하단 도킹으로 통합했으며, 관측자 시간 피드백을 안정화했습니다."
+    }
+  }
+];
+
 function normalizePath(pathname) {
   if (!pathname || pathname === "/") {
     return "/";
@@ -114,6 +129,21 @@ function HomePage({ language, setLanguage }) {
           <small>{language === "ko" ? "부드러운 오로라 분위기를 감상합니다." : "Enjoy a gentle aurora-focused atmosphere."}</small>
         </a>
       </div>
+      <section className="theme-home-updates">
+        <div className="theme-home-updates-header">
+          <p className="eyebrow">{language === "ko" ? "업데이트" : "Updates"}</p>
+          <a href="/updates">{language === "ko" ? "전체 보기" : "View all"}</a>
+        </div>
+        <div className="theme-home-updates-list">
+          {buildLogs.slice(0, 3).map((item) => (
+            <a key={item.slug} className="theme-home-update-card" href={`/updates/${item.slug}`}>
+              <strong>{item.title[language] || item.title.en}</strong>
+              <small>{item.summary[language] || item.summary.en}</small>
+              <span>{item.date}</span>
+            </a>
+          ))}
+        </div>
+      </section>
       {adsenseEnabled && showAdSlot ? (
         <section className="theme-home-ad" aria-label={language === "ko" ? "광고" : "Advertisement"}>
           <ins
@@ -140,17 +170,22 @@ const aboutCopy = {
     title: "About Zeravue",
     updated: "Updated: May 27, 2026",
     intro:
-      "Zeravue is a calm digital viewing experience for night-sky and aurora scenes. We focus on quiet visuals, light controls, and gentle pacing instead of noisy feeds.",
+      "Zeravue is a calm digital night-sky and aurora viewing platform with an interactive constellation viewer, observer-time controls, and healing-focused visual pacing.",
     sections: [
       {
         heading: "What we build",
         body:
-          "Zeravue provides theme-based immersive pages such as Night Sky and Aurora. Each theme is designed to help users pause, observe, and stay present."
+          "Zeravue provides theme-based immersive pages such as Night Sky and Aurora. Each theme combines ambient motion, constellation visibility, and observer context to help users pause, observe, and stay present."
       },
       {
         heading: "How it works",
         body:
-          "The viewer uses local rendering and lightweight state to keep interaction responsive. Optional analytics and ad settings are kept separate from core viewing controls."
+          "The viewer uses local rendering and lightweight state to keep interaction responsive. Star visibility, labels, and observer-time adjustments are tuned for readability first, while optional analytics and ad settings remain separate from core controls."
+      },
+      {
+        heading: "Updates and transparency",
+        body:
+          "We publish build updates to track UI and experience changes over time. This helps visitors and partners understand what changed, why it changed, and how Zeravue is evolving."
       },
       {
         heading: "Trust and contact",
@@ -163,17 +198,22 @@ const aboutCopy = {
     title: "Zeravue 소개",
     updated: "업데이트: 2026년 5월 27일",
     intro:
-      "Zeravue는 밤하늘과 오로라 장면을 차분하게 감상하는 디지털 뷰잉 서비스입니다. 자극적인 피드보다 조용한 시각 경험과 간결한 조작을 우선합니다.",
+      "Zeravue는 밤하늘/오로라를 차분하게 감상하는 디지털 뷰잉 플랫폼입니다. 별자리 관측, 관측 시각 조정, 몰입형 분위기 연출을 안정적으로 제공합니다.",
     sections: [
       {
         heading: "우리가 만드는 것",
         body:
-          "Zeravue는 Night Sky, Aurora 같은 테마 기반 몰입 페이지를 제공합니다. 각 테마는 잠시 멈추고 관찰하며 머물 수 있도록 설계됩니다."
+          "Zeravue는 Night Sky, Aurora 같은 테마 기반 몰입 페이지를 제공합니다. 각 테마는 별자리 가독성과 감상 리듬을 함께 고려해 잠시 멈추고 머물 수 있도록 설계됩니다."
       },
       {
         heading: "동작 방식",
         body:
-          "뷰어는 로컬 렌더링과 가벼운 상태 관리를 사용해 반응성을 유지합니다. 선택적 분석/광고 설정은 핵심 감상 제어와 분리해 운영합니다."
+          "뷰어는 로컬 렌더링과 가벼운 상태 관리를 사용해 반응성을 유지합니다. 별 표시, 라벨, 관측 시각 제어는 가독성을 기준으로 조정되며 선택적 분석/광고 설정은 핵심 감상 제어와 분리해 운영합니다."
+      },
+      {
+        heading: "업데이트 공개",
+        body:
+          "UI/경험 변경 사항은 업데이트 로그로 공개해 어떤 변화가 있었는지 명확하게 확인할 수 있도록 합니다."
       },
       {
         heading: "신뢰와 문의",
@@ -339,6 +379,72 @@ function LegalPage({ type, language, setLanguage }) {
   );
 }
 
+function UpdatesPage({ language, setLanguage }) {
+  return (
+    <main className="legal-page">
+      <div className="legal-page-topbar">
+        <a className="home-link-button" href="/">
+          {language === "ko" ? "홈으로" : "Home"}
+        </a>
+        <div className="language-switcher" aria-label="Language">
+          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
+            EN
+          </button>
+          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
+            KR
+          </button>
+        </div>
+      </div>
+      <header className="legal-page-header">
+        <p className="eyebrow">Zeravue</p>
+        <h1>{language === "ko" ? "업데이트 로그" : "Build Updates"}</h1>
+        <p>{language === "ko" ? "최근 작업과 UI 개선 내역을 기록합니다." : "Recent product and UI updates."}</p>
+      </header>
+      <div className="legal-page-sections updates-list-page">
+        {buildLogs.map((item) => (
+          <section key={item.slug}>
+            <h2>
+              <a href={`/updates/${item.slug}`}>{item.title[language] || item.title.en}</a>
+            </h2>
+            <p>{item.summary[language] || item.summary.en}</p>
+            <small>{item.date}</small>
+          </section>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+function UpdateDetailPage({ language, setLanguage, slug }) {
+  const item = buildLogs.find((log) => log.slug === slug);
+  if (!item) {
+    return <UpdatesPage language={language} setLanguage={setLanguage} />;
+  }
+  return (
+    <main className="legal-page">
+      <div className="legal-page-topbar">
+        <a className="home-link-button" href="/updates">
+          {language === "ko" ? "업데이트 목록" : "Back to updates"}
+        </a>
+        <div className="language-switcher" aria-label="Language">
+          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
+            EN
+          </button>
+          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
+            KR
+          </button>
+        </div>
+      </div>
+      <header className="legal-page-header">
+        <p className="eyebrow">Zeravue Build Log</p>
+        <h1>{item.title[language] || item.title.en}</h1>
+        <p>{item.summary[language] || item.summary.en}</p>
+        <small>{item.date}</small>
+      </header>
+    </main>
+  );
+}
+
 function AboutPage({ language, setLanguage }) {
   const copy = aboutCopy[language] || aboutCopy.en;
 
@@ -415,6 +521,10 @@ export function RootApp() {
         title: "About Zeravue",
         description: "Learn about Zeravue, our calm viewing goals, and how to contact us."
       },
+      "/updates": {
+        title: "Build Updates · Zeravue",
+        description: "Read recent Zeravue build updates and product/UI improvements."
+      },
       "/privacy": {
         title: "Privacy Policy · Zeravue",
         description: "Read how Zeravue handles privacy, data processing, and ad-related choices."
@@ -425,7 +535,7 @@ export function RootApp() {
       }
     };
     const defaults = seoByPath["/"];
-    const resolved = seoByPath[path] || defaults;
+    const resolved = path.startsWith("/updates/") ? seoByPath["/updates"] : seoByPath[path] || defaults;
     const baseUrl = window.location.origin || "https://zeravue.xyz";
 
     document.title = resolved.title;
@@ -489,6 +599,15 @@ export function RootApp() {
 
     if (path === "/about") {
       return <AboutPage language={language} setLanguage={setLanguage} />;
+    }
+
+    if (path === "/updates") {
+      return <UpdatesPage language={language} setLanguage={setLanguage} />;
+    }
+
+    if (path.startsWith("/updates/")) {
+      const slug = path.replace("/updates/", "");
+      return <UpdateDetailPage language={language} setLanguage={setLanguage} slug={slug} />;
     }
 
     return <HomePage language={language} setLanguage={setLanguage} />;

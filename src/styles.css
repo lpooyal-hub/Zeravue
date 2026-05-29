@@ -2021,6 +2021,54 @@ input[type="range"] {
   gap: 14px;
 }
 
+.theme-home-updates {
+  display: grid;
+  gap: 10px;
+}
+
+.theme-home-updates-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.theme-home-updates-header a {
+  color: #cfe3ff;
+  font-size: 0.84rem;
+  text-decoration: none;
+}
+
+.theme-home-updates-list {
+  display: grid;
+  gap: 10px;
+}
+
+.theme-home-update-card {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(7, 12, 22, 0.72);
+  text-decoration: none;
+}
+
+.theme-home-update-card strong {
+  color: #ecf3ff;
+  font-size: 0.94rem;
+}
+
+.theme-home-update-card small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.theme-home-update-card span {
+  color: #97abc7;
+  font-size: 0.78rem;
+}
+
 .theme-home-card {
   display: grid;
   gap: 8px;
@@ -2146,6 +2194,16 @@ input[type="range"] {
   margin: 0;
   color: #aebfd9;
   line-height: 1.68;
+}
+
+.updates-list-page h2 a {
+  color: #ecf3ff;
+  text-decoration: none;
+}
+
+.updates-list-page small {
+  color: #9db0c9;
+  font-size: 0.78rem;
 }
 
 .ambient-admin-page {
