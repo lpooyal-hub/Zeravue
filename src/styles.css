@@ -1220,8 +1220,8 @@ input[type="range"] {
 
 .viewer-viewmode-overlay {
   position: absolute;
-  right: 12px;
-  top: 12px;
+  right: clamp(12px, 1.8vw, 20px);
+  top: clamp(18px, 3.4vh, 34px);
   z-index: 8;
   display: flex;
   flex-wrap: wrap;
@@ -1250,6 +1250,53 @@ input[type="range"] {
 .viewer-focus-overlay,
 .viewer-viewmode-overlay {
   transition: opacity 280ms ease;
+}
+
+.viewer-bottom-dock {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 56px;
+  z-index: 7;
+  display: grid;
+  justify-items: center;
+  pointer-events: none;
+}
+
+.viewer-bottom-dock-details {
+  width: min(920px, 100%);
+  border: 1px solid rgba(173, 211, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(5, 10, 18, 0.5);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.viewer-bottom-dock-details > summary {
+  cursor: pointer;
+  list-style: none;
+  min-height: 36px;
+  padding: 8px 12px;
+  color: #dcecff;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.viewer-bottom-dock-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.viewer-bottom-dock-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 10px 10px;
+}
+
+.viewer-dock-tuning-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .viewer-unhide-button {
@@ -1662,6 +1709,17 @@ input[type="range"] {
 .viewer.is-fullscreen .viewer-focus-overlay {
   left: 20px;
   top: 20px;
+}
+
+.viewer.is-fullscreen .viewer-viewmode-overlay {
+  right: 20px;
+  top: 24px;
+}
+
+.viewer.is-fullscreen .viewer-bottom-dock {
+  left: 18px;
+  right: 18px;
+  bottom: 66px;
 }
 
 .summary-list {
@@ -2519,8 +2577,19 @@ input[type="range"] {
 
   .viewer-viewmode-overlay {
     right: 14px;
-    top: 14px;
+    top: 18px;
     max-width: calc(100% - 28px);
+  }
+
+  .viewer-bottom-dock {
+    left: 14px;
+    right: 14px;
+    bottom: 60px;
+  }
+
+  .viewer-bottom-dock-content,
+  .viewer-dock-tuning-grid {
+    grid-template-columns: 1fr;
   }
 
   .overlay-volume {
