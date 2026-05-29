@@ -58,8 +58,6 @@ function WatchControlsPanel({
   updateObserver,
   requestLocation,
   timeShiftCue,
-  viewModeOrder,
-  setViewMode,
   focusedConstellation,
   setFocusedConstellation,
   activeConstellationKey,
@@ -226,18 +224,6 @@ function WatchControlsPanel({
             </label>
           </div>
         </details>
-      </section>
-
-      <section>
-        <p className="eyebrow">{dictionary.viewer.viewModeLabel}</p>
-        <div className="constellation-list focus-list">
-          {viewModeOrder.map((mode) => (
-            <button key={mode} type="button" className={`focus-chip ${viewMode === mode ? "is-active" : ""}`} onClick={() => setViewMode(mode)}>
-              {dictionary.viewer.viewModes[mode]}
-            </button>
-          ))}
-        </div>
-        <p className="helper-copy">{dictionary.viewer.viewModeDescriptions[viewMode]}</p>
       </section>
 
       {!auroraEnabled ? (

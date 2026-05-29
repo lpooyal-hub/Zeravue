@@ -1218,22 +1218,37 @@ input[type="range"] {
   opacity: 0.75;
 }
 
+.viewer-viewmode-overlay {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 8;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: min(320px, calc(100% - 24px));
+}
+
 .ambient-ui-hidden .viewer-overlay,
-.ambient-ui-hidden .viewer-focus-overlay {
+.ambient-ui-hidden .viewer-focus-overlay,
+.ambient-ui-hidden .viewer-viewmode-overlay {
   opacity: 0.04;
   pointer-events: none;
   transition: opacity 280ms ease;
 }
 
 .ambient-ui-manual-hidden .viewer-overlay,
-.ambient-ui-manual-hidden .viewer-focus-overlay {
+.ambient-ui-manual-hidden .viewer-focus-overlay,
+.ambient-ui-manual-hidden .viewer-viewmode-overlay {
   opacity: 0;
   pointer-events: none;
   transition: opacity 280ms ease;
 }
 
 .viewer-overlay,
-.viewer-focus-overlay {
+.viewer-focus-overlay,
+.viewer-viewmode-overlay {
   transition: opacity 280ms ease;
 }
 
@@ -2498,6 +2513,12 @@ input[type="range"] {
 
   .viewer-focus-overlay {
     left: 14px;
+    top: 14px;
+    max-width: calc(100% - 28px);
+  }
+
+  .viewer-viewmode-overlay {
+    right: 14px;
     top: 14px;
     max-width: calc(100% - 28px);
   }

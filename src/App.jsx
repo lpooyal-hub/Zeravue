@@ -913,8 +913,6 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               updateObserver={updateObserver}
               requestLocation={requestLocation}
               timeShiftCue={timeShiftCue}
-              viewModeOrder={themeViewModes}
-              setViewMode={setViewMode}
               focusedConstellation={focusedConstellation}
               setFocusedConstellation={setFocusedConstellation}
               activeConstellationKey={activeConstellationKey}
@@ -1090,6 +1088,15 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               auroraSpeed={auroraSpeed}
             />
           )}
+          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout ? (
+            <div className="viewer-viewmode-overlay" aria-label={dictionary.viewer.viewModeLabel}>
+              {themeViewModes.map((mode) => (
+                <button key={mode} type="button" className={`focus-chip ${viewMode === mode ? "is-active" : ""}`} onClick={() => setViewMode(mode)}>
+                  {dictionary.viewer.viewModes[mode]}
+                </button>
+              ))}
+            </div>
+          ) : null}
           {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout ? (
             <ViewerFocusOverlay
               dictionary={dictionary}
