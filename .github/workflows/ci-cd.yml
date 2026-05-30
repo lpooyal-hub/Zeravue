@@ -86,6 +86,26 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
+      - name: Verify production deploy secrets and path split
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEV_DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
+        run: |
+          for key in DEPLOY_SSH_KEY DEPLOY_HOST DEPLOY_PATH DEPLOY_PORT DEPLOY_USER; do
+            if [ -z "${!key}" ]; then
+              echo "Missing required secret: $key"
+              exit 1
+            fi
+          done
+          if [ -n "$DEV_DEPLOY_PATH" ] && [ "$DEV_DEPLOY_PATH" = "$DEPLOY_PATH" ]; then
+            echo "DEPLOY_PATH and DEV_DEPLOY_PATH must be different."
+            exit 1
+          fi
+
       - name: Check out repository
         uses: actions/checkout@v5
 
@@ -120,12 +140,32 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
 
     steps:
+      - name: Verify development deploy secrets
+        env:
+          DEV_DEPLOY_SSH_KEY: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          DEV_DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST }}
+          DEV_DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
+          DEV_DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT }}
+          DEV_DEPLOY_USER: ${{ secrets.DEV_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          for key in DEV_DEPLOY_SSH_KEY DEV_DEPLOY_HOST DEV_DEPLOY_PATH DEV_DEPLOY_PORT DEV_DEPLOY_USER; do
+            if [ -z "${!key}" ]; then
+              echo "Missing required secret: $key"
+              exit 1
+            fi
+          done
+          if [ -n "$DEPLOY_PATH" ] && [ "$DEPLOY_PATH" = "$DEV_DEPLOY_PATH" ]; then
+            echo "DEV_DEPLOY_PATH and DEPLOY_PATH must be different."
+            exit 1
+          fi
+
       - name: Check out repository
         uses: actions/checkout@v5
 
       - name: Configure SSH key
         env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEV_DEPLOY_SSH_KEY || secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
@@ -133,16 +173,16 @@ jobs:
 
       - name: Add server to known hosts
         env:
-          DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST || secrets.DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT || secrets.DEPLOY_PORT }}
+          DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT }}
         run: |
           ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy over SSH
         env:
-          DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST || secrets.DEPLOY_HOST }}
-          DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH || secrets.DEPLOY_PATH }}
-          DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT || secrets.DEPLOY_PORT }}
-          DEPLOY_USER: ${{ secrets.DEV_DEPLOY_USER || secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEV_DEPLOY_USER }}
         run: |
           ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" "bash -lc 'cd \"${DEPLOY_PATH}\" && ./scripts/deploy.sh dev dev'"
