@@ -539,6 +539,51 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
 
     return null;
   }, [activeConstellationStats, selectedStar, viewMode]);
+  const constellationStoryStateLines = useMemo(() => {
+    if (!activeConstellationKey || activeConstellationKey === "all") {
+      return [];
+    }
+
+    const lines = [];
+    if (activeConstellationStats?.visibleStars) {
+      lines.push(
+        language === "ko"
+          ? `현재 ${activeConstellationStats.visibleStars}개의 별이 비교적 선명하게 보입니다.`
+          : `${activeConstellationStats.visibleStars} stars are currently standing out clearly.`
+      );
+    }
+
+    if (viewMode === "observer" && observerFocusSummary?.altitude != null) {
+      const altitudeValue = Number(observerFocusSummary.altitude);
+      const altitudeBand =
+        altitudeValue >= 60
+          ? language === "ko"
+            ? "머리 위 높은 하늘"
+            : "high overhead sky"
+          : altitudeValue >= 35
+            ? language === "ko"
+              ? "중간 고도 하늘"
+              : "mid-altitude sky"
+            : language === "ko"
+              ? "지평선 근처 하늘"
+              : "near the horizon";
+      lines.push(
+        language === "ko"
+          ? `지금은 ${altitudeBand}에서 관측하기 좋은 흐름입니다.`
+          : `Right now it reads best in the ${altitudeBand}.`
+      );
+    }
+
+    if (activeConstellationStats?.brightestStar) {
+      lines.push(
+        language === "ko"
+          ? `밝은 기준점은 ${activeConstellationStats.brightestStar}입니다.`
+          : `Your brightest anchor star is ${activeConstellationStats.brightestStar}.`
+      );
+    }
+
+    return lines.slice(0, 2);
+  }, [activeConstellationKey, activeConstellationStats, language, observerFocusSummary, viewMode]);
   const sketchViewDescription = dictionary.viewer.viewModeDescriptions[viewMode];
   const ambientStatusLabel = ambientTrackPending
     ? dictionary.viewer.ambient.preparing
@@ -1124,6 +1169,19 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
                     <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
                     <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
                     <p>{activeConstellationStory}</p>
+                    {activeConstellationKey && activeConstellationKey !== "all" ? (
+                      <div className="story-state-row">
+                        <span className="story-state-pill">{viewMode === "observer" ? (language === "ko" ? "관측자 시점" : "Observer view") : dictionary.viewer.viewModes[viewMode]}</span>
+                        <span className="story-state-pill">{activeConstellationIsFavorite ? (language === "ko" ? "즐겨찾기됨" : "Favorited") : language === "ko" ? "관측 중" : "In focus"}</span>
+                      </div>
+                    ) : null}
+                    {constellationStoryStateLines.length ? (
+                      <ul className="story-state-list">
+                        {constellationStoryStateLines.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                    ) : null}
                     {activeConstellationStats ? (
                       <dl className="summary-list compact">
                         <div>

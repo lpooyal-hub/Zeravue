@@ -51,9 +51,10 @@ export function ObserverGuide({ dictionary, language }) {
     <>
       <GuideGrid />
       <TextSprite text={language === "ko" ? "천정" : "Zenith"} position={[0, 12.8, 0]} color="#fff2b3" scale={1.9} />
-      <TextSprite text={language === "ko" ? "북쪽 하늘" : "North sky"} position={[0, 2.1, -10.9]} color="#9fd8ff" scale={1.5} />
-      <TextSprite text="60°" position={[0, 9.3, -1.4]} color="#b9cde6" scale={1.15} />
-      <TextSprite text="30°" position={[0, 5.6, -5.3]} color="#8fa6c5" scale={1.1} />
+      <TextSprite text={language === "ko" ? "북쪽 하늘" : "North sky"} position={[0, 2.2, -10.95]} color="#c7e6ff" scale={1.55} />
+      <TextSprite text={language === "ko" ? "지평선" : "Horizon"} position={[0, 0.28, -9.4]} color="#ffdf98" scale={1.2} />
+      <TextSprite text="60°" position={[0, 9.3, -1.4]} color="#d4e4f6" scale={1.18} />
+      <TextSprite text="30°" position={[0, 5.6, -5.3]} color="#a9c1de" scale={1.12} />
     </>
   );
 }
@@ -92,11 +93,11 @@ export function ObserverHorizonCue() {
   return (
     <>
       <line geometry={horizonGeometry}>
-        <lineBasicMaterial color="#ffcf70" transparent opacity={0.18} depthWrite={false} />
+        <lineBasicMaterial color="#ffd582" transparent opacity={0.34} depthWrite={false} />
       </line>
       {altitudeGeometries.map((geometry, index) => (
         <line key={`observer-cue-${index}`} geometry={geometry}>
-          <lineBasicMaterial color="#8fb7dd" transparent opacity={0.075} depthWrite={false} />
+          <lineBasicMaterial color={index === 0 ? "#9bc0e2" : "#86aacd"} transparent opacity={index === 0 ? 0.16 : 0.11} depthWrite={false} />
         </line>
       ))}
     </>
@@ -166,11 +167,11 @@ export function GuideGrid() {
     <>
       {ringGeometries.map((geometry, index) => (
         <line key={`ring-${index}`} geometry={geometry}>
-          <lineBasicMaterial color="#80a3c8" transparent opacity={0.12} />
+          <lineBasicMaterial color="#86abd0" transparent opacity={index === 0 ? 0.14 : index === 1 ? 0.11 : 0.09} />
         </line>
       ))}
       <lineSegments geometry={spokes}>
-        <lineBasicMaterial color="#80a3c8" transparent opacity={0.12} />
+        <lineBasicMaterial color="#7ea2c7" transparent opacity={0.095} />
       </lineSegments>
     </>
   );
