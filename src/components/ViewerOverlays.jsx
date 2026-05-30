@@ -49,6 +49,8 @@ export function ViewerFocusOverlay({
         <button
           type="button"
           className="overlay-button"
+          title={language === "ko" ? "선택 해제" : "Clear selection"}
+          aria-label={language === "ko" ? "선택 해제" : "Clear selection"}
           onClick={() => {
             setFocusedConstellation("all");
             setTrackConstellation(false);
@@ -60,8 +62,14 @@ export function ViewerFocusOverlay({
       <label className="overlay-zoom">
         <span>{dictionary.viewer.zoom}</span>
         <div className="overlay-zoom-controls">
-          <button type="button" className="overlay-button" onClick={() => changeZoom(-0.1)}>
-            {dictionary.viewer.zoomOut}
+          <button
+            type="button"
+            className="overlay-button overlay-icon-button"
+            title={dictionary.viewer.zoomOut}
+            aria-label={dictionary.viewer.zoomOut}
+            onClick={() => changeZoom(-0.1)}
+          >
+            -
           </button>
           <input
             type="range"
@@ -72,13 +80,25 @@ export function ViewerFocusOverlay({
             aria-label={dictionary.viewer.zoom}
             onChange={(event) => setZoomLevel(Number(event.target.value))}
           />
-          <button type="button" className="overlay-button" onClick={() => changeZoom(0.1)}>
-            {dictionary.viewer.zoomIn}
+          <button
+            type="button"
+            className="overlay-button overlay-icon-button"
+            title={dictionary.viewer.zoomIn}
+            aria-label={dictionary.viewer.zoomIn}
+            onClick={() => changeZoom(0.1)}
+          >
+            +
           </button>
         </div>
       </label>
-      <button type="button" className="overlay-button" onClick={resetView}>
-        {dictionary.viewer.resetView}
+      <button
+        type="button"
+        className="overlay-button overlay-icon-button"
+        title={dictionary.viewer.resetView}
+        aria-label={dictionary.viewer.resetView}
+        onClick={resetView}
+      >
+        R
       </button>
       <span className="overlay-shortcut-hint">{language === "ko" ? "R: 시점 초기화  ·  +/-: 줌" : "R: reset view  ·  +/-: zoom"}</span>
     </div>
@@ -124,16 +144,34 @@ export function ViewerAmbientOverlay({
         />
         <strong>{Math.round(ambientVolume * 100)}%</strong>
       </label>
-      <button type="button" className="overlay-button" onClick={toggleFullscreen}>
-        {isFullscreen ? dictionary.viewer.exitFullscreen : dictionary.viewer.enterFullscreen}
+      <button
+        type="button"
+        className="overlay-button overlay-icon-button"
+        title={isFullscreen ? dictionary.viewer.exitFullscreen : dictionary.viewer.enterFullscreen}
+        aria-label={isFullscreen ? dictionary.viewer.exitFullscreen : dictionary.viewer.enterFullscreen}
+        onClick={toggleFullscreen}
+      >
+        {isFullscreen ? "[]-" : "[]+"}
       </button>
       {showHideControlsButton ? (
-        <button type="button" className="overlay-button" onClick={onToggleControlsHidden}>
-          {controlsHidden ? (language === "ko" ? "컨트롤 보이기" : "Show UI") : language === "ko" ? "컨트롤 숨기기" : "Hide UI"}
+        <button
+          type="button"
+          className="overlay-button overlay-icon-button"
+          title={controlsHidden ? (language === "ko" ? "컨트롤 보이기" : "Show UI") : language === "ko" ? "컨트롤 숨기기" : "Hide UI"}
+          aria-label={controlsHidden ? (language === "ko" ? "컨트롤 보이기" : "Show UI") : language === "ko" ? "컨트롤 숨기기" : "Hide UI"}
+          onClick={onToggleControlsHidden}
+        >
+          {controlsHidden ? "UI+" : "UI-"}
         </button>
       ) : null}
-      <button type="button" className={`overlay-button ${ambientEnabled ? "is-active" : ""}`} onClick={toggleAmbientSound}>
-        {ambientEnabled ? dictionary.viewer.ambient.off : dictionary.viewer.ambient.on}
+      <button
+        type="button"
+        className={`overlay-button overlay-icon-button ${ambientEnabled ? "is-active" : ""}`}
+        title={ambientEnabled ? dictionary.viewer.ambient.off : dictionary.viewer.ambient.on}
+        aria-label={ambientEnabled ? dictionary.viewer.ambient.off : dictionary.viewer.ambient.on}
+        onClick={toggleAmbientSound}
+      >
+        {ambientEnabled ? "SND-" : "SND+"}
       </button>
     </div>
   );
