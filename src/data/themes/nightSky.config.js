@@ -1,5 +1,3 @@
-import { auroraNightTheme } from "./auroraNight.config.js";
-
 /**
  * Night Sky Theme Configuration
  * 
@@ -115,17 +113,3 @@ export const nightSkyTheme = {
     ambientAudio: true
   }
 };
-
-/**
- * Get theme by ID
- */
-export function getThemeById(id) {
-  return getAllThemes().find((theme) => theme.id === id) || null;
-}
-
-/**
- * List all available themes
- */
-export function getAllThemes() {
-  return [nightSkyTheme, auroraNightTheme];
-}

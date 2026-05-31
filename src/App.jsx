@@ -184,6 +184,11 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   );
   const themeViewModes = useMemo(() => getThemeViewModes(currentTheme), [currentTheme]);
   const autoEnterTargetRef = useRef(null);
+  const immersiveWatchMode = currentPage === "watch" && !auroraWatchLayout && focusMode;
+  const effectiveAtmosphereStrength = immersiveWatchMode ? Math.max(0.2, atmosphereStrength * 0.84) : atmosphereStrength;
+  const effectiveStarGlowStrength = immersiveWatchMode ? Math.min(1, starGlowStrength + 0.14) : starGlowStrength;
+  const effectiveLimitingMagnitude = immersiveWatchMode ? Math.min(6, limitingMagnitude + 0.35) : limitingMagnitude;
+  const effectiveMaxStars = immersiveWatchMode ? Math.min(5200, maxStars + 600) : maxStars;
 
   useEffect(() => {
     try {
@@ -462,8 +467,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           latitude: observer.latitude,
           longitude: observer.longitude,
           observedAt: new Date(observedAt).toISOString(),
-          limitingMagnitude,
-          maxStars
+          limitingMagnitude: effectiveLimitingMagnitude,
+          maxStars: effectiveMaxStars
         });
 
         if (cancelled) {
@@ -486,7 +491,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     return () => {
       cancelled = true;
     };
-  }, [observer.latitude, observer.longitude, observedAt, limitingMagnitude, maxStars]);
+  }, [observer.latitude, observer.longitude, observedAt, effectiveLimitingMagnitude, effectiveMaxStars]);
 
   const selectedStar = useMemo(
     () => (selectedTarget?.kind === "star" ? sceneState.data?.stars.find((star) => star.id === selectedTarget.id) || null : null),
@@ -950,10 +955,21 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             currentThemeId={currentThemeId}
             switchTheme={handleThemeSwitch}
             sketchEnabled={effectiveSketchEnabled}
+            showPageSwitcher={false}
             showThemeSwitcher={showThemeSwitcher}
             homeHref="/"
           />
           <div className={`workspace ${focusMode ? "is-focus-mode" : ""}`}>
+        {!auroraWatchLayout ? (
+          <div className="workspace-page-switcher page-switcher" aria-label={dictionary.viewer.pageMode}>
+            <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
+              {dictionary.viewer.pages.watch}
+            </button>
+            <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!effectiveSketchEnabled}>
+              {dictionary.viewer.pages.sketch}
+            </button>
+          </div>
+        ) : null}
         {auroraWatchLayout ? (
           <aside className="control-panel aurora-control-panel">
             <section>
@@ -1099,7 +1115,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           ref={viewerRef}
           className={`viewer ${auroraWatchLayout ? "viewer-aurora" : ""} ${isFullscreen ? "is-fullscreen" : ""} ${
             currentPage === "watch" && !viewerUiVisible ? "ambient-ui-hidden" : ""
-          } ${controlsHiddenInFullscreen ? "ambient-ui-manual-hidden" : ""}`}
+          } ${controlsHiddenInFullscreen ? "ambient-ui-manual-hidden" : ""} ${immersiveWatchMode ? "is-immersive" : ""}`}
           onClickCapture={(event) => {
             wakeAmbient(event);
             if (!auroraWatchLayout && currentPage === "watch") {
@@ -1149,8 +1165,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               showGuides={showGuides}
               showConstellations={showConstellations}
               autoRotate={autoRotate}
-              atmosphereStrength={atmosphereStrength}
-              starGlowStrength={starGlowStrength}
+              atmosphereStrength={effectiveAtmosphereStrength}
+              starGlowStrength={effectiveStarGlowStrength}
               viewMode={viewMode}
               zoomLevel={zoomLevel}
               focusedConstellation={currentPage === "watch" && !isSketchWatch ? focusedConstellation : "all"}

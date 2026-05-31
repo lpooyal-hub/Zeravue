@@ -764,10 +764,18 @@ label span,
 }
 
 .workspace {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(260px, 312px) minmax(0, 1fr) minmax(260px, 312px);
   align-items: start;
   gap: 14px;
+}
+
+.workspace-page-switcher {
+  position: absolute;
+  right: 0;
+  top: -48px;
+  z-index: 18;
 }
 
 .workspace.is-focus-mode {
@@ -957,6 +965,29 @@ input[type="range"] {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.viewer.is-immersive {
+  background:
+    radial-gradient(circle at 50% 14%, rgba(48, 88, 148, 0.2), transparent 42%),
+    radial-gradient(circle at 50% 74%, rgba(18, 34, 62, 0.28), transparent 54%),
+    linear-gradient(180deg, #00040c, #000108 44%, #000006);
+}
+
+.viewer.is-immersive::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(142, 180, 235, 0.12), transparent 56%),
+    radial-gradient(circle at 50% 100%, rgba(8, 15, 30, 0.44), transparent 64%);
+  mix-blend-mode: screen;
+  opacity: 0.78;
+}
+
+.viewer.is-immersive canvas {
+  filter: saturate(1.08) contrast(1.06);
 }
 
 .viewer-aurora {
@@ -2289,6 +2320,38 @@ input[type="range"] {
   line-height: 1.68;
 }
 
+.legal-page-sections ul,
+.legal-page-sections ol {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #b7c8e4;
+  line-height: 1.7;
+}
+
+.legal-page-sections li + li {
+  margin-top: 6px;
+}
+
+.update-area-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 2px;
+}
+
+.update-area-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(168, 204, 244, 0.28);
+  border-radius: 999px;
+  background: rgba(9, 16, 28, 0.52);
+  color: #cde1ff;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
 .updates-list-page h2 a {
   color: #ecf3ff;
   text-decoration: none;
@@ -2583,6 +2646,10 @@ input[type="range"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .workspace-page-switcher {
+    top: -44px;
+  }
+
   .viewer {
     grid-column: 1 / -1;
     grid-row: 1;
@@ -2666,6 +2733,12 @@ input[type="range"] {
 
   .workspace {
     grid-template-columns: 1fr;
+  }
+
+  .workspace-page-switcher {
+    position: static;
+    justify-self: end;
+    margin: -2px 0 6px;
   }
 
   .control-panel,

@@ -3,8 +3,52 @@ import { App as NightSkyApp } from "./App.jsx";
 import { AdminAnalyticsPage } from "./components/AdminAnalyticsPage.jsx";
 import { useTheme } from "./context/ThemeContext.jsx";
 import { getInitialLanguage, translations } from "./data/i18n.js";
+import { platformAboutCopy, platformHomeCopy, platformThemeCards } from "./data/platformContent.js";
+import { getThemeRouteConfig } from "./data/themes/index.js";
 
 const buildLogs = [
+  {
+    slug: "2026-05-30",
+    date: "2026-05-30",
+    title: {
+      en: "Immersive viewing tone and deploy isolation cleanup",
+      ko: "몰입형 감상 톤과 배포 환경 분리 정리"
+    },
+    summary: {
+      en:
+        "Adjusted Zeravue away from a strict astronomy-tool tone, improved constellation naming/search, and verified the dev/prod deployment split.",
+      ko:
+        "Zeravue를 천문 도구보다 몰입형 감상 서비스에 가깝게 정리하고, 별자리 표기/검색과 dev/prod 배포 분리를 점검했습니다."
+    },
+    areas: {
+      en: ["Immersive UX", "Localization", "Deploy isolation"],
+      ko: ["몰입 UX", "로컬라이징", "배포 분리"]
+    },
+    highlights: {
+      en: [
+        "Added an immersive mode that lets the night-sky canvas take priority over side panels.",
+        "Corrected Korean constellation names and added alias search for familiar variants.",
+        "Separated dev/prod deployment paths and verified sentinel guards, compose ports, and nginx routing."
+      ],
+      ko: [
+        "좌우 패널보다 밤하늘 캔버스가 우선되는 몰입 모드를 추가했습니다.",
+        "한국어 별자리명을 교정하고 익숙한 별칭으로도 검색되도록 보강했습니다.",
+        "dev/prod 배포 경로를 분리하고 sentinel, compose 포트, nginx 라우팅을 확인했습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Further tune Night Sky color and star glow for immersive mode.",
+        "Make About and Updates describe Zeravue's healing direction more clearly.",
+        "Keep reducing tool-like copy where it distracts from the viewing mood."
+      ],
+      ko: [
+        "몰입 모드의 밤하늘 색감과 별빛 밸런스를 추가 조정합니다.",
+        "About과 Updates가 Zeravue의 힐링 방향성을 더 분명히 설명하도록 다듬습니다.",
+        "감상 분위기를 방해하는 도구형 문구를 계속 줄입니다."
+      ]
+    }
+  },
   {
     slug: "2026-05-29",
     date: "2026-05-29",
@@ -15,6 +59,34 @@ const buildLogs = [
     summary: {
       en: "Moved key controls closer to the canvas, merged long left-panel blocks into a bottom dock, and stabilized observer time feedback.",
       ko: "핵심 조작을 캔버스 근처로 옮기고 좌측 긴 카드들을 하단 도킹으로 통합했으며, 하늘 시각 피드백을 안정화했습니다."
+    },
+    areas: {
+      en: ["Watch UI", "Layout cleanup", "Interaction stability"],
+      ko: ["Watch UI", "레이아웃 정리", "상호작용 안정화"]
+    },
+    highlights: {
+      en: [
+        "Moved the sky-view switcher into the canvas area.",
+        "Merged long control blocks into a bottom dock.",
+        "Improved time-shift feedback and the constellation list layout."
+      ],
+      ko: [
+        "하늘 시점 전환을 캔버스 영역 안으로 이동했습니다.",
+        "길게 늘어진 제어 블록을 하단 도킹 패널로 통합했습니다.",
+        "시간 이동 피드백과 별자리 목록 레이아웃을 개선했습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Strengthen observer/zenith visual hierarchy.",
+        "Improve active constellation storytelling.",
+        "Continue reducing overlay density."
+      ],
+      ko: [
+        "올려보기/천정 시각 계층을 보강합니다.",
+        "활성 별자리 스토리텔링을 강화합니다.",
+        "오버레이 밀도를 계속 정리합니다."
+      ]
     }
   }
 ];
@@ -27,7 +99,7 @@ function normalizePath(pathname) {
 }
 
 function HomePage({ language, setLanguage }) {
-  const dictionary = translations[language];
+  const homeCopy = platformHomeCopy[language] || platformHomeCopy.en;
   const [showBrandLogo, setShowBrandLogo] = useState(true);
   const [brandLogoSrc, setBrandLogoSrc] = useState("/branding/zeravue-logo.svg");
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -115,19 +187,17 @@ function HomePage({ language, setLanguage }) {
           />
         ) : null}
         <p className="eyebrow">Zeravue</p>
-        <h1>{language === "ko" ? "지금 머물고 싶은 장면을 고르세요." : "Choose the scene you want to rest in."}</h1>
-        <p>{language === "ko" ? "메인에서 테마를 고르고, 각 테마 페이지에서 조용히 감상하세요." : "Pick a theme from home, then settle into a dedicated viewing page."}</p>
+        <h1>{homeCopy.title}</h1>
+        <p>{homeCopy.subtitle}</p>
       </header>
 
       <div className="theme-home-grid">
-        <a className="theme-home-card" href="/night-sky" onClick={(event) => enterTheme(event, "/night-sky")}>
-          <strong>{dictionary.viewer.pages.watch}</strong>
-          <small>{language === "ko" ? "별자리와 밤하늘을 조용히 감상합니다." : "Settle into a quiet sky of stars and constellations."}</small>
-        </a>
-        <a className="theme-home-card" href="/aurora" onClick={(event) => enterTheme(event, "/aurora")}>
-          <strong>{language === "ko" ? "오로라 감상" : "Aurora Night"}</strong>
-          <small>{language === "ko" ? "부드러운 오로라 분위기를 감상합니다." : "Enjoy a gentle aurora-focused atmosphere."}</small>
-        </a>
+        {platformThemeCards.map((theme) => (
+          <a key={theme.id} className="theme-home-card" href={theme.href} onClick={(event) => enterTheme(event, theme.href)}>
+            <strong>{theme.title[language] || theme.title.en}</strong>
+            <small>{theme.description[language] || theme.description.en}</small>
+          </a>
+        ))}
       </div>
       <section className="theme-home-updates">
         <div className="theme-home-updates-header">
@@ -164,65 +234,6 @@ function HomePage({ language, setLanguage }) {
     </div>
   );
 }
-
-const aboutCopy = {
-  en: {
-    title: "About Zeravue",
-    updated: "Updated: May 27, 2026",
-    intro:
-      "Zeravue is a web-based immersive digital experience platform built around multiple calming themes and full-screen ambient viewing.",
-    sections: [
-      {
-        heading: "What we build",
-        body:
-          "Zeravue provides theme-based immersive pages with distinct moods and interaction styles. Each theme is designed to help users pause, settle in, and stay present."
-      },
-      {
-        heading: "How it works",
-        body:
-          "The viewer uses local rendering and lightweight state to keep interaction responsive. Star visibility, labels, and sky-time adjustments are tuned for readability first, while optional analytics and ad settings remain separate from core controls."
-      },
-      {
-        heading: "Updates and transparency",
-        body:
-          "We publish build updates to track UI and experience changes over time. This helps visitors and partners understand what changed, why it changed, and how Zeravue is evolving."
-      },
-      {
-        heading: "Trust and contact",
-        body:
-          "We keep legal and ad notices public so visitors can understand privacy and cookie handling. For questions, partnerships, or corrections, contact cromege@gmail.com."
-      }
-    ]
-  },
-  ko: {
-    title: "Zeravue 소개",
-    updated: "업데이트: 2026년 5월 27일",
-    intro:
-      "Zeravue는 여러 테마를 기반으로 몰입형 감상 경험을 제공하는 웹 기반 디지털 경험 플랫폼입니다.",
-    sections: [
-      {
-        heading: "우리가 만드는 것",
-        body:
-          "Zeravue는 서로 다른 분위기와 상호작용 방식을 가진 테마형 몰입 페이지를 제공합니다. 각 테마는 잠시 멈추고 머물 수 있는 감상 리듬을 중심으로 설계됩니다."
-      },
-      {
-        heading: "동작 방식",
-        body:
-          "사용자는 전체 화면 환경에서 별자리, 하늘 변화, 분위기 연출을 감상하며 조용한 디지털 휴식 시간을 가질 수 있습니다. 뷰어는 로컬 렌더링과 가벼운 상태 관리를 사용해 반응성을 유지하며, 별 표시와 하늘 시각 제어는 가독성을 기준으로 조정됩니다."
-      },
-      {
-        heading: "업데이트 공개",
-        body:
-          "UI/경험 변경 사항은 업데이트 로그로 공개해 어떤 변화가 있었는지 명확하게 확인할 수 있도록 합니다."
-      },
-      {
-        heading: "신뢰와 문의",
-        body:
-          "방문자가 개인정보와 쿠키 처리 방식을 이해할 수 있도록 관련 안내를 공개합니다. 문의, 제휴, 정정 요청은 cromege@gmail.com 으로 보내 주세요."
-      }
-    ]
-  }
-};
 
 const legalCopy = {
   privacy: {
@@ -398,7 +409,11 @@ function UpdatesPage({ language, setLanguage }) {
       <header className="legal-page-header">
         <p className="eyebrow">Zeravue</p>
         <h1>{language === "ko" ? "업데이트 로그" : "Build Updates"}</h1>
-        <p>{language === "ko" ? "최근 작업과 UI 개선 내역을 기록합니다." : "Recent product and UI updates."}</p>
+        <p>
+          {language === "ko"
+            ? "최근 작업과 UI 개선 내역을 기록합니다. 각 로그는 작업 의도와 변경 범주를 함께 표시합니다."
+            : "Recent product and UI updates with intent and change areas."}
+        </p>
       </header>
       <div className="legal-page-sections updates-list-page">
         {buildLogs.map((item) => (
@@ -407,6 +422,13 @@ function UpdatesPage({ language, setLanguage }) {
               <a href={`/updates/${item.slug}`}>{item.title[language] || item.title.en}</a>
             </h2>
             <p>{item.summary[language] || item.summary.en}</p>
+            {item.areas?.[language]?.length ? (
+              <div className="update-area-tags" aria-label={language === "ko" ? "변경 범주" : "Change areas"}>
+                {item.areas[language].map((area) => (
+                  <span key={area}>{area}</span>
+                ))}
+              </div>
+            ) : null}
             <small>{item.date}</small>
           </section>
         ))}
@@ -441,12 +463,44 @@ function UpdateDetailPage({ language, setLanguage, slug }) {
         <p>{item.summary[language] || item.summary.en}</p>
         <small>{item.date}</small>
       </header>
+      <div className="legal-page-sections updates-detail-page">
+        {item.areas?.[language]?.length ? (
+          <section>
+            <h2>{language === "ko" ? "변경 범주" : "Change areas"}</h2>
+            <div className="update-area-tags">
+              {item.areas[language].map((area) => (
+                <span key={area}>{area}</span>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {item.highlights?.[language]?.length ? (
+          <section>
+            <h2>{language === "ko" ? "핵심 변경" : "Highlights"}</h2>
+            <ul>
+              {item.highlights[language].map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        {item.next?.[language]?.length ? (
+          <section>
+            <h2>{language === "ko" ? "다음 작업 후보" : "Next candidates"}</h2>
+            <ol>
+              {item.next[language].map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
+      </div>
     </main>
   );
 }
 
 function AboutPage({ language, setLanguage }) {
-  const copy = aboutCopy[language] || aboutCopy.en;
+  const copy = platformAboutCopy[language] || platformAboutCopy.en;
 
   return (
     <main className="legal-page">
@@ -535,7 +589,16 @@ export function RootApp() {
       }
     };
     const defaults = seoByPath["/"];
-    const resolved = path.startsWith("/updates/") ? seoByPath["/updates"] : seoByPath[path] || defaults;
+    const updateSlug = path.startsWith("/updates/") ? path.replace("/updates/", "") : "";
+    const updateItem = updateSlug ? buildLogs.find((item) => item.slug === updateSlug) : null;
+    const resolved = updateItem
+      ? {
+          title: `${updateItem.title[language] || updateItem.title.en} · Zeravue`,
+          description: updateItem.summary[language] || updateItem.summary.en
+        }
+      : path.startsWith("/updates/")
+        ? seoByPath["/updates"]
+        : seoByPath[path] || defaults;
     const baseUrl = window.location.origin || "https://zeravue.xyz";
 
     document.title = resolved.title;
@@ -555,16 +618,9 @@ export function RootApp() {
   }, [path]);
 
   useEffect(() => {
-    if (path === "/aurora") {
-      switchTheme("aurora-night");
-      return;
-    }
-    if (path === "/aurora-live") {
-      switchTheme("aurora-night");
-      return;
-    }
-    if (path === "/night-sky") {
-      switchTheme("night-sky");
+    const themeRoute = getThemeRouteConfig(path);
+    if (themeRoute?.themeId) {
+      switchTheme(themeRoute.themeId);
     }
   }, [path, switchTheme]);
 
@@ -573,16 +629,16 @@ export function RootApp() {
       return <HomePage language={language} setLanguage={setLanguage} />;
     }
 
-    if (path === "/aurora") {
-      return <NightSkyApp forcedLanguage={language} setForcedLanguage={setLanguage} showThemeSwitcher={false} auroraRenderer="css" />;
-    }
-
-    if (path === "/aurora-live") {
-      return <NightSkyApp forcedLanguage={language} setForcedLanguage={setLanguage} showThemeSwitcher={false} auroraRenderer="webgl" />;
-    }
-
-    if (path === "/night-sky") {
-      return <NightSkyApp forcedLanguage={language} setForcedLanguage={setLanguage} showThemeSwitcher={false} />;
+    const themeRoute = getThemeRouteConfig(path);
+    if (themeRoute) {
+      return (
+        <NightSkyApp
+          forcedLanguage={language}
+          setForcedLanguage={setLanguage}
+          showThemeSwitcher={false}
+          auroraRenderer={themeRoute.auroraRenderer || "css"}
+        />
+      );
     }
 
     if (path === "/admin") {

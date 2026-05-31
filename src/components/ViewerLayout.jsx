@@ -15,6 +15,7 @@ function ViewerHeader({
   currentThemeId,
   switchTheme,
   sketchEnabled = true,
+  showPageSwitcher = true,
   showThemeSwitcher = true,
   homeHref = "/"
 }) {
@@ -59,14 +60,16 @@ function ViewerHeader({
       </div>
       <div className="topbar-controls">
         <div className="topbar-controls-row">
-          <div className="page-switcher" aria-label={dictionary.viewer.pageMode}>
-            <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
-              {dictionary.viewer.pages.watch}
-            </button>
-            <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!sketchEnabled}>
-              {dictionary.viewer.pages.sketch}
-            </button>
-          </div>
+          {showPageSwitcher ? (
+            <div className="page-switcher" aria-label={dictionary.viewer.pageMode}>
+              <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
+                {dictionary.viewer.pages.watch}
+              </button>
+              <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!sketchEnabled}>
+                {dictionary.viewer.pages.sketch}
+              </button>
+            </div>
+          ) : null}
           <div className="language-switcher" aria-label="Language">
             <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
               EN
