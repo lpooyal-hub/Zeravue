@@ -88,6 +88,11 @@ jobs:
     steps:
       - name: Verify production deploy secrets and path split
         env:
+          PROD_DEPLOY_SSH_KEY: ${{ secrets.PROD_DEPLOY_SSH_KEY }}
+          PROD_DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
+          PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
+          PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
+          PROD_DEPLOY_USER: ${{ secrets.PROD_DEPLOY_USER }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
@@ -95,15 +100,28 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEV_DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
         run: |
-          for key in DEPLOY_SSH_KEY DEPLOY_HOST DEPLOY_PATH DEPLOY_PORT DEPLOY_USER; do
+          PROD_KEY="${PROD_DEPLOY_SSH_KEY:-$DEPLOY_SSH_KEY}"
+          PROD_HOST="${PROD_DEPLOY_HOST:-$DEPLOY_HOST}"
+          PROD_PATH="${PROD_DEPLOY_PATH:-$DEPLOY_PATH}"
+          PROD_PORT="${PROD_DEPLOY_PORT:-$DEPLOY_PORT}"
+          PROD_USER="${PROD_DEPLOY_USER:-$DEPLOY_USER}"
+
+          for key in PROD_KEY PROD_HOST PROD_PATH PROD_PORT PROD_USER; do
             if [ -z "${!key}" ]; then
-              echo "Missing required secret: $key"
+              echo "Missing required production deploy setting: $key"
               exit 1
             fi
           done
-          if [ -n "$DEV_DEPLOY_PATH" ] && [ "$DEV_DEPLOY_PATH" = "$DEPLOY_PATH" ]; then
-            echo "DEPLOY_PATH and DEV_DEPLOY_PATH must be different."
+
+          if [ -n "$DEV_DEPLOY_PATH" ] && [ "$DEV_DEPLOY_PATH" = "$PROD_PATH" ]; then
+            echo "Production deploy path and DEV_DEPLOY_PATH must be different."
             exit 1
+          fi
+
+          if [ -n "$PROD_DEPLOY_PATH" ]; then
+            echo "Using production path from PROD_DEPLOY_PATH."
+          else
+            echo "PROD_DEPLOY_PATH not set; falling back to DEPLOY_PATH."
           fi
 
       - name: Check out repository
@@ -111,27 +129,41 @@ jobs:
 
       - name: Configure SSH key
         env:
+          PROD_DEPLOY_SSH_KEY: ${{ secrets.PROD_DEPLOY_SSH_KEY }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
+          PROD_KEY="${PROD_DEPLOY_SSH_KEY:-$DEPLOY_SSH_KEY}"
           mkdir -p ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$PROD_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
       - name: Add server to known hosts
         env:
+          PROD_DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
+          PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
-          ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          PROD_HOST="${PROD_DEPLOY_HOST:-$DEPLOY_HOST}"
+          PROD_PORT="${PROD_DEPLOY_PORT:-$DEPLOY_PORT}"
+          ssh-keyscan -p "${PROD_PORT:-22}" -H "$PROD_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy over SSH
         env:
+          PROD_DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
+          PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
+          PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
+          PROD_DEPLOY_USER: ${{ secrets.PROD_DEPLOY_USER }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" "bash -lc 'cd \"${DEPLOY_PATH}\" && ./scripts/deploy.sh main prod'"
+          PROD_HOST="${PROD_DEPLOY_HOST:-$DEPLOY_HOST}"
+          PROD_PATH="${PROD_DEPLOY_PATH:-$DEPLOY_PATH}"
+          PROD_PORT="${PROD_DEPLOY_PORT:-$DEPLOY_PORT}"
+          PROD_USER="${PROD_DEPLOY_USER:-$DEPLOY_USER}"
+          ssh -i ~/.ssh/deploy_key -p "${PROD_PORT:-22}" "${PROD_USER}@${PROD_HOST}" "bash -lc 'cd \"${PROD_PATH}\" && ./scripts/deploy.sh main prod'"
 
   deploy-dev:
     name: Deploy Development (dev)

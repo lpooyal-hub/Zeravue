@@ -770,6 +770,19 @@ label span,
   gap: 14px;
 }
 
+.workspace.is-focus-mode {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace.is-focus-mode .control-panel,
+.workspace.is-focus-mode .inspector-panel {
+  display: none;
+}
+
+.workspace.is-focus-mode .viewer {
+  grid-column: 1 / -1;
+}
+
 .control-panel,
 .inspector-panel {
   display: grid;
@@ -916,6 +929,28 @@ input[type="range"] {
     radial-gradient(circle at 50% 72%, rgba(19, 37, 74, 0.2), transparent 44%),
     linear-gradient(180deg, #00050f, #00020a 42%, #000008);
   box-shadow: 0 20px 54px rgba(0, 0, 0, 0.3);
+}
+
+.viewer-focus-mode-toggle {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 16;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 194, 229, 0.32);
+  background: rgba(8, 14, 24, 0.78);
+  color: #ebf3ff;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.viewer-focus-mode-toggle:hover {
+  border-color: rgba(255, 207, 112, 0.7);
+  color: #ffdf9f;
 }
 
 .viewer canvas {

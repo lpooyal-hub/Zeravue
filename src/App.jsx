@@ -76,6 +76,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const viewerUiTimerRef = useRef(null);
   const [viewerUiVisible, setViewerUiVisible] = useState(true);
   const [controlsHiddenInFullscreen, setControlsHiddenInFullscreen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
   const [timeShiftCue, setTimeShiftCue] = useState(null);
   const timeShiftCueTimerRef = useRef(null);
   const previousObservedAtRef = useRef(observedAt);
@@ -272,6 +273,41 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       setCurrentPage("watch");
     }
   }, [currentPage, effectiveSketchEnabled]);
+
+  useEffect(() => {
+    if (currentPage !== "watch" || auroraWatchLayout) {
+      setFocusMode(false);
+    }
+  }, [auroraWatchLayout, currentPage]);
+
+  useEffect(() => {
+    function handleFocusModeShortcut(event) {
+      if (event.defaultPrevented || event.repeat) {
+        return;
+      }
+      if (event.key.toLowerCase() !== "f") {
+        return;
+      }
+      if (currentPage !== "watch" || auroraWatchLayout) {
+        return;
+      }
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      setFocusMode((current) => !current);
+    }
+
+    window.addEventListener("keydown", handleFocusModeShortcut);
+    return () => window.removeEventListener("keydown", handleFocusModeShortcut);
+  }, [auroraWatchLayout, currentPage]);
 
   useEffect(() => {
     const previousValue = previousObservedAtRef.current;
@@ -917,7 +953,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
             showThemeSwitcher={showThemeSwitcher}
             homeHref="/"
           />
-          <div className="workspace">
+          <div className={`workspace ${focusMode ? "is-focus-mode" : ""}`}>
         {auroraWatchLayout ? (
           <aside className="control-panel aurora-control-panel">
             <section>
@@ -1133,7 +1169,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               auroraSpeed={auroraSpeed}
             />
           )}
-          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout ? (
+          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout && !focusMode ? (
             <div className="viewer-viewmode-overlay" aria-label={dictionary.viewer.viewModeLabel}>
               {themeViewModes.map((mode) => (
                 <button key={mode} type="button" className={`focus-chip ${viewMode === mode ? "is-active" : ""}`} onClick={() => setViewMode(mode)}>
@@ -1142,7 +1178,17 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               ))}
             </div>
           ) : null}
-          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout ? (
+          {currentPage === "watch" && !auroraWatchLayout ? (
+            <button
+              type="button"
+              className="viewer-focus-mode-toggle"
+              title={language === "ko" ? "단축키 F" : "Shortcut: F"}
+              onClick={() => setFocusMode((current) => !current)}
+            >
+              {focusMode ? (language === "ko" ? "패널 보기" : "Show panels") : language === "ko" ? "집중 모드" : "Focus mode"}
+            </button>
+          ) : null}
+          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout && !focusMode ? (
             <ViewerFocusOverlay
               dictionary={dictionary}
               language={language}
@@ -1160,7 +1206,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               resetView={resetView}
             />
           ) : null}
-          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout && !auroraEnabled ? (
+          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout && !auroraEnabled && !focusMode ? (
             <section className="viewer-bottom-dock">
               <details className="viewer-bottom-dock-details">
                 <summary>{language === "ko" ? "무드 · 분위기 · 하늘 조정" : "Mood · Atmosphere · Sky tuning"}</summary>

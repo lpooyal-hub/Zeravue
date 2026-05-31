@@ -1,12 +1,14 @@
 import { useMemo } from "react";
 import * as THREE from "three";
+import { PROJECTION_GUIDE_Z, projectDomeRadiusFromAltitude } from "./starMath.js";
 
 export function ProjectionGuide({ dictionary, language }) {
   const ringGeometry = useMemo(() => {
     const points = [];
+    const radius = projectDomeRadiusFromAltitude(0);
     for (let index = 0; index <= 144; index += 1) {
       const angle = (index / 144) * Math.PI * 2;
-      points.push(Math.sin(angle) * 11.6, Math.cos(angle) * 11.6, -13.35);
+      points.push(Math.sin(angle) * radius, Math.cos(angle) * radius, PROJECTION_GUIDE_Z);
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
@@ -16,11 +18,10 @@ export function ProjectionGuide({ dictionary, language }) {
   const altitudeGeometries = useMemo(() => {
     return [30, 60].map((altitude) => {
       const points = [];
-      const zenithDistance = (90 - altitude) / 90;
-      const radius = THREE.MathUtils.lerp(0.35, 11.6, zenithDistance);
+      const radius = projectDomeRadiusFromAltitude(altitude);
       for (let index = 0; index <= 120; index += 1) {
         const angle = (index / 120) * Math.PI * 2;
-        points.push(Math.sin(angle) * radius, Math.cos(angle) * radius, -13.35);
+        points.push(Math.sin(angle) * radius, Math.cos(angle) * radius, PROJECTION_GUIDE_Z);
       }
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
@@ -38,10 +39,10 @@ export function ProjectionGuide({ dictionary, language }) {
           <lineBasicMaterial color="#7adcd4" transparent opacity={0.16} />
         </line>
       ))}
-      <TextSprite text={dictionary.viewer.cardinals.north[language]} position={[0, 12.3, -13.3]} color="#ffcf70" scale={1.7} />
-      <TextSprite text={dictionary.viewer.cardinals.east[language]} position={[12.35, 0, -13.3]} color="#ffcf70" scale={1.7} />
-      <TextSprite text={dictionary.viewer.cardinals.south[language]} position={[0, -12.3, -13.3]} color="#ffcf70" scale={1.7} />
-      <TextSprite text={dictionary.viewer.cardinals.west[language]} position={[-12.35, 0, -13.3]} color="#ffcf70" scale={1.7} />
+      <TextSprite text={dictionary.viewer.cardinals.north[language]} position={[0, 12.2, PROJECTION_GUIDE_Z + 0.02]} color="#ffcf70" scale={1.7} />
+      <TextSprite text={dictionary.viewer.cardinals.east[language]} position={[12.2, 0, PROJECTION_GUIDE_Z + 0.02]} color="#ffcf70" scale={1.7} />
+      <TextSprite text={dictionary.viewer.cardinals.south[language]} position={[0, -12.2, PROJECTION_GUIDE_Z + 0.02]} color="#ffcf70" scale={1.7} />
+      <TextSprite text={dictionary.viewer.cardinals.west[language]} position={[-12.2, 0, PROJECTION_GUIDE_Z + 0.02]} color="#ffcf70" scale={1.7} />
     </>
   );
 }

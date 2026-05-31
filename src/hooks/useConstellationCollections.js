@@ -1,5 +1,45 @@
 import { useMemo } from "react";
 
+const CONSTELLATION_ALIASES = {
+  Hercules: ["헤르쿨레스", "허큘리스"],
+  Centaurus: ["센타우루스"],
+  Cepheus: ["세페우스"],
+  Bootes: ["목자자리", "bootes"],
+  Scorpius: ["scorpio", "스콜피우스"],
+  Capricornus: ["capricorn", "염소궁"],
+  Aquarius: ["aquarian"],
+  Pisces: ["pisces", "물고기궁"],
+  "Ursa Major": ["big dipper", "북두칠성"],
+  "Ursa Minor": ["little dipper", "소곰자리"]
+};
+
+function normalizeQuery(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/자리$/g, "");
+}
+
+function buildConstellationSearchKeys(name, translated, language) {
+  const keys = new Set();
+  keys.add(name);
+  keys.add(translated);
+  keys.add(normalizeQuery(name));
+  keys.add(normalizeQuery(translated));
+
+  const aliases = CONSTELLATION_ALIASES[name] || [];
+  aliases.forEach((alias) => {
+    keys.add(alias);
+    keys.add(normalizeQuery(alias));
+  });
+
+  if (language === "ko") {
+    keys.add(`${translated}자리`);
+  }
+
+  return [...keys].filter(Boolean);
+}
+
 export function useConstellationCollections({
   stars,
   backendVisibleConstellations,
@@ -99,13 +139,15 @@ export function useConstellationCollections({
 
   const filteredConstellations = useMemo(() => {
     const query = constellationSearch.trim().toLowerCase();
+    const normalizedQuery = normalizeQuery(query);
     if (!query) {
       return focusConstellations;
     }
 
     return focusConstellations.filter((name) => {
       const translated = dictionary.constellations?.[name]?.[language] || name;
-      return name.toLowerCase().includes(query) || translated.toLowerCase().includes(query);
+      const keys = buildConstellationSearchKeys(name, translated, language);
+      return keys.some((key) => key.toLowerCase().includes(query) || normalizeQuery(key).includes(normalizedQuery));
     });
   }, [constellationSearch, dictionary.constellations, focusConstellations, language]);
 
