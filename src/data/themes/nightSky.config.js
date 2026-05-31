@@ -4,7 +4,7 @@ import { auroraNightTheme } from "./auroraNight.config.js";
  * Night Sky Theme Configuration
  * 
  * Defines the night-sky healing panorama experience:
- * - Quiet observation of stars
+ * - Quiet appreciation of stars
  * - Observer-based sky calculation
  * - Contemplative viewing modes
  */
@@ -18,12 +18,12 @@ export const nightSkyTheme = {
     ko: "밤하늘"
   },
   subtitle: {
-    en: "Quiet observation of the stars",
-    ko: "별의 조용한 관찰"
+    en: "Quiet rest under the stars",
+    ko: "별빛 아래 조용한 휴식"
   },
   description: {
-    en: "A peaceful, immersive night-sky viewing experience. Watch stars move across the horizon, track constellations, and sketch your own celestial patterns.",
-    ko: "고요하고 몰입적인 밤하늘 감상 경험. 별의 움직임을 따라보고, 별자리를 추적하고, 자신만의 천문 패턴을 그려보세요."
+    en: "A peaceful, immersive night-sky experience for resting with slow stars, soft motion, and personal sky sketches.",
+    ko: "느린 별빛과 부드러운 움직임, 나만의 하늘 스케치를 함께 즐기는 고요한 밤하늘 감상 경험입니다."
   },
 
   // Visual Design
@@ -44,9 +44,9 @@ export const nightSkyTheme = {
   defaultViewMode: "space",
   viewModeDescriptions: {
     space: "Drift through outer space. Stars surround you in all directions.",
-    observer: "View from Earth. See constellations rise and set with the horizon.",
-    panorama: "Horizon-focused panoramic view. Track changes in sky position.",
-    projection: "Map projection. See the entire celestial sphere in one view."
+    observer: "Look upward from a calm ground-level sky.",
+    panorama: "Let the horizon spread gently across the screen.",
+    projection: "See the sky as a soft circular scene."
   },
 
   // Control Configuration

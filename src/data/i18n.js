@@ -93,17 +93,17 @@ export const translations = {
   en: {
     languageName: "English",
     nav: {
-      observatory: "Observatory",
-      sky: "My Sky",
+      observatory: "Scenes",
+      sky: "My Space",
       zodiac: "Zodiac",
       planets: "Planets",
-      nasa: "NASA Feed"
+      nasa: "Sky Archive"
     },
     hero: {
-      eyebrow: "Interactive planetarium portfolio",
-      title: "Explore real planets, zodiac constellations, and tonight's visible sky.",
+      eyebrow: "Immersive digital rest",
+      title: "Choose a quiet scene and let it fill the screen.",
       lede:
-        "A richer astronomy showcase with NASA planet imagery, animated orbital motion, shooting stars, zodiac maps, and location-aware observing guidance.",
+        "Zeravue brings calm visual themes, gentle motion, and full-screen ambient viewing into one place.",
       planetsAction: "Explore planets",
       zodiacAction: "View zodiac"
     },
@@ -166,7 +166,7 @@ export const translations = {
       eyebrow: "Zeravue · Night Sky",
       title: "Let the night sky open up around you.",
       subtitle: "Open a scene, breathe, stay for a while.",
-      observer: "Observer",
+      observer: "Viewer",
       pageMode: "Page mode",
       themeLabel: "Theme",
       pages: {
@@ -176,15 +176,15 @@ export const translations = {
       viewModeLabel: "Sky view",
       viewModes: {
         space: "Space drift",
-        observer: "Observer view",
+        observer: "Looking up",
         panorama: "Panorama view",
-        projection: "Dome projection"
+        projection: "Dome circle"
       },
       viewModeDescriptions: {
         space: "A floating, in-space feeling where the constellations surround you instead of sitting on a dome.",
-        observer: "An upward-looking sky that feels closer to standing under the constellations.",
+        observer: "An upward-looking sky that feels closer to lying back beneath the constellations.",
         panorama: "A flatter, wider night sky that spreads more calmly across the screen.",
-        projection: "A fulldome-style fisheye layout prepared for overhead dome or ceiling projection work."
+        projection: "A circular sky layout that turns the scene into a softer ceiling-like view."
       },
       ambient: {
         on: "Ambient on",
@@ -207,7 +207,7 @@ export const translations = {
       resetView: "Reset view",
       controls: "Viewer controls",
       sketchControls: "Sketch controls",
-      observerCue: "Observer cue",
+      observerCue: "Viewing cue",
       lookingToward: "Looking toward",
       altitudeBands: {
         high: "High overhead",
@@ -223,10 +223,10 @@ export const translations = {
       starGlow: "Star glow",
       latitude: "Latitude",
       longitude: "Longitude",
-      observedAt: "Observed at",
-      limitingMagnitude: "Limiting magnitude",
+      observedAt: "Sky time",
+      limitingMagnitude: "Star exposure",
       maxStars: "Star density",
-      catalog: "Catalog",
+      catalog: "Source",
       useLocation: "Use my location",
       enterFullscreen: "Fullscreen",
       exitFullscreen: "Exit fullscreen",
@@ -356,9 +356,9 @@ export const translations = {
       overlay: {
         modes: {
           space: "A drifting space view where stars feel like they surround you instead of forming a dome",
-          observer: "An upward night sky where the constellations hang overhead more naturally",
+          observer: "An upward night sky where the constellations hang overhead more gently",
           panorama: "A wider night sky that stretches gently across the whole frame",
-          projection: "A circular fulldome projection layout shaped for dedicated dome or ceiling display"
+          projection: "A circular dome-like view for a softer whole-sky layout"
         },
         inspect: "Click stars to inspect them",
         screensaver: "Pure screensaver mode with slow camera drift",
@@ -428,17 +428,17 @@ export const translations = {
   ko: {
     languageName: "한국어",
     nav: {
-      observatory: "관측실",
-      sky: "내 하늘",
+      observatory: "장면",
+      sky: "내 공간",
       zodiac: "황도 12궁",
       planets: "행성",
-      nasa: "NASA 피드"
+      nasa: "하늘 아카이브"
     },
     hero: {
-      eyebrow: "인터랙티브 천문관 포트폴리오",
-      title: "실제 행성 이미지, 황도 별자리, 오늘 밤 보이는 하늘을 탐험하세요.",
+      eyebrow: "몰입형 디지털 휴식",
+      title: "지금 머물고 싶은 조용한 장면을 고르세요.",
       lede:
-        "NASA 행성 사진, 행성 궤도 애니메이션, 별똥별, 황도 별자리 지도, 위치 기반 관측 가이드를 담은 천문 쇼케이스입니다.",
+        "Zeravue는 차분한 시각 테마와 부드러운 움직임, 전체 화면 감상을 한곳에 담은 웹 경험입니다.",
       planetsAction: "행성 보기",
       zodiacAction: "황도 보기"
     },
@@ -501,7 +501,7 @@ export const translations = {
       eyebrow: "Zeravue · Night Sky",
       title: "밤하늘을 천천히 바라볼 수 있는 공간입니다.",
       subtitle: "장면을 열고, 숨을 고르고, 잠시 머무르세요.",
-      observer: "관측자",
+      observer: "감상자",
       pageMode: "페이지 모드",
       themeLabel: "테마",
       pages: {
@@ -511,15 +511,15 @@ export const translations = {
       viewModeLabel: "하늘 시점",
       viewModes: {
         space: "우주 시점",
-        observer: "관측자 시점",
+        observer: "올려보기",
         panorama: "파노라마 시점",
-        projection: "돔 프로젝션"
+        projection: "원형 하늘"
       },
       viewModeDescriptions: {
         space: "별자리가 돔처럼 얹히기보다, 내가 우주에 떠 있는 듯 주변을 감싸는 시점입니다.",
-        observer: "별자리 아래에 서서 올려다보는 느낌에 더 가까운 시점입니다.",
+        observer: "별자리 아래에 편히 누워 올려다보는 느낌에 더 가까운 시점입니다.",
         panorama: "화면 전체에 하늘이 넓게 퍼지는 더 평평한 감상용 시점입니다.",
-        projection: "위쪽으로 쏘는 전용 프로젝터를 염두에 둔 fulldome 형태의 원형 투영 시점입니다."
+        projection: "하늘 전체를 부드러운 원형 장면으로 펼쳐보는 시점입니다."
       },
       ambient: {
         on: "앰비언트 켜기",
@@ -542,7 +542,7 @@ export const translations = {
       resetView: "시점 초기화",
       controls: "뷰어 제어",
       sketchControls: "스케치 제어",
-      observerCue: "관측 안내",
+      observerCue: "감상 안내",
       lookingToward: "바라보는 방향",
       altitudeBands: {
         high: "머리 위로 높이 떠 있음",
@@ -558,10 +558,10 @@ export const translations = {
       starGlow: "별빛 강도",
       latitude: "위도",
       longitude: "경도",
-      observedAt: "관측 시각",
-      limitingMagnitude: "제한 등급",
+      observedAt: "하늘 시각",
+      limitingMagnitude: "별 노출",
       maxStars: "별 밀도",
-      catalog: "카탈로그",
+      catalog: "소스",
       useLocation: "내 위치 사용",
       enterFullscreen: "전체 화면",
       exitFullscreen: "전체 화면 종료",
@@ -691,9 +691,9 @@ export const translations = {
       overlay: {
         modes: {
           space: "별자리가 돔처럼 얹히지 않고, 우주에서 둘러싸인 듯 보이는 시점",
-          observer: "머리 위로 별자리가 걸린 듯한, 올려다보는 밤하늘",
+          observer: "머리 위로 별자리가 조용히 걸린 듯한 올려보기 밤하늘",
           panorama: "화면 전체에 하늘이 더 넓게 펼쳐지는 파노라마 밤하늘",
-          projection: "전용 천장·돔 프로젝션을 위한 원형 fulldome 투영 시점"
+          projection: "하늘 전체를 둥글게 펼쳐 보는 부드러운 원형 시점"
         },
         inspect: "별을 눌러 상세 정보를 확인",
         screensaver: "느린 카메라 전환으로 감상하는 화면보호기 모드",
@@ -708,7 +708,7 @@ export const translations = {
       aboveHorizon: "지평선 위",
       belowHorizon: "지평선 아래",
       pickHint: "별을 선택해 정보를 확인하세요.",
-      observerConstellationHint: "지금 관측자 하늘에서 비교적 높고 또렷하게 걸린 별자리들입니다.",
+      observerConstellationHint: "지금 올려보기 화면에서 비교적 높고 또렷하게 걸린 별자리들입니다.",
       cardinals: {
         north: { en: "North", ko: "북" },
         east: { en: "East", ko: "동" },

@@ -166,7 +166,7 @@ function WatchControlsPanel({
         {viewMode === "observer" ? (
           <>
             <div className="observer-moment-card">
-              <strong>{language === "ko" ? "현재 관측 시각" : "Observer time"}</strong>
+              <strong>{language === "ko" ? "현재 하늘 시각" : "Sky time"}</strong>
               <span>{observerMomentLabel}</span>
               <small>
                 {language === "ko"

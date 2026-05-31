@@ -14,7 +14,7 @@ const buildLogs = [
     },
     summary: {
       en: "Moved key controls closer to the canvas, merged long left-panel blocks into a bottom dock, and stabilized observer time feedback.",
-      ko: "핵심 조작을 캔버스 근처로 옮기고 좌측 긴 카드들을 하단 도킹으로 통합했으며, 관측자 시간 피드백을 안정화했습니다."
+      ko: "핵심 조작을 캔버스 근처로 옮기고 좌측 긴 카드들을 하단 도킹으로 통합했으며, 하늘 시각 피드백을 안정화했습니다."
     }
   }
 ];
@@ -122,7 +122,7 @@ function HomePage({ language, setLanguage }) {
       <div className="theme-home-grid">
         <a className="theme-home-card" href="/night-sky" onClick={(event) => enterTheme(event, "/night-sky")}>
           <strong>{dictionary.viewer.pages.watch}</strong>
-          <small>{language === "ko" ? "별자리와 밤하늘을 감상합니다." : "Observe stars and constellations in a quiet sky."}</small>
+          <small>{language === "ko" ? "별자리와 밤하늘을 조용히 감상합니다." : "Settle into a quiet sky of stars and constellations."}</small>
         </a>
         <a className="theme-home-card" href="/aurora" onClick={(event) => enterTheme(event, "/aurora")}>
           <strong>{language === "ko" ? "오로라 감상" : "Aurora Night"}</strong>
@@ -175,12 +175,12 @@ const aboutCopy = {
       {
         heading: "What we build",
         body:
-          "Zeravue provides theme-based immersive pages with distinct moods and interaction styles. Each theme is designed to help users pause, observe, and stay present."
+          "Zeravue provides theme-based immersive pages with distinct moods and interaction styles. Each theme is designed to help users pause, settle in, and stay present."
       },
       {
         heading: "How it works",
         body:
-          "The viewer uses local rendering and lightweight state to keep interaction responsive. Star visibility, labels, and observer-time adjustments are tuned for readability first, while optional analytics and ad settings remain separate from core controls."
+          "The viewer uses local rendering and lightweight state to keep interaction responsive. Star visibility, labels, and sky-time adjustments are tuned for readability first, while optional analytics and ad settings remain separate from core controls."
       },
       {
         heading: "Updates and transparency",
@@ -208,7 +208,7 @@ const aboutCopy = {
       {
         heading: "동작 방식",
         body:
-          "사용자는 전체 화면 환경에서 별자리, 하늘 변화, 분위기 연출을 관찰하며 조용한 디지털 휴식 시간을 가질 수 있습니다. 뷰어는 로컬 렌더링과 가벼운 상태 관리를 사용해 반응성을 유지하며, 별 표시와 관측 시각 제어는 가독성을 기준으로 조정됩니다."
+          "사용자는 전체 화면 환경에서 별자리, 하늘 변화, 분위기 연출을 감상하며 조용한 디지털 휴식 시간을 가질 수 있습니다. 뷰어는 로컬 렌더링과 가벼운 상태 관리를 사용해 반응성을 유지하며, 별 표시와 하늘 시각 제어는 가독성을 기준으로 조정됩니다."
       },
       {
         heading: "업데이트 공개",

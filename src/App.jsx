@@ -605,7 +605,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               : "near the horizon";
       lines.push(
         language === "ko"
-          ? `지금은 ${altitudeBand}에서 관측하기 좋은 흐름입니다.`
+          ? `지금은 ${altitudeBand}에서 감상하기 좋은 흐름입니다.`
           : `Right now it reads best in the ${altitudeBand}.`
       );
     }
@@ -1185,7 +1185,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
               title={language === "ko" ? "단축키 F" : "Shortcut: F"}
               onClick={() => setFocusMode((current) => !current)}
             >
-              {focusMode ? (language === "ko" ? "패널 보기" : "Show panels") : language === "ko" ? "집중 모드" : "Focus mode"}
+              {focusMode ? (language === "ko" ? "패널 보기" : "Show panels") : language === "ko" ? "몰입 모드" : "Immersive mode"}
             </button>
           ) : null}
           {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout && !focusMode ? (
@@ -1217,8 +1217,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
                     <p>{activeConstellationStory}</p>
                     {activeConstellationKey && activeConstellationKey !== "all" ? (
                       <div className="story-state-row">
-                        <span className="story-state-pill">{viewMode === "observer" ? (language === "ko" ? "관측자 시점" : "Observer view") : dictionary.viewer.viewModes[viewMode]}</span>
-                        <span className="story-state-pill">{activeConstellationIsFavorite ? (language === "ko" ? "즐겨찾기됨" : "Favorited") : language === "ko" ? "관측 중" : "In focus"}</span>
+                        <span className="story-state-pill">{viewMode === "observer" ? (language === "ko" ? "올려보기" : "Looking up") : dictionary.viewer.viewModes[viewMode]}</span>
+                        <span className="story-state-pill">{activeConstellationIsFavorite ? (language === "ko" ? "즐겨찾기됨" : "Favorited") : language === "ko" ? "감상 중" : "In focus"}</span>
                       </div>
                     ) : null}
                     {constellationStoryStateLines.length ? (
