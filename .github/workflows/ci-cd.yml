@@ -89,19 +89,15 @@ jobs:
       - name: Verify production deploy secrets and path split
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          PROD_DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
-          PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
-          PROD_DEPLOY_USER: ${{ secrets.PROD_DEPLOY_USER }}
           DEV_DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
         run: |
-          DEPLOY_KEY="$DEPLOY_SSH_KEY"
-          PROD_HOST="$PROD_DEPLOY_HOST"
           PROD_PATH="$PROD_DEPLOY_PATH"
-          PROD_PORT="$PROD_DEPLOY_PORT"
-          PROD_USER="$PROD_DEPLOY_USER"
 
-          for key in DEPLOY_KEY PROD_HOST PROD_PATH PROD_PORT PROD_USER; do
+          for key in DEPLOY_SSH_KEY DEPLOY_HOST DEPLOY_PORT DEPLOY_USER PROD_DEPLOY_PATH; do
             if [ -z "${!key}" ]; then
               echo "Missing required production deploy setting: $key"
               exit 1
@@ -128,19 +124,19 @@ jobs:
 
       - name: Add server to known hosts
         env:
-          PROD_DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
-          PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
-          ssh-keyscan -p "${PROD_DEPLOY_PORT:-22}" -H "$PROD_DEPLOY_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy over SSH
         env:
-          PROD_DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
-          PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
-          PROD_DEPLOY_USER: ${{ secrets.PROD_DEPLOY_USER }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p "${PROD_DEPLOY_PORT:-22}" "${PROD_DEPLOY_USER}@${PROD_DEPLOY_HOST}" "bash -lc 'cd \"${PROD_DEPLOY_PATH}\" && ./scripts/deploy.sh main prod'"
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" "bash -lc 'cd \"${PROD_DEPLOY_PATH}\" && ./scripts/deploy.sh main prod'"
 
   deploy-dev:
     name: Deploy Development (dev)
@@ -152,13 +148,13 @@ jobs:
       - name: Verify development deploy secrets
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEV_DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEV_DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
-          DEV_DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT }}
-          DEV_DEPLOY_USER: ${{ secrets.DEV_DEPLOY_USER }}
           PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
         run: |
-          for key in DEPLOY_SSH_KEY DEV_DEPLOY_HOST DEV_DEPLOY_PATH DEV_DEPLOY_PORT DEV_DEPLOY_USER; do
+          for key in DEPLOY_SSH_KEY DEPLOY_HOST DEPLOY_PORT DEPLOY_USER DEV_DEPLOY_PATH; do
             if [ -z "${!key}" ]; then
               echo "Missing required secret: $key"
               exit 1
@@ -182,16 +178,16 @@ jobs:
 
       - name: Add server to known hosts
         env:
-          DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy over SSH
         env:
-          DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
-          DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT }}
-          DEPLOY_USER: ${{ secrets.DEV_DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
           ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" "bash -lc 'cd \"${DEPLOY_PATH}\" && ./scripts/deploy.sh dev dev'"
