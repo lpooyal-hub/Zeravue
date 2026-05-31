@@ -88,25 +88,20 @@ jobs:
     steps:
       - name: Verify production deploy secrets and path split
         env:
-          PROD_DEPLOY_SSH_KEY: ${{ secrets.PROD_DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           PROD_DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
           PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
           PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
           PROD_DEPLOY_USER: ${{ secrets.PROD_DEPLOY_USER }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEV_DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
         run: |
-          PROD_KEY="${PROD_DEPLOY_SSH_KEY:-$DEPLOY_SSH_KEY}"
-          PROD_HOST="${PROD_DEPLOY_HOST:-$DEPLOY_HOST}"
-          PROD_PATH="${PROD_DEPLOY_PATH:-$DEPLOY_PATH}"
-          PROD_PORT="${PROD_DEPLOY_PORT:-$DEPLOY_PORT}"
-          PROD_USER="${PROD_DEPLOY_USER:-$DEPLOY_USER}"
+          DEPLOY_KEY="$DEPLOY_SSH_KEY"
+          PROD_HOST="$PROD_DEPLOY_HOST"
+          PROD_PATH="$PROD_DEPLOY_PATH"
+          PROD_PORT="$PROD_DEPLOY_PORT"
+          PROD_USER="$PROD_DEPLOY_USER"
 
-          for key in PROD_KEY PROD_HOST PROD_PATH PROD_PORT PROD_USER; do
+          for key in DEPLOY_KEY PROD_HOST PROD_PATH PROD_PORT PROD_USER; do
             if [ -z "${!key}" ]; then
               echo "Missing required production deploy setting: $key"
               exit 1
@@ -118,35 +113,25 @@ jobs:
             exit 1
           fi
 
-          if [ -n "$PROD_DEPLOY_PATH" ]; then
-            echo "Using production path from PROD_DEPLOY_PATH."
-          else
-            echo "PROD_DEPLOY_PATH not set; falling back to DEPLOY_PATH."
-          fi
+          echo "Using production path from PROD_DEPLOY_PATH."
 
       - name: Check out repository
         uses: actions/checkout@v5
 
       - name: Configure SSH key
         env:
-          PROD_DEPLOY_SSH_KEY: ${{ secrets.PROD_DEPLOY_SSH_KEY }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
-          PROD_KEY="${PROD_DEPLOY_SSH_KEY:-$DEPLOY_SSH_KEY}"
           mkdir -p ~/.ssh
-          printf '%s\n' "$PROD_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
       - name: Add server to known hosts
         env:
           PROD_DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
           PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
-          PROD_HOST="${PROD_DEPLOY_HOST:-$DEPLOY_HOST}"
-          PROD_PORT="${PROD_DEPLOY_PORT:-$DEPLOY_PORT}"
-          ssh-keyscan -p "${PROD_PORT:-22}" -H "$PROD_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "${PROD_DEPLOY_PORT:-22}" -H "$PROD_DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy over SSH
         env:
@@ -154,16 +139,8 @@ jobs:
           PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
           PROD_DEPLOY_PORT: ${{ secrets.PROD_DEPLOY_PORT }}
           PROD_DEPLOY_USER: ${{ secrets.PROD_DEPLOY_USER }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
-          PROD_HOST="${PROD_DEPLOY_HOST:-$DEPLOY_HOST}"
-          PROD_PATH="${PROD_DEPLOY_PATH:-$DEPLOY_PATH}"
-          PROD_PORT="${PROD_DEPLOY_PORT:-$DEPLOY_PORT}"
-          PROD_USER="${PROD_DEPLOY_USER:-$DEPLOY_USER}"
-          ssh -i ~/.ssh/deploy_key -p "${PROD_PORT:-22}" "${PROD_USER}@${PROD_HOST}" "bash -lc 'cd \"${PROD_PATH}\" && ./scripts/deploy.sh main prod'"
+          ssh -i ~/.ssh/deploy_key -p "${PROD_DEPLOY_PORT:-22}" "${PROD_DEPLOY_USER}@${PROD_DEPLOY_HOST}" "bash -lc 'cd \"${PROD_DEPLOY_PATH}\" && ./scripts/deploy.sh main prod'"
 
   deploy-dev:
     name: Deploy Development (dev)
@@ -174,21 +151,21 @@ jobs:
     steps:
       - name: Verify development deploy secrets
         env:
-          DEV_DEPLOY_SSH_KEY: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEV_DEPLOY_HOST: ${{ secrets.DEV_DEPLOY_HOST }}
           DEV_DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}
           DEV_DEPLOY_PORT: ${{ secrets.DEV_DEPLOY_PORT }}
           DEV_DEPLOY_USER: ${{ secrets.DEV_DEPLOY_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
         run: |
-          for key in DEV_DEPLOY_SSH_KEY DEV_DEPLOY_HOST DEV_DEPLOY_PATH DEV_DEPLOY_PORT DEV_DEPLOY_USER; do
+          for key in DEPLOY_SSH_KEY DEV_DEPLOY_HOST DEV_DEPLOY_PATH DEV_DEPLOY_PORT DEV_DEPLOY_USER; do
             if [ -z "${!key}" ]; then
               echo "Missing required secret: $key"
               exit 1
             fi
           done
-          if [ -n "$DEPLOY_PATH" ] && [ "$DEPLOY_PATH" = "$DEV_DEPLOY_PATH" ]; then
-            echo "DEV_DEPLOY_PATH and DEPLOY_PATH must be different."
+          if [ -n "$PROD_DEPLOY_PATH" ] && [ "$PROD_DEPLOY_PATH" = "$DEV_DEPLOY_PATH" ]; then
+            echo "DEV_DEPLOY_PATH and PROD_DEPLOY_PATH must be different."
             exit 1
           fi
 
@@ -197,7 +174,7 @@ jobs:
 
       - name: Configure SSH key
         env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
