@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
 import { AuroraExperience } from "./components/experiences/AuroraExperience.jsx";
 import { NightSkyExperience } from "./components/experiences/NightSkyExperience.jsx";
+import { RainWindowExperience } from "./components/experiences/RainWindowExperience.jsx";
 import { config } from "./config.js";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { useAmbientAudio } from "./hooks/useAmbientAudio.js";
@@ -62,6 +63,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [resetViewToken, setResetViewToken] = useState(0);
   const [auroraIntensity, setAuroraIntensity] = useState(0.54);
   const [auroraSpeed, setAuroraSpeed] = useState(0.39);
+  const [rainIntensity, setRainIntensity] = useState(0.56);
+  const [rainFlow, setRainFlow] = useState(0.42);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [controlsHiddenInFullscreen, setControlsHiddenInFullscreen] = useState(false);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
@@ -162,11 +165,14 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const { updateObserver, requestLocation, toggleFavoriteConstellation, selectTarget, shiftTime, changeZoom, resetView } = watchWorkspace;
   const sketchEnabled = currentTheme?.features?.sketching !== false;
   const auroraEnabled = currentThemeId === "aurora-night";
+  const rainEnabled = currentThemeId === "rain-window";
+  const immersiveThemeEnabled = auroraEnabled || rainEnabled;
   const auroraWatchLayout = auroraEnabled && currentPage === "watch";
-  const effectiveSketchEnabled = auroraEnabled ? false : sketchEnabled;
+  const rainWatchLayout = rainEnabled && currentPage === "watch";
+  const effectiveSketchEnabled = immersiveThemeEnabled ? false : sketchEnabled;
   const { eyebrow: headerEyebrow, title: headerTitle, subtitle: headerSubtitle } = useMemo(
-    () => getThemeHeaderCopy({ auroraEnabled, language, dictionary }),
-    [auroraEnabled, dictionary, language]
+    () => getThemeHeaderCopy({ currentThemeId, language, dictionary }),
+    [currentThemeId, dictionary, language]
   );
   const themeViewModes = useMemo(() => getThemeViewModes(currentTheme), [currentTheme]);
   const autoEnterTargetRef = useRef(null);
@@ -324,7 +330,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   }, [currentPage, effectiveSketchEnabled]);
 
   useEffect(() => {
-    if (!auroraEnabled) {
+    if (!immersiveThemeEnabled) {
       return;
     }
     setCurrentPage("watch");
@@ -333,7 +339,14 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     setShowLabels(false);
     setFocusedConstellation("all");
     setTrackConstellation(false);
-  }, [auroraEnabled]);
+  }, [immersiveThemeEnabled]);
+
+  useEffect(() => {
+    if (!rainWatchLayout) {
+      return;
+    }
+    ensureAmbientOn();
+  }, [ensureAmbientOn, rainWatchLayout]);
 
   useEffect(() => {
     const defaultViewMode = currentTheme?.defaultViewMode;
@@ -355,6 +368,10 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     let cancelled = false;
 
     async function loadScene() {
+      if (immersiveThemeEnabled) {
+        setSceneState({ status: "ready", data: null, error: "" });
+        return;
+      }
       setSceneState((current) => ({ ...current, status: "loading", error: "" }));
 
       try {
@@ -386,12 +403,13 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     return () => {
       cancelled = true;
     };
-  }, [observer.latitude, observer.longitude, observedAt, effectiveLimitingMagnitude, effectiveMaxStars]);
+  }, [observer.latitude, observer.longitude, observedAt, effectiveLimitingMagnitude, effectiveMaxStars, immersiveThemeEnabled]);
 
   const selectedStar = useMemo(
     () => (selectedTarget?.kind === "star" ? sceneState.data?.stars.find((star) => star.id === selectedTarget.id) || null : null),
     [sceneState.data, selectedTarget]
   );
+  const selectedSolarBody = useMemo(() => (selectedTarget?.kind === "solar-body" ? selectedTarget : null), [selectedTarget]);
   const visibleConstellations = sceneState.data?.summary.visibleConstellations || [];
   const selectedCustomStar = useMemo(
     () => (selectedTarget?.kind === "custom-star" ? activeCreativeScene?.stars.find((star) => star.id === selectedTarget.id) || null : null),
@@ -535,6 +553,44 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
         : ambientStatus === "error"
           ? dictionary.viewer.ambient.errorHint
           : dictionary.viewer.ambient.hint;
+
+  const applyNightSkyPreset = (preset) => {
+    if (preset === "calm") {
+      setAtmosphereStrength(0.9);
+      setStarGlowStrength(0.56);
+      setLimitingMagnitude(4.6);
+      setMaxStars(2200);
+      setShowConstellations(true);
+      setShowLabels(false);
+      setShowGuides(false);
+      setAutoRotate(false);
+      setZoomLevel(0.42);
+      return;
+    }
+
+    if (preset === "deep") {
+      setAtmosphereStrength(0.48);
+      setStarGlowStrength(1);
+      setLimitingMagnitude(6);
+      setMaxStars(5200);
+      setShowConstellations(true);
+      setShowLabels(false);
+      setShowGuides(false);
+      setAutoRotate(true);
+      setZoomLevel(0.62);
+      return;
+    }
+
+    setAtmosphereStrength(0.7);
+    setStarGlowStrength(0.8);
+    setLimitingMagnitude(5.2);
+    setMaxStars(3600);
+    setShowConstellations(true);
+    setShowLabels(false);
+    setShowGuides(false);
+    setAutoRotate(true);
+    setZoomLevel(0.52);
+  };
   useEffect(() => {
     if (!importableConstellations.length) {
       setPresetConstellationName("");
@@ -594,6 +650,26 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           setAmbientVolume={setAmbientVolume}
           toggleFullscreen={toggleFullscreen}
         />
+      ) : rainWatchLayout ? (
+        <RainWindowExperience
+          isFullscreen={isFullscreen}
+          language={language}
+          updateLanguage={updateLanguage}
+          headerEyebrow={headerEyebrow}
+          headerTitle={headerTitle}
+          headerSubtitle={headerSubtitle}
+          ambientEnabled={ambientEnabled}
+          toggleAmbientSound={toggleAmbientSound}
+          ambientVolume={ambientVolume}
+          setAmbientVolume={setAmbientVolume}
+          toggleFullscreen={toggleFullscreen}
+          closeRainViewer={() => window.location.assign("/")}
+          rainIntensity={rainIntensity}
+          setRainIntensity={setRainIntensity}
+          rainFlow={rainFlow}
+          setRainFlow={setRainFlow}
+          ensureAmbientOn={ensureAmbientOn}
+        />
       ) : (
         <NightSkyExperience
           dictionary={dictionary}
@@ -645,6 +721,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           setAutoRotate={setAutoRotate}
           showGuides={showGuides}
           setShowGuides={setShowGuides}
+          applyNightSkyPreset={applyNightSkyPreset}
           auroraEnabled={auroraEnabled}
           auroraIntensity={auroraIntensity}
           setAuroraIntensity={setAuroraIntensity}
@@ -688,6 +765,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           resetView={resetView}
           constellationStoryStateLines={constellationStoryStateLines}
           selectedStar={selectedStar}
+          selectedSolarBody={selectedSolarBody}
           ambientTrackPending={ambientTrackPending}
           ambientTrackError={ambientTrackError}
           ambientEnabled={ambientEnabled}

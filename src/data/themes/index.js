@@ -1,9 +1,10 @@
 import { auroraNightTheme } from "./auroraNight.config.js";
 import { nightSkyTheme } from "./nightSky.config.js";
+import { rainWindowTheme } from "./rainWindow.config.js";
 
 export const DEFAULT_THEME_ID = "night-sky";
 
-export const ALL_THEMES = [nightSkyTheme, auroraNightTheme];
+export const ALL_THEMES = [nightSkyTheme, auroraNightTheme, rainWindowTheme];
 
 export const THEME_ROUTES = {
   "/night-sky": {
@@ -17,6 +18,10 @@ export const THEME_ROUTES = {
   "/aurora-live": {
     themeId: "aurora-night",
     auroraRenderer: "webgl"
+  },
+  "/rain-window": {
+    themeId: "rain-window",
+    auroraRenderer: null
   }
 };
 

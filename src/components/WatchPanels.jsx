@@ -83,6 +83,7 @@ function WatchControlsPanel({
   setAutoRotate,
   showGuides,
   setShowGuides,
+  applyNightSkyPreset,
   auroraEnabled,
   auroraIntensity,
   setAuroraIntensity,
@@ -224,6 +225,22 @@ function WatchControlsPanel({
             </label>
           </div>
         </details>
+        {!auroraEnabled ? (
+          <>
+            <p className="eyebrow">{language === "ko" ? "하늘 분위기 프리셋" : "Sky mood presets"}</p>
+            <div className="time-jump-row">
+              <button type="button" className="focus-chip" onClick={() => applyNightSkyPreset("calm")}>
+                {language === "ko" ? "잔잔한 밤" : "Calm night"}
+              </button>
+              <button type="button" className="focus-chip" onClick={() => applyNightSkyPreset("balanced")}>
+                {language === "ko" ? "기본 감상" : "Balanced"}
+              </button>
+              <button type="button" className="focus-chip" onClick={() => applyNightSkyPreset("deep")}>
+                {language === "ko" ? "깊은 하늘" : "Deep sky"}
+              </button>
+            </div>
+          </>
+        ) : null}
       </section>
 
       {!auroraEnabled ? (
@@ -261,6 +278,7 @@ function WatchInspectorPanel({
   dictionary,
   language,
   selectedStar,
+  selectedSolarBody,
   currentViewConstellationDetails,
   focusedConstellation,
   setFocusedConstellation,
@@ -322,7 +340,35 @@ function WatchInspectorPanel({
 
       <section>
         <p className="eyebrow">{dictionary.viewer.starInspector}</p>
-        {selectedStar ? (
+        {selectedSolarBody ? (
+          <>
+            <h2>{selectedSolarBody.name}</h2>
+            <p className="constellation-copy">{language === "ko" ? "태양계 천체" : "Solar system body"}</p>
+            <dl className="summary-list compact">
+              <div>
+                <dt>{dictionary.viewer.magnitude}</dt>
+                <dd>{selectedSolarBody.magnitude}</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.altitude}</dt>
+                <dd>{selectedSolarBody.altitude} deg</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.azimuth}</dt>
+                <dd>{selectedSolarBody.azimuth} deg</dd>
+              </div>
+            </dl>
+            {viewMode === "observer" ? (
+              <div className="observer-moment-card">
+                <strong>{dictionary.viewer.observerCue}</strong>
+                <span>
+                  {dictionary.viewer.lookingToward} {getCompassDirectionLabel(selectedSolarBody.azimuth, dictionary, language)}
+                </span>
+                <small>{getAltitudeBandLabel(selectedSolarBody.altitude, dictionary)}</small>
+              </div>
+            ) : null}
+          </>
+        ) : selectedStar ? (
           <>
             <h2>{selectedStar.name}</h2>
             <p className="constellation-copy">{dictionary.constellations?.[selectedStar.constellation]?.[language] || selectedStar.constellation}</p>

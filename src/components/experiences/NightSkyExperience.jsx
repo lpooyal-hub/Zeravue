@@ -54,6 +54,7 @@ export function NightSkyExperience(props) {
     setAutoRotate,
     showGuides,
     setShowGuides,
+    applyNightSkyPreset,
     auroraEnabled,
     auroraIntensity,
     setAuroraIntensity,
@@ -97,6 +98,7 @@ export function NightSkyExperience(props) {
     resetView,
     constellationStoryStateLines,
     selectedStar,
+    selectedSolarBody,
     ambientTrackPending,
     ambientTrackError,
     ambientEnabled,
@@ -227,6 +229,7 @@ export function NightSkyExperience(props) {
               setAutoRotate={setAutoRotate}
               showGuides={showGuides}
               setShowGuides={setShowGuides}
+              applyNightSkyPreset={applyNightSkyPreset}
               auroraEnabled={auroraEnabled}
               auroraIntensity={auroraIntensity}
               setAuroraIntensity={setAuroraIntensity}
@@ -454,6 +457,7 @@ export function NightSkyExperience(props) {
               dictionary={dictionary}
               language={language}
               selectedStar={selectedStar}
+              selectedSolarBody={selectedSolarBody}
               currentViewConstellationDetails={isSketchWatch ? [] : currentViewConstellationDetails}
               focusedConstellation={focusedConstellation}
               setFocusedConstellation={setFocusedConstellation}

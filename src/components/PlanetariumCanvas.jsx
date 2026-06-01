@@ -21,7 +21,7 @@ import {
   MilkyWayBand as MilkyWayBandView,
   SpaceDepthField as SpaceDepthFieldView
 } from "./canvas/SkyAtmosphere.jsx";
-import { BackgroundStarField, ConstellationLines, CustomSketchLines, PassiveStarGlow, StarMarker } from "./canvas/StarLayers.jsx";
+import { BackgroundStarField, ConstellationLines, CustomSketchLines, PassiveStarGlow, SolarBodyMarker, StarMarker } from "./canvas/StarLayers.jsx";
 import { buildConstellationCenters, projectSkyPosition } from "./canvas/starMath.js";
 import { CreativeSpaceScene } from "./canvas/CreativeSpaceScene.jsx";
 
@@ -145,6 +145,64 @@ function SceneContents({
   const observerMode = viewMode === "observer";
   const projectionMode = viewMode === "projection";
   const projectedStars = useMemo(() => scene.stars.map((star) => ({ ...star, ...projectSkyPosition(star, viewMode) })), [scene.stars, viewMode]);
+  const solarBodies = useMemo(() => {
+    const observedAt = scene?.observer?.observedAt;
+    const longitude = Number(scene?.observer?.longitude || 0);
+    if (!observedAt) {
+      return [];
+    }
+
+    const date = new Date(observedAt);
+    if (Number.isNaN(date.getTime())) {
+      return [];
+    }
+
+    const utcHour = date.getUTCHours() + date.getUTCMinutes() / 60;
+    const localSolarHour = ((utcHour + longitude / 15) % 24 + 24) % 24;
+
+    const sunAltitude = Math.sin(((localSolarHour - 6) / 12) * Math.PI) * 66;
+    const sunAzimuth = (localSolarHour / 24) * 360;
+    const moonHour = (localSolarHour + 2.8) % 24;
+    const moonAltitude = Math.sin(((moonHour - 8) / 12) * Math.PI) * 58;
+    const moonAzimuth = (moonHour / 24) * 360;
+    const venusHour = (localSolarHour + 1.4) % 24;
+    const venusAltitude = Math.sin(((venusHour - 7) / 12) * Math.PI) * 46;
+    const venusAzimuth = (venusHour / 24) * 360;
+    const jupiterHour = (localSolarHour + 5.2) % 24;
+    const jupiterAltitude = Math.sin(((jupiterHour - 9) / 12) * Math.PI) * 52;
+    const jupiterAzimuth = (jupiterHour / 24) * 360;
+    const marsHour = (localSolarHour + 8.5) % 24;
+    const marsAltitude = Math.sin(((marsHour - 10) / 12) * Math.PI) * 44;
+    const marsAzimuth = (marsHour / 24) * 360;
+
+    const bodies = [
+      { id: "sun", nameEn: "Sun", nameKo: "태양", altitude: sunAltitude, azimuth: sunAzimuth, magnitude: -26.7, color: "#ffe8a3", glowColor: "rgba(255, 220, 134, 0.55)", size: 0.88, pulse: 0.56 },
+      { id: "moon", nameEn: "Moon", nameKo: "달", altitude: moonAltitude, azimuth: moonAzimuth, magnitude: -12.0, color: "#d7e6ff", glowColor: "rgba(199, 223, 255, 0.45)", size: 0.68, pulse: 0.46 },
+      { id: "venus", nameEn: "Venus", nameKo: "금성", altitude: venusAltitude, azimuth: venusAzimuth, magnitude: -4.3, color: "#ffd79c", glowColor: "rgba(255, 205, 134, 0.34)", size: 0.45, pulse: 0.52 },
+      { id: "jupiter", nameEn: "Jupiter", nameKo: "목성", altitude: jupiterAltitude, azimuth: jupiterAzimuth, magnitude: -2.6, color: "#f7e4be", glowColor: "rgba(250, 222, 183, 0.28)", size: 0.42, pulse: 0.43 },
+      { id: "mars", nameEn: "Mars", nameKo: "화성", altitude: marsAltitude, azimuth: marsAzimuth, magnitude: -1.4, color: "#ff9f87", glowColor: "rgba(255, 147, 127, 0.26)", size: 0.4, pulse: 0.49 }
+    ];
+
+    return bodies
+      .filter((body) => body.altitude > -8)
+      .map((body) => {
+        const projected = projectSkyPosition(
+          {
+            id: `body-${body.id}`,
+            azimuth: body.azimuth,
+            altitude: Math.max(0, body.altitude),
+            magnitude: body.magnitude
+          },
+          viewMode
+        );
+        return {
+          ...body,
+          ...projected,
+          label: language === "ko" ? body.nameKo : body.nameEn,
+          opacity: body.altitude > 0 ? 0.78 : 0.38
+        };
+      });
+  }, [language, scene, viewMode]);
 
   const featuredStars = useMemo(
     () =>
@@ -487,6 +545,31 @@ function SceneContents({
         {!auroraEnabled ? labelData.constellationLabels.map((label) => (
           <TextSpriteView key={label.id} {...label} />
         )) : null}
+        {!auroraEnabled
+          ? solarBodies.map((body) => (
+              <SolarBodyMarker
+                key={body.id}
+                body={{
+                  ...body,
+                  selected: selectedTarget?.kind === "solar-body" && selectedTarget.id === body.id,
+                  onSelect: onSelectTarget
+                }}
+                viewMode={viewMode}
+              />
+            ))
+          : null}
+        {!auroraEnabled && showLabels
+          ? solarBodies.map((body) => (
+              <TextSpriteView
+                key={`body-label-${body.id}`}
+                id={`body-label-${body.id}`}
+                text={body.label}
+                position={[body.x, body.y + 0.55, body.z]}
+                color={body.id === "sun" ? "#ffe2a6" : body.id === "moon" ? "#dce7ff" : "#ffd8b8"}
+                scale={1.65}
+              />
+            ))
+          : null}
       </group>
     </>
   );

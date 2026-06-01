@@ -22,6 +22,18 @@ export const platformThemeCards = [
       en: "Enjoy a soft aurora atmosphere designed for slow, immersive viewing.",
       ko: "느리게 감상하기 좋은 부드러운 오로라 분위기 중심 테마입니다."
     }
+  },
+  {
+    id: "rain-window",
+    href: "/rain-window",
+    title: {
+      en: "Rain Window",
+      ko: "비 오는 창가"
+    },
+    description: {
+      en: "Listen to slow rain and distant city ambience in a quiet nighttime window scene.",
+      ko: "도시의 잔향과 함께 느린 빗소리를 감상하는 고요한 창가 테마입니다."
+    }
   }
 ];
 

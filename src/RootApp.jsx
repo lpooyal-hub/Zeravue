@@ -8,6 +8,48 @@ import { getThemeRouteConfig } from "./data/themes/index.js";
 
 const buildLogs = [
   {
+    slug: "2026-05-31",
+    date: "2026-05-31",
+    title: {
+      en: "Watch interaction repositioning and theme platform cleanup",
+      ko: "Watch 인터랙션 재배치와 테마 플랫폼 구조 정리"
+    },
+    summary: {
+      en:
+        "Refined the viewing tone for comfort, repositioned top watch interactions, and reorganized theme registration/routing for easier expansion.",
+      ko:
+        "감상 톤을 더 편안하게 다듬고, Watch 상단 인터랙션 위치를 재정리했으며, 테마 등록/라우팅 구조를 확장형으로 정리했습니다."
+    },
+    areas: {
+      en: ["Immersive UX", "Watch interaction", "Theme architecture"],
+      ko: ["몰입 UX", "Watch 인터랙션", "테마 아키텍처"]
+    },
+    highlights: {
+      en: [
+        "Rebalanced night-sky tone to reduce UI competition and improve dwell comfort.",
+        "Moved watch/switch controls to a clearer top-right flow with shorter eye travel.",
+        "Separated theme registry and route mapping to support future scene expansion."
+      ],
+      ko: [
+        "UI 간섭을 줄이도록 밤하늘 감상 톤과 화면 밀도를 재조정했습니다.",
+        "Watch/전환 토글을 우측 상단 흐름으로 정리해 시선 이동을 줄였습니다.",
+        "테마 레지스트리와 라우트 매핑을 분리해 신규 장면 확장 경로를 정리했습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Add one new theme candidate and validate full registration-to-home flow.",
+        "Unify overlay naming and spacing across all immersive pages.",
+        "Tune transition softness between entry and viewing states."
+      ],
+      ko: [
+        "신규 테마 1종을 붙여 등록-홈 노출 흐름을 실전 검증합니다.",
+        "몰입 페이지 간 오버레이 명칭/간격 규칙을 통일합니다.",
+        "진입 화면과 감상 화면 전환을 더 부드럽게 다듬습니다."
+      ]
+    }
+  },
+  {
     slug: "2026-05-30",
     date: "2026-05-30",
     title: {
@@ -575,6 +617,10 @@ export function RootApp() {
       "/aurora": {
         title: "Aurora Night · Zeravue",
         description: "Enter Zeravue Aurora Night for a gentle, immersive aurora viewing experience."
+      },
+      "/rain-window": {
+        title: "Rain Window · Zeravue",
+        description: "A calm rain-window scene with gentle sound and minimal controls for quiet rest."
       },
       "/about": {
         title: "About Zeravue",

@@ -60,7 +60,7 @@ export function useWatchWorkspace({
       return;
     }
 
-    if (currentPage === "watch" && viewMode === "space") {
+    if (currentPage === "watch" && viewMode === "space" && target?.kind === "star") {
       return;
     }
 

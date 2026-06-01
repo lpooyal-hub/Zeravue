@@ -40,6 +40,23 @@ function buildRingTexture(color = "#ffe8a3") {
   return texture;
 }
 
+function buildBodyTexture(coreColor = "#ffffff", haloColor = "rgba(255,255,255,0.45)") {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext("2d");
+  const gradient = context.createRadialGradient(64, 64, 4, 64, 64, 64);
+  gradient.addColorStop(0, coreColor);
+  gradient.addColorStop(0.26, coreColor);
+  gradient.addColorStop(0.52, haloColor);
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export function BackgroundStarField({ stars, focusedConstellation, starGlowStrength = 0.8, tracking = false }) {
   const materialRef = useRef(null);
   const geometry = useMemo(() => {
@@ -271,6 +288,68 @@ export function ConstellationLines({ lines, stars, focusedConstellation, viewMod
         </>
       ) : null}
     </>
+  );
+}
+
+export function SolarBodyMarker({ body, viewMode = "space" }) {
+  const spriteRef = useRef(null);
+  const ringRef = useRef(null);
+  const texture = useMemo(() => buildBodyTexture(body.color, body.glowColor), [body.color, body.glowColor]);
+  const ringTexture = useMemo(() => buildRingTexture("#ffe8a3"), []);
+  const material = useMemo(
+    () =>
+      new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false
+      }),
+    [texture]
+  );
+  const ringMaterial = useMemo(
+    () =>
+      new THREE.SpriteMaterial({
+        map: ringTexture,
+        transparent: true,
+        depthWrite: false
+      }),
+    [ringTexture]
+  );
+  const baseScale = body.size * (viewMode === "space" ? 8.8 : 7.2);
+  const phaseSeed = useMemo(() => body.id.length * 0.11, [body.id]);
+
+  useFrame(({ clock }) => {
+    if (!spriteRef.current) {
+      return;
+    }
+    const pulse = 1 + Math.sin(clock.elapsedTime * body.pulse + phaseSeed) * 0.04;
+    spriteRef.current.scale.set(baseScale * pulse, baseScale * pulse, 1);
+    spriteRef.current.material.opacity = body.opacity + Math.sin(clock.elapsedTime * body.pulse * 0.6 + phaseSeed) * 0.04;
+
+    if (ringRef.current) {
+      const ringPulse = 1 + Math.sin(clock.elapsedTime * body.pulse * 1.25 + phaseSeed) * 0.05;
+      ringRef.current.scale.set(baseScale * 1.36 * ringPulse, baseScale * 1.36 * ringPulse, 1);
+      ringRef.current.material.opacity = 0.28 + Math.sin(clock.elapsedTime * body.pulse * 0.9 + phaseSeed) * 0.05;
+    }
+  });
+
+  return (
+    <group position={[body.x, body.y, body.z]}>
+      {body.selected ? <sprite ref={ringRef} material={ringMaterial} scale={[baseScale * 1.36, baseScale * 1.36, 1]} /> : null}
+      <sprite
+        ref={spriteRef}
+        material={material}
+        onClick={() =>
+          body.onSelect?.({
+            kind: "solar-body",
+            id: body.id,
+            name: body.label,
+            altitude: body.altitude,
+            azimuth: body.azimuth,
+            magnitude: body.magnitude
+          })
+        }
+      />
+    </group>
   );
 }
 
