@@ -41,8 +41,11 @@ async def analytics_summary(x_admin_key: str | None = Header(default=None)) -> d
         "Authorization": f"Bearer {settings.supabase_service_role_key}",
     }
     base = settings.supabase_url.rstrip("/")
-    sessions_url = f"{base}/rest/v1/analytics_sessions?select=*&order=started_at.desc&limit=2000"
-    events_url = f"{base}/rest/v1/analytics_events?select=*&order=created_at.desc&limit=1000"
+    # NOTE: Pull only fields needed for dashboard aggregation to reduce payload size.
+    sessions_select = "id,visitor_id,started_at,ended_at,duration_seconds,device_type,landing_path"
+    events_select = "id,session_id,event_name,theme_name,path,created_at"
+    sessions_url = f"{base}/rest/v1/analytics_sessions?select={sessions_select}&order=started_at.desc&limit=2000"
+    events_url = f"{base}/rest/v1/analytics_events?select={events_select}&order=created_at.desc&limit=1000"
 
     try:
         async with httpx.AsyncClient(timeout=20.0) as client:
@@ -152,4 +155,3 @@ async def analytics_summary(x_admin_key: str | None = Header(default=None)) -> d
         "sessionTimeline": timeline,
         "recentEvents": recent_events,
     }
-

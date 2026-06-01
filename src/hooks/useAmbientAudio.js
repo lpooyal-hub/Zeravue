@@ -3,6 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const AMBIENT_STORAGE_KEY = "planetarium-ambient-preference";
 const AMBIENT_VOLUME_STORAGE_KEY = "planetarium-ambient-volume";
 const DEFAULT_AMBIENT_VOLUME = 0.9;
+const MIN_AMBIENT_VOLUME = 0.5;
+const MAX_AMBIENT_VOLUME = 1.15;
+const DEFAULT_OUTPUT_GAIN = 1.18;
 
 function getInitialAmbientPreference() {
   return window.localStorage.getItem(AMBIENT_STORAGE_KEY) !== "off";
@@ -11,13 +14,13 @@ function getInitialAmbientPreference() {
 function getInitialAmbientVolume() {
   const saved = Number(window.localStorage.getItem(AMBIENT_VOLUME_STORAGE_KEY));
   if (Number.isFinite(saved)) {
-    return Math.min(1, Math.max(0.35, saved));
+    return Math.min(MAX_AMBIENT_VOLUME, Math.max(MIN_AMBIENT_VOLUME, saved));
   }
 
   return DEFAULT_AMBIENT_VOLUME;
 }
 
-export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
+export function useAmbientAudio({ trackUrl = "", isReady = true, outputGain = DEFAULT_OUTPUT_GAIN } = {}) {
   const audioRef = useRef(null);
   const enabledRef = useRef(getInitialAmbientPreference());
   const volumeRef = useRef(getInitialAmbientVolume());
@@ -42,9 +45,9 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
     window.localStorage.setItem(AMBIENT_VOLUME_STORAGE_KEY, String(ambientVolume));
 
     if (audioRef.current) {
-      audioRef.current.volume = ambientVolume;
+      audioRef.current.volume = Math.min(1, ambientVolume * outputGain);
     }
-  }, [ambientVolume]);
+  }, [ambientVolume, outputGain]);
 
   const attemptPlay = useCallback(async () => {
     const audio = audioRef.current;
@@ -59,7 +62,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
     }
 
     try {
-      audio.volume = volumeRef.current;
+      audio.volume = Math.min(1, volumeRef.current * outputGain);
       await audio.play();
       setAmbientStatus("playing");
       return true;
@@ -71,7 +74,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
       }
       return false;
     }
-  }, [trackUrl]);
+  }, [outputGain, trackUrl]);
 
   const stopAmbient = useCallback(() => {
     enabledRef.current = false;
@@ -108,6 +111,13 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
     attemptPlay().catch(() => {});
   }, [attemptPlay, isReady]);
 
+  const ensureAmbientOn = useCallback(async () => {
+    if (enabledRef.current) {
+      return attemptPlay();
+    }
+    return startAmbient();
+  }, [attemptPlay, startAmbient]);
+
   useEffect(() => {
     if (!ambientEnabled) {
       setAmbientStatus("disabled");
@@ -122,7 +132,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
     const audio = new Audio(trackUrl);
     audio.loop = true;
     audio.preload = "auto";
-    audio.volume = volumeRef.current;
+    audio.volume = Math.min(1, volumeRef.current * outputGain);
     audio.playsInline = true;
     audioRef.current = audio;
 
@@ -176,7 +186,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
       audio.removeEventListener("ended", handleEnded);
       audioRef.current = null;
     };
-  }, [ambientEnabled, attemptPlay, isReady, trackUrl]);
+  }, [ambientEnabled, attemptPlay, isReady, outputGain, trackUrl]);
 
   useEffect(() => {
     if (ambientEnabled && isReady) {
@@ -220,6 +230,7 @@ export function useAmbientAudio({ trackUrl = "", isReady = true } = {}) {
     setAmbientVolume,
     ambientStatus,
     toggleAmbientSound: toggleAmbient,
-    wakeAmbient
+    wakeAmbient,
+    ensureAmbientOn
   };
 }

@@ -78,9 +78,6 @@ function ViewerHeader({
               KR
             </button>
           </div>
-          <a className="home-link-button" href={homeHref}>
-            {language === "ko" ? "테마 홈" : "Themes"}
-          </a>
         </div>
         {showThemeSwitcher ? (
           <div className="theme-switcher topbar-controls-row topbar-theme-row" aria-label={dictionary.viewer.themeLabel}>

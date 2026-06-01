@@ -163,13 +163,15 @@ function HomePage({ language, setLanguage }) {
   return (
     <div className={`theme-home ${isTransitioning ? "is-transitioning" : ""}`}>
       <header className="theme-home-header">
-        <div className="language-switcher" aria-label="Language">
-          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-            EN
-          </button>
-          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-            KR
-          </button>
+        <div className="theme-home-header-top">
+          <div className="language-switcher" aria-label="Language">
+            <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
+              EN
+            </button>
+            <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
+              KR
+            </button>
+          </div>
         </div>
         {showBrandLogo ? (
           <img
@@ -191,21 +193,21 @@ function HomePage({ language, setLanguage }) {
         <p>{homeCopy.subtitle}</p>
       </header>
 
-      <div className="theme-home-grid">
+      <div id="themes" className="theme-home-grid" aria-label={language === "ko" ? "테마 선택" : "Theme selection"}>
         {platformThemeCards.map((theme) => (
           <a key={theme.id} className="theme-home-card" href={theme.href} onClick={(event) => enterTheme(event, theme.href)}>
             <strong>{theme.title[language] || theme.title.en}</strong>
             <small>{theme.description[language] || theme.description.en}</small>
+            <span>{language === "ko" ? "감상 열기" : "Open scene"}</span>
           </a>
         ))}
       </div>
       <section className="theme-home-updates">
         <div className="theme-home-updates-header">
           <p className="eyebrow">{language === "ko" ? "업데이트" : "Updates"}</p>
-          <a href="/updates">{language === "ko" ? "전체 보기" : "View all"}</a>
         </div>
         <div className="theme-home-updates-list">
-          {buildLogs.slice(0, 3).map((item) => (
+          {buildLogs.slice(0, 2).map((item) => (
             <a key={item.slug} className="theme-home-update-card" href={`/updates/${item.slug}`}>
               <strong>{item.title[language] || item.title.en}</strong>
               <small>{item.summary[language] || item.summary.en}</small>
@@ -213,6 +215,9 @@ function HomePage({ language, setLanguage }) {
             </a>
           ))}
         </div>
+        <a className="theme-home-updates-more" href="/updates">
+          {language === "ko" ? "업데이트 더보기" : "More updates"}
+        </a>
       </section>
       {adsenseEnabled && showAdSlot ? (
         <section className="theme-home-ad" aria-label={language === "ko" ? "광고" : "Advertisement"}>

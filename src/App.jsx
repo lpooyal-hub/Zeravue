@@ -1,19 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
-import { PlanetariumCanvas } from "./components/PlanetariumCanvas.jsx";
-import { AuroraPanoramaScene } from "./components/AuroraPanoramaScene.jsx";
-import { AuroraLiveViewer } from "./components/AuroraLiveViewer.jsx";
-import { SelectionInspectorPanel } from "./components/SelectionInspectorPanel.jsx";
-import { SketchControlsPanel, SketchLibraryPanel } from "./components/SketchPanel.jsx";
-import { ViewerHeader } from "./components/ViewerLayout.jsx";
-import { ViewerAmbientOverlay, ViewerFocusOverlay } from "./components/ViewerOverlays.jsx";
-import { WatchControlsPanel, WatchInspectorPanel } from "./components/WatchPanels.jsx";
+import { AuroraExperience } from "./components/experiences/AuroraExperience.jsx";
+import { NightSkyExperience } from "./components/experiences/NightSkyExperience.jsx";
 import { config } from "./config.js";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { useAmbientAudio } from "./hooks/useAmbientAudio.js";
 import { useConstellationCollections } from "./hooks/useConstellationCollections.js";
 import { useFavoriteConstellations } from "./hooks/useFavoriteConstellations.js";
 import { useNightSkyAmbientTrack } from "./hooks/useNightSkyAmbientTrack.js";
+import { useAuroraExperience } from "./hooks/useAuroraExperience.js";
+import { useNightSkyExperience } from "./hooks/useNightSkyExperience.js";
 import { useSavedSketches } from "./hooks/useSavedSketches.js";
 import { useSketchWorkspace } from "./hooks/useSketchWorkspace.js";
 import { useWatchWorkspace } from "./hooks/useWatchWorkspace.js";
@@ -65,21 +61,9 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [trackConstellation, setTrackConstellation] = useState(false);
   const [resetViewToken, setResetViewToken] = useState(0);
   const [auroraIntensity, setAuroraIntensity] = useState(0.54);
-  const [auroraSpeed, setAuroraSpeed] = useState(0.34);
+  const [auroraSpeed, setAuroraSpeed] = useState(0.39);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showAuroraMoodControls, setShowAuroraMoodControls] = useState(false);
-  const [auroraViewerOpen, setAuroraViewerOpen] = useState(false);
-  const [immersiveIntro, setImmersiveIntro] = useState(null);
-  const auroraViewerRef = useRef(null);
-  const auroraUiTimerRef = useRef(null);
-  const [auroraUiVisible, setAuroraUiVisible] = useState(true);
-  const viewerUiTimerRef = useRef(null);
-  const [viewerUiVisible, setViewerUiVisible] = useState(true);
   const [controlsHiddenInFullscreen, setControlsHiddenInFullscreen] = useState(false);
-  const [focusMode, setFocusMode] = useState(false);
-  const [timeShiftCue, setTimeShiftCue] = useState(null);
-  const timeShiftCueTimerRef = useRef(null);
-  const previousObservedAtRef = useRef(observedAt);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
   const { favoriteConstellations, setFavoriteConstellations } = useFavoriteConstellations();
   const configuredAmbientTrackUrl = currentThemeId === "aurora-night" ? config.auroraAmbientTrackUrl || config.ambientTrackUrl : config.ambientTrackUrl;
@@ -87,9 +71,11 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     configuredTrackUrl: configuredAmbientTrackUrl,
     themeId: currentThemeId
   });
-  const { ambientEnabled, ambientVolume, setAmbientVolume, ambientStatus, toggleAmbientSound, wakeAmbient } = useAmbientAudio({
+  const ambientOutputGain = currentThemeId === "aurora-night" ? 1.42 : 1.18;
+  const { ambientEnabled, ambientVolume, setAmbientVolume, ambientStatus, toggleAmbientSound, wakeAmbient, ensureAmbientOn } = useAmbientAudio({
     trackUrl: ambientTrackUrl,
-    isReady: sceneState.status === "ready"
+    isReady: sceneState.status === "ready",
+    outputGain: ambientOutputGain
   });
   const dictionary = translations[language];
   const updateLanguage = (nextLanguage) => {
@@ -184,11 +170,55 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   );
   const themeViewModes = useMemo(() => getThemeViewModes(currentTheme), [currentTheme]);
   const autoEnterTargetRef = useRef(null);
-  const immersiveWatchMode = currentPage === "watch" && !auroraWatchLayout && focusMode;
-  const effectiveAtmosphereStrength = immersiveWatchMode ? Math.max(0.2, atmosphereStrength * 0.84) : atmosphereStrength;
-  const effectiveStarGlowStrength = immersiveWatchMode ? Math.min(1, starGlowStrength + 0.14) : starGlowStrength;
-  const effectiveLimitingMagnitude = immersiveWatchMode ? Math.min(6, limitingMagnitude + 0.35) : limitingMagnitude;
-  const effectiveMaxStars = immersiveWatchMode ? Math.min(5200, maxStars + 600) : maxStars;
+  const effectiveAtmosphereStrength = atmosphereStrength;
+  const effectiveStarGlowStrength = starGlowStrength;
+  const effectiveLimitingMagnitude = limitingMagnitude;
+  const effectiveMaxStars = maxStars;
+  const {
+    showAuroraMoodControls,
+    setShowAuroraMoodControls,
+    auroraViewerOpen,
+    immersiveIntro,
+    auroraViewerRef,
+    auroraUiVisible,
+    revealAuroraUi,
+    startAuroraViewer,
+    closeAuroraViewer,
+    shouldShowAuroraPageChrome
+  } = useAuroraExperience({
+    auroraWatchLayout,
+    autoEnterTargetRef,
+    currentPage,
+    language,
+    markFullscreenEnter,
+    markViewerEnter,
+    analyticsSessionRef,
+    currentThemeId,
+    wakeAmbient,
+    ensureAmbientOn,
+    isFullscreen,
+    setIsFullscreen,
+    markFullscreenExit,
+    setViewMode
+  });
+  const { timeShiftCue, observerMomentLabel, timeShiftOverlayLabel, viewerUiVisible, revealViewerUi, toggleFullscreen, handleThemeSwitch } = useNightSkyExperience({
+    observedAt,
+    language,
+    currentPage,
+    auroraWatchLayout,
+    viewMode,
+    resetView,
+    changeZoom,
+    isFullscreen,
+    setControlsHiddenInFullscreen,
+    viewerRef,
+    markViewerEnter,
+    markFullscreenEnter,
+    analyticsSessionRef,
+    currentThemeId,
+    markThemeSwitch,
+    switchTheme
+  });
 
   useEffect(() => {
     try {
@@ -218,6 +248,20 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       setLanguage(forcedLanguage);
     }
   }, [forcedLanguage]);
+
+  useEffect(() => {
+    const state = window.history.state || {};
+    if (!state.zeravueThemeSentinel) {
+      window.history.pushState({ ...state, zeravueThemeSentinel: true }, "", window.location.href);
+    }
+
+    function handlePopState() {
+      window.location.assign("/");
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   useEffect(() => {
     const routePath = window.location.pathname || "/";
@@ -280,77 +324,6 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   }, [currentPage, effectiveSketchEnabled]);
 
   useEffect(() => {
-    if (currentPage !== "watch" || auroraWatchLayout) {
-      setFocusMode(false);
-    }
-  }, [auroraWatchLayout, currentPage]);
-
-  useEffect(() => {
-    function handleFocusModeShortcut(event) {
-      if (event.defaultPrevented || event.repeat) {
-        return;
-      }
-      if (event.key.toLowerCase() !== "f") {
-        return;
-      }
-      if (currentPage !== "watch" || auroraWatchLayout) {
-        return;
-      }
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.tagName === "SELECT" ||
-          target.isContentEditable)
-      ) {
-        return;
-      }
-      event.preventDefault();
-      setFocusMode((current) => !current);
-    }
-
-    window.addEventListener("keydown", handleFocusModeShortcut);
-    return () => window.removeEventListener("keydown", handleFocusModeShortcut);
-  }, [auroraWatchLayout, currentPage]);
-
-  useEffect(() => {
-    const previousValue = previousObservedAtRef.current;
-    if (previousValue === observedAt) {
-      return;
-    }
-
-    previousObservedAtRef.current = observedAt;
-    const previousDate = new Date(previousValue);
-    const currentDate = new Date(observedAt);
-    if (Number.isNaN(previousDate.getTime()) || Number.isNaN(currentDate.getTime())) {
-      return;
-    }
-
-    const deltaMs = currentDate.getTime() - previousDate.getTime();
-    if (Math.abs(deltaMs) < 60 * 1000) {
-      return;
-    }
-
-    const deltaHours = Math.round((deltaMs / (60 * 60 * 1000)) * 10) / 10;
-    setTimeShiftCue({ deltaHours });
-    if (timeShiftCueTimerRef.current) {
-      clearTimeout(timeShiftCueTimerRef.current);
-    }
-    timeShiftCueTimerRef.current = setTimeout(() => {
-      setTimeShiftCue(null);
-    }, 1600);
-  }, [observedAt]);
-
-  useEffect(() => {
-    return () => {
-      if (timeShiftCueTimerRef.current) {
-        clearTimeout(timeShiftCueTimerRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
     if (!auroraEnabled) {
       return;
     }
@@ -377,84 +350,6 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     setTrackConstellation(false);
     setSelectedTarget(null);
   }, [currentTheme?.id, themeViewModes]);
-
-  useEffect(() => {
-    function handleFullscreenChange() {
-      const next = Boolean(document.fullscreenElement);
-      if (isFullscreen && !next) {
-        markFullscreenExit(analyticsSessionRef.current);
-      }
-      setIsFullscreen(next);
-    }
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, [isFullscreen]);
-
-  useEffect(() => {
-    if (!isFullscreen) {
-      setControlsHiddenInFullscreen(false);
-    }
-  }, [isFullscreen]);
-
-  useEffect(() => {
-    if (!auroraViewerOpen) {
-      return;
-    }
-
-    function handleEscape(event) {
-      if (event.key === "Escape") {
-        setAuroraViewerOpen(false);
-        setShowAuroraMoodControls(false);
-      }
-    }
-
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [auroraViewerOpen]);
-
-  useEffect(() => {
-    const target = autoEnterTargetRef.current;
-    if (!target) {
-      return;
-    }
-
-    const intro =
-      target === "/aurora"
-        ? {
-            title: language === "ko" ? "오로라" : "Aurora",
-            subtitle: language === "ko" ? "조용히 흐르는 빛" : "quiet drifting lights"
-          }
-        : {
-            title: language === "ko" ? "밤하늘" : "Night Sky",
-            subtitle: language === "ko" ? "천천히 숨 고르는 밤" : "breathe and stay for a while"
-          };
-
-    setImmersiveIntro(intro);
-    const clearIntroTimer = window.setTimeout(() => setImmersiveIntro(null), 2800);
-
-    if (target === "/aurora" && auroraWatchLayout) {
-      startAuroraViewer();
-    }
-
-    if (target === "/night-sky" && !auroraWatchLayout && currentPage === "watch") {
-      setViewMode("space");
-      window.setTimeout(() => {
-        if (!viewerRef.current) {
-          return;
-        }
-        viewerRef.current.requestFullscreen?.().catch((error) => {
-          console.debug("Night Sky fullscreen auto-enter skipped:", error);
-        });
-        revealViewerUi();
-      }, 80);
-    }
-
-    autoEnterTargetRef.current = null;
-    return () => window.clearTimeout(clearIntroTimer);
-  }, [auroraWatchLayout, currentPage, language]);
 
   useEffect(() => {
     let cancelled = false;
@@ -640,29 +535,6 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
         : ambientStatus === "error"
           ? dictionary.viewer.ambient.errorHint
           : dictionary.viewer.ambient.hint;
-  const observerMomentLabel = useMemo(() => {
-    const date = new Date(observedAt);
-    if (Number.isNaN(date.getTime())) {
-      return observedAt;
-    }
-    return new Intl.DateTimeFormat(language === "ko" ? "ko-KR" : "en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit"
-    }).format(date);
-  }, [language, observedAt]);
-  const timeShiftOverlayLabel = useMemo(() => {
-    if (!timeShiftCue) {
-      return "";
-    }
-    const deltaHours = timeShiftCue.deltaHours;
-    if (deltaHours > 0) {
-      return language === "ko" ? `+${deltaHours}시간 이동` : `+${deltaHours}h jump`;
-    }
-    return language === "ko" ? `${deltaHours}시간 이동` : `${deltaHours}h jump`;
-  }, [language, timeShiftCue]);
-
   useEffect(() => {
     if (!importableConstellations.length) {
       setPresetConstellationName("");
@@ -686,726 +558,159 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     setZoomLevel((current) => Number(Math.min(current, 0.44).toFixed(2)));
   }, [focusedConstellation, trackConstellation]);
 
-  useEffect(() => {
-    function handleKeydown(event) {
-      if (currentPage === "watch" && !auroraWatchLayout) {
-        revealViewerUi();
-      }
-      const target = event.target;
-      const tagName = target?.tagName?.toLowerCase();
-      const isTypingField = tagName === "input" || tagName === "textarea" || tagName === "select" || target?.isContentEditable;
-      if (isTypingField) {
-        return;
-      }
-
-      if (event.key.toLowerCase() === "r") {
-        event.preventDefault();
-        resetView();
-        return;
-      }
-
-      if (event.key === "+" || event.key === "=") {
-        event.preventDefault();
-        changeZoom(0.1);
-        return;
-      }
-
-      if (event.key === "-" || event.key === "_") {
-        event.preventDefault();
-        changeZoom(-0.1);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeydown);
-    return () => {
-      window.removeEventListener("keydown", handleKeydown);
-    };
-  }, [auroraWatchLayout, currentPage, isSketchWatch, viewMode]);
-
-  async function toggleFullscreen() {
-    if (!viewerRef.current) {
-      return;
-    }
-
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-      return;
-    }
-
-    markViewerEnter(analyticsSessionRef.current, currentThemeId, window.location.pathname || "/");
-    markFullscreenEnter(analyticsSessionRef.current);
-    await viewerRef.current.requestFullscreen();
-  }
-
-  async function startAuroraViewer() {
-    wakeAmbient();
-    setAuroraViewerOpen(true);
-    setAuroraUiVisible(true);
-
-    const target = auroraViewerRef.current;
-    if (!target?.requestFullscreen) {
-      return;
-    }
-
-    try {
-      markFullscreenEnter(analyticsSessionRef.current);
-      markViewerEnter(analyticsSessionRef.current, currentThemeId, window.location.pathname || "/");
-      await target.requestFullscreen();
-    } catch (error) {
-      console.error("Aurora fullscreen request failed:", error);
-    }
-  }
-
-  async function closeAuroraViewer() {
-    if (document.fullscreenElement) {
-      try {
-        await document.exitFullscreen();
-      } catch (error) {
-        console.error("Aurora fullscreen exit failed:", error);
-      }
-    }
-    setAuroraViewerOpen(false);
-    setShowAuroraMoodControls(false);
-    setAuroraUiVisible(true);
-    if (auroraUiTimerRef.current) {
-      clearTimeout(auroraUiTimerRef.current);
-      auroraUiTimerRef.current = null;
-    }
-  }
-
-  function revealAuroraUi() {
-    setAuroraUiVisible(true);
-    if (auroraUiTimerRef.current) {
-      clearTimeout(auroraUiTimerRef.current);
-    }
-    auroraUiTimerRef.current = setTimeout(() => {
-      setAuroraUiVisible(false);
-    }, 2800);
-  }
-
-  function revealViewerUi() {
-    setViewerUiVisible(true);
-    if (viewerUiTimerRef.current) {
-      clearTimeout(viewerUiTimerRef.current);
-    }
-    viewerUiTimerRef.current = setTimeout(() => {
-      setViewerUiVisible(false);
-    }, 2800);
-  }
-
-  function handleThemeSwitch(nextThemeId) {
-    markThemeSwitch(analyticsSessionRef.current, nextThemeId, window.location.pathname || "/");
-    switchTheme(nextThemeId);
-  }
-
-  const shouldShowAuroraPageChrome = auroraWatchLayout && !auroraViewerOpen;
-
-  useEffect(() => {
-    if (!auroraViewerOpen) {
-      return;
-    }
-    revealAuroraUi();
-    return () => {
-      if (auroraUiTimerRef.current) {
-        clearTimeout(auroraUiTimerRef.current);
-        auroraUiTimerRef.current = null;
-      }
-    };
-  }, [auroraViewerOpen]);
-
-  useEffect(() => {
-    if (auroraWatchLayout || currentPage !== "watch") {
-      setViewerUiVisible(true);
-      if (viewerUiTimerRef.current) {
-        clearTimeout(viewerUiTimerRef.current);
-        viewerUiTimerRef.current = null;
-      }
-      return;
-    }
-    revealViewerUi();
-    return () => {
-      if (viewerUiTimerRef.current) {
-        clearTimeout(viewerUiTimerRef.current);
-        viewerUiTimerRef.current = null;
-      }
-    };
-  }, [auroraWatchLayout, currentPage, viewMode]);
-
   return (
     <div className={`planetarium-app theme-${currentThemeId}`}>
       {auroraWatchLayout ? (
-        <div className={`aurora-page ${isFullscreen ? "is-fullscreen-view" : ""}`}>
-          {shouldShowAuroraPageChrome ? (
-            <>
-              <header className="aurora-floating-header aurora-landing-header">
-                <a className="aurora-header-logo-wrap" href="/" aria-label={language === "ko" ? "메인 홈으로 이동" : "Go to home"}>
-                  <img className="aurora-header-logo" src="/branding/zeravue-logo.svg" alt="Zeravue logo" />
-                </a>
-                <div className="aurora-header-controls">
-                  <div className="page-switcher" aria-label={dictionary.viewer.pageMode}>
-                    <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
-                      {dictionary.viewer.pages.watch}
-                    </button>
-                    <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!effectiveSketchEnabled}>
-                      {dictionary.viewer.pages.sketch}
-                    </button>
-                  </div>
-                  <div className="language-switcher" aria-label="Language">
-                    <button type="button" aria-pressed={language === "en"} onClick={() => updateLanguage("en")}>
-                      EN
-                    </button>
-                    <button type="button" aria-pressed={language === "ko"} onClick={() => updateLanguage("ko")}>
-                      KR
-                    </button>
-                  </div>
-                </div>
-              </header>
-
-              <section className="aurora-landing-content">
-                <p className="eyebrow">{headerEyebrow || dictionary.viewer.eyebrow}</p>
-                {auroraRenderer === "webgl" ? <p className="aurora-experimental-badge">Experimental WebGL</p> : null}
-                <h1 className="aurora-title">{headerTitle || dictionary.viewer.title}</h1>
-                <p className="aurora-subtitle">{headerSubtitle || dictionary.viewer.subtitle}</p>
-                <button type="button" className="primary-button aurora-start-button" onClick={startAuroraViewer}>
-                  {language === "ko" ? "감상 시작" : "Enter Aurora"}
-                </button>
-              </section>
-            </>
-          ) : null}
-
-          <section
-            ref={auroraViewerRef}
-            className={`aurora-live-shell ${auroraViewerOpen ? "is-open" : ""} ${auroraUiVisible ? "ui-visible" : ""}`}
-            onClickCapture={wakeAmbient}
-            onWheelCapture={wakeAmbient}
-            onPointerDownCapture={(event) => {
-              wakeAmbient(event);
-              revealAuroraUi();
-            }}
-            onTouchStartCapture={(event) => {
-              wakeAmbient(event);
-              revealAuroraUi();
-            }}
-            onPointerMoveCapture={revealAuroraUi}
-          >
-            {auroraRenderer === "webgl" ? <AuroraLiveViewer intensity={auroraIntensity} speed={auroraSpeed} /> : <AuroraPanoramaScene />}
-            {immersiveIntro ? (
-              <div className="ambient-intro-overlay">
-                <h2>{immersiveIntro.title}</h2>
-                <p>{immersiveIntro.subtitle}</p>
-              </div>
-            ) : null}
-            <section className={`aurora-soft-controls aurora-live-controls ${showAuroraMoodControls ? "is-open" : ""}`}>
-              <div className="aurora-live-quick-actions">
-                  <button
-                    type="button"
-                    className="aurora-soft-controls-trigger"
-                    onClick={() =>
-                      setShowAuroraMoodControls((current) => {
-                        const next = !current;
-                        if (next) {
-                          markSettingsOpen(analyticsSessionRef.current, currentThemeId, window.location.pathname || "/");
-                        }
-                        return next;
-                      })
-                    }
-                  >
-                    {language === "ko" ? "설정" : "Settings"}
-                  </button>
-                <button type="button" className="aurora-soft-controls-trigger" onClick={toggleAmbientSound}>
-                  {ambientEnabled ? (language === "ko" ? "음소거" : "Mute") : language === "ko" ? "소리" : "Sound"}
-                </button>
-                <button type="button" className="aurora-soft-controls-trigger" onClick={closeAuroraViewer}>
-                  {language === "ko" ? "종료" : "Close"}
-                </button>
-              </div>
-              {showAuroraMoodControls ? (
-                <div className="aurora-soft-controls-body">
-                  <label>
-                    <span>{language === "ko" ? `오로라 강도 ${Math.round(auroraIntensity * 100)}%` : `Intensity ${Math.round(auroraIntensity * 100)}%`}</span>
-                    <input type="range" min="0.25" max="0.9" step="0.01" value={auroraIntensity} onChange={(event) => setAuroraIntensity(Number(event.target.value))} />
-                  </label>
-                  <label>
-                    <span>{language === "ko" ? `오로라 흐름 ${Math.round(auroraSpeed * 100)}%` : `Flow ${Math.round(auroraSpeed * 100)}%`}</span>
-                    <input type="range" min="0.15" max="0.72" step="0.01" value={auroraSpeed} onChange={(event) => setAuroraSpeed(Number(event.target.value))} />
-                  </label>
-                  <label>
-                    <span>{language === "ko" ? `볼륨 ${Math.round(ambientVolume * 100)}%` : `Volume ${Math.round(ambientVolume * 100)}%`}</span>
-                    <input type="range" min="0.35" max="1" step="0.05" value={ambientVolume} onChange={(event) => setAmbientVolume(Number(event.target.value))} />
-                  </label>
-                </div>
-              ) : null}
-            </section>
-          </section>
-        </div>
+        <AuroraExperience
+          isFullscreen={isFullscreen}
+          shouldShowAuroraPageChrome={shouldShowAuroraPageChrome}
+          language={language}
+          updateLanguage={updateLanguage}
+          headerEyebrow={headerEyebrow}
+          headerTitle={headerTitle}
+          headerSubtitle={headerSubtitle}
+          dictionary={dictionary}
+          auroraRenderer={auroraRenderer}
+          startAuroraViewer={startAuroraViewer}
+          wakeAmbient={wakeAmbient}
+          revealAuroraUi={revealAuroraUi}
+          auroraViewerRef={auroraViewerRef}
+          auroraViewerOpen={auroraViewerOpen}
+          auroraUiVisible={auroraUiVisible}
+          immersiveIntro={immersiveIntro}
+          showAuroraMoodControls={showAuroraMoodControls}
+          setShowAuroraMoodControls={setShowAuroraMoodControls}
+          markSettingsOpen={markSettingsOpen}
+          analyticsSessionRef={analyticsSessionRef}
+          currentThemeId={currentThemeId}
+          ambientEnabled={ambientEnabled}
+          toggleAmbientSound={toggleAmbientSound}
+          closeAuroraViewer={closeAuroraViewer}
+          auroraIntensity={auroraIntensity}
+          setAuroraIntensity={setAuroraIntensity}
+          auroraSpeed={auroraSpeed}
+          setAuroraSpeed={setAuroraSpeed}
+          ambientVolume={ambientVolume}
+          setAmbientVolume={setAmbientVolume}
+          toggleFullscreen={toggleFullscreen}
+        />
       ) : (
-        <>
-          <ViewerHeader
-            dictionary={dictionary}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            language={language}
-            setLanguage={updateLanguage}
-            observer={observer}
-            observedAt={observedAt}
-            headerEyebrow={headerEyebrow}
-            headerTitle={headerTitle}
-            headerSubtitle={headerSubtitle}
-            themes={themes}
-            currentThemeId={currentThemeId}
-            switchTheme={handleThemeSwitch}
-            sketchEnabled={effectiveSketchEnabled}
-            showPageSwitcher={false}
-            showThemeSwitcher={showThemeSwitcher}
-            homeHref="/"
-          />
-          <div className={`workspace ${focusMode ? "is-focus-mode" : ""}`}>
-        {!auroraWatchLayout ? (
-          <div className="workspace-page-switcher page-switcher" aria-label={dictionary.viewer.pageMode}>
-            <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
-              {dictionary.viewer.pages.watch}
-            </button>
-            <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!effectiveSketchEnabled}>
-              {dictionary.viewer.pages.sketch}
-            </button>
-          </div>
-        ) : null}
-        {auroraWatchLayout ? (
-          <aside className="control-panel aurora-control-panel">
-            <section>
-              <p className="eyebrow">{language === "ko" ? "오로라 감상" : "Aurora viewing"}</p>
-              <p className="helper-copy">
-                {language === "ko"
-                  ? "차가운 파스텔 톤의 오로라를 천천히 바라보는 감상 페이지입니다."
-                  : "A quiet aurora page with cool pastel tones and slow movement."}
-              </p>
-            </section>
-            <section>
-              <p className="eyebrow">{language === "ko" ? "오로라 분위기" : "Aurora mood"}</p>
-              <label>
-                <span>{language === "ko" ? `오로라 강도: ${Math.round(auroraIntensity * 100)}%` : `Aurora intensity: ${Math.round(auroraIntensity * 100)}%`}</span>
-                <input type="range" min="0.25" max="0.9" step="0.01" value={auroraIntensity} onChange={(event) => setAuroraIntensity(Number(event.target.value))} />
-              </label>
-              <label>
-                <span>{language === "ko" ? `오로라 흐름 속도: ${Math.round(auroraSpeed * 100)}%` : `Aurora drift speed: ${Math.round(auroraSpeed * 100)}%`}</span>
-                <input type="range" min="0.15" max="0.72" step="0.01" value={auroraSpeed} onChange={(event) => setAuroraSpeed(Number(event.target.value))} />
-              </label>
-            </section>
-          </aside>
-        ) : (
-          <aside className="control-panel">
-            {currentPage === "watch" ? (
-            <WatchControlsPanel
-              dictionary={dictionary}
-              language={language}
-              observedAt={observedAt}
-              setObservedAt={setObservedAt}
-              shiftTime={shiftTime}
-              setTonightTimestamp={setTonightTimestamp}
-              viewMode={viewMode}
-              observerMomentLabel={observerMomentLabel}
-              observerFocusSummary={observerFocusSummary}
-              setObserverHourTimestamp={setObserverHourTimestamp}
-              observer={observer}
-              updateObserver={updateObserver}
-              requestLocation={requestLocation}
-              timeShiftCue={timeShiftCue}
-              focusedConstellation={focusedConstellation}
-              setFocusedConstellation={setFocusedConstellation}
-              activeConstellationKey={activeConstellationKey}
-              activeConstellationName={activeConstellationName}
-              activeConstellationIsFavorite={activeConstellationIsFavorite}
-              toggleFavoriteConstellation={toggleFavoriteConstellation}
-              visibleFavoriteConstellations={visibleFavoriteConstellations}
-              activeConstellationStory={activeConstellationStory}
-              activeConstellationStats={activeConstellationStats}
-              atmosphereStrength={atmosphereStrength}
-              setAtmosphereStrength={setAtmosphereStrength}
-              starGlowStrength={starGlowStrength}
-              setStarGlowStrength={setStarGlowStrength}
-              limitingMagnitude={limitingMagnitude}
-              setLimitingMagnitude={setLimitingMagnitude}
-              maxStars={maxStars}
-              setMaxStars={setMaxStars}
-              showConstellations={showConstellations}
-              setShowConstellations={setShowConstellations}
-              showLabels={showLabels}
-              setShowLabels={setShowLabels}
-              autoRotate={autoRotate}
-              setAutoRotate={setAutoRotate}
-              showGuides={showGuides}
-              setShowGuides={setShowGuides}
-              auroraEnabled={auroraEnabled}
-              auroraIntensity={auroraIntensity}
-              setAuroraIntensity={setAuroraIntensity}
-              auroraSpeed={auroraSpeed}
-              setAuroraSpeed={setAuroraSpeed}
-              isSketchWatch={isSketchWatch}
-              activeSketchWatchName={watchedSketch?.name || dictionary.viewer.savedSketch}
-              watchedSketchSummary={watchedSketchSummary}
-              exitSketchWatch={exitSketchWatch}
-            />
-            ) : (
-            <>
-              <section>
-                <p className="eyebrow">{dictionary.viewer.sketchControls}</p>
-                <SketchControlsPanel
-                  dictionary={dictionary}
-                  language={language}
-                  viewMode={viewMode}
-                  viewModeOrder={themeViewModes}
-                  setViewMode={setViewMode}
-                  sketchViewDescription={sketchViewDescription}
-                  creativeTool={creativeTool}
-                  setCreativeTool={setCreativeTool}
-                  addCustomConstellation={addCustomConstellation}
-                  duplicateActiveConstellation={duplicateActiveConstellation}
-                  activeCustomConstellationStars={activeCustomConstellationStars}
-                  customSpace={customSpace}
-                  setCustomSpace={setCustomSpace}
-                  presetConstellationName={presetConstellationName}
-                  setPresetConstellationName={setPresetConstellationName}
-                  importableConstellations={importableConstellations}
-                  importPresetConstellation={importPresetConstellation}
-                  nudgeActiveConstellation={nudgeActiveConstellation}
-                  scaleActiveConstellation={scaleActiveConstellation}
-                  spreadActiveConstellation={spreadActiveConstellation}
-                  rotateActiveConstellation={rotateActiveConstellation}
-                  activeCustomConstellation={activeCustomConstellation}
-                  updateActiveConstellationName={updateActiveConstellationName}
-                  updateActiveConstellationColor={updateActiveConstellationColor}
-                  removeActiveConstellation={removeActiveConstellation}
-                  planetPreset={planetPreset}
-                  setPlanetPreset={setPlanetPreset}
-                  planetPresets={planetPresets}
-                  sketchName={sketchName}
-                  setSketchName={setSketchName}
-                  activeSketchName={activeSketchName}
-                  saveSketchLabel={saveSketchLabel}
-                  startNewSketch={startNewSketch}
-                  clearDraftSketch={clearDraftSketch}
-                  saveDraftSketch={saveDraftSketch}
-                  saveSketchAsNew={saveSketchAsNew}
-                />
-              </section>
-              <section>
-                <p className="eyebrow">{dictionary.viewer.atmosphere}</p>
-                <p className="helper-copy">{dictionary.viewer.creationPickHint}</p>
-                <div className="toggle-grid">
-                  <label className="toggle-item">
-                    <input type="checkbox" checked={showLabels} onChange={(event) => setShowLabels(event.target.checked)} />
-                    <span>{dictionary.viewer.toggles.labels}</span>
-                  </label>
-                  <label className="toggle-item">
-                    <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
-                    <span>{dictionary.viewer.toggles.autoRotate}</span>
-                  </label>
-                  <label className="toggle-item">
-                    <input type="checkbox" checked={showGuides} onChange={(event) => setShowGuides(event.target.checked)} />
-                    <span>{dictionary.viewer.toggles.guides}</span>
-                  </label>
-                </div>
-              </section>
-            </>
-            )}
-          </aside>
-        )}
-
-        <main
-          ref={viewerRef}
-          className={`viewer ${auroraWatchLayout ? "viewer-aurora" : ""} ${isFullscreen ? "is-fullscreen" : ""} ${
-            currentPage === "watch" && !viewerUiVisible ? "ambient-ui-hidden" : ""
-          } ${controlsHiddenInFullscreen ? "ambient-ui-manual-hidden" : ""} ${immersiveWatchMode ? "is-immersive" : ""}`}
-          onClickCapture={(event) => {
-            wakeAmbient(event);
-            if (!auroraWatchLayout && currentPage === "watch") {
-              revealViewerUi();
-            }
-          }}
-          onWheelCapture={(event) => {
-            wakeAmbient(event);
-            if (!auroraWatchLayout && currentPage === "watch") {
-              revealViewerUi();
-            }
-          }}
-          onPointerDownCapture={(event) => {
-            wakeAmbient(event);
-            if (!auroraWatchLayout && currentPage === "watch") {
-              revealViewerUi();
-            }
-          }}
-          onTouchStartCapture={(event) => {
-            wakeAmbient(event);
-            if (!auroraWatchLayout && currentPage === "watch") {
-              revealViewerUi();
-            }
-          }}
-        >
-          {immersiveIntro ? (
-            <div className="ambient-intro-overlay">
-              <h2>{immersiveIntro.title}</h2>
-              <p>{immersiveIntro.subtitle}</p>
-            </div>
-          ) : null}
-          {currentPage === "watch" && !auroraWatchLayout ? (
-            <div className={`viewer-time-shift-toast ${timeShiftCue ? "is-visible" : ""}`} aria-live="polite">
-              {timeShiftOverlayLabel || "\u00a0"}
-            </div>
-          ) : null}
-          {auroraWatchLayout ? (
-            <AuroraPanoramaScene />
-          ) : (
-            <PlanetariumCanvas
-              scene={sceneState.data}
-              selectedTarget={selectedTarget}
-              onSelectTarget={selectTarget}
-              language={language}
-              dictionary={dictionary}
-              showLabels={showLabels}
-              showGuides={showGuides}
-              showConstellations={showConstellations}
-              autoRotate={autoRotate}
-              atmosphereStrength={effectiveAtmosphereStrength}
-              starGlowStrength={effectiveStarGlowStrength}
-              viewMode={viewMode}
-              zoomLevel={zoomLevel}
-              focusedConstellation={currentPage === "watch" && !isSketchWatch ? focusedConstellation : "all"}
-              trackConstellation={currentPage === "watch" && !isSketchWatch ? trackConstellation : false}
-              drawMode={currentPage === "sketch"}
-              customSketchStarIds={[]}
-              creativeMode={currentPage === "sketch" || isSketchWatch}
-              customSpace={activeCreativeScene}
-              creativeTool={currentPage === "sketch" ? creativeTool : "none"}
-              onCreativeSpaceClick={currentPage === "sketch" ? addCustomObject : undefined}
-              onUpdateCustomObject={currentPage === "sketch" ? updateCustomObject : undefined}
-              editingEnabled={currentPage === "sketch"}
-              resetViewToken={resetViewToken}
-              auroraEnabled={auroraEnabled}
-              auroraIntensity={auroraIntensity}
-              auroraSpeed={auroraSpeed}
-            />
-          )}
-          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout && !focusMode ? (
-            <div className="viewer-viewmode-overlay" aria-label={dictionary.viewer.viewModeLabel}>
-              {themeViewModes.map((mode) => (
-                <button key={mode} type="button" className={`focus-chip ${viewMode === mode ? "is-active" : ""}`} onClick={() => setViewMode(mode)}>
-                  {dictionary.viewer.viewModes[mode]}
-                </button>
-              ))}
-            </div>
-          ) : null}
-          {currentPage === "watch" && !auroraWatchLayout ? (
-            <button
-              type="button"
-              className="viewer-focus-mode-toggle"
-              title={language === "ko" ? "단축키 F" : "Shortcut: F"}
-              onClick={() => setFocusMode((current) => !current)}
-            >
-              {focusMode ? (language === "ko" ? "패널 보기" : "Show panels") : language === "ko" ? "몰입 모드" : "Immersive mode"}
-            </button>
-          ) : null}
-          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout && !focusMode ? (
-            <ViewerFocusOverlay
-              dictionary={dictionary}
-              language={language}
-              constellationSearch={constellationSearch}
-              setConstellationSearch={setConstellationSearch}
-              focusedConstellation={focusedConstellation}
-              setFocusedConstellation={setFocusedConstellation}
-              focusConstellations={focusConstellations}
-              filteredConstellations={filteredConstellations}
-              trackConstellation={trackConstellation}
-              setTrackConstellation={setTrackConstellation}
-              zoomLevel={zoomLevel}
-              setZoomLevel={setZoomLevel}
-              changeZoom={changeZoom}
-              resetView={resetView}
-            />
-          ) : null}
-          {currentPage === "watch" && !isSketchWatch && !auroraWatchLayout && !auroraEnabled && !focusMode ? (
-            <section className="viewer-bottom-dock">
-              <details className="viewer-bottom-dock-details">
-                <summary>{language === "ko" ? "무드 · 분위기 · 하늘 조정" : "Mood · Atmosphere · Sky tuning"}</summary>
-                <div className="viewer-bottom-dock-content">
-                  <section className="story-card">
-                    <p className="eyebrow">{dictionary.viewer.tonightMood}</p>
-                    <h2>{activeConstellationName || dictionary.viewer.allSky}</h2>
-                    <p>{activeConstellationStory}</p>
-                    {activeConstellationKey && activeConstellationKey !== "all" ? (
-                      <div className="story-state-row">
-                        <span className="story-state-pill">{viewMode === "observer" ? (language === "ko" ? "올려보기" : "Looking up") : dictionary.viewer.viewModes[viewMode]}</span>
-                        <span className="story-state-pill">{activeConstellationIsFavorite ? (language === "ko" ? "즐겨찾기됨" : "Favorited") : language === "ko" ? "감상 중" : "In focus"}</span>
-                      </div>
-                    ) : null}
-                    {constellationStoryStateLines.length ? (
-                      <ul className="story-state-list">
-                        {constellationStoryStateLines.map((line) => (
-                          <li key={line}>{line}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                    {activeConstellationStats ? (
-                      <dl className="summary-list compact">
-                        <div>
-                          <dt>{dictionary.viewer.constellationVisibleStars}</dt>
-                          <dd>{activeConstellationStats.visibleStars}</dd>
-                        </div>
-                        <div>
-                          <dt>{dictionary.viewer.brightestStar}</dt>
-                          <dd>{activeConstellationStats.brightestStar || "--"}</dd>
-                        </div>
-                        <div>
-                          <dt>{dictionary.viewer.magnitude}</dt>
-                          <dd>{activeConstellationStats.brightestMagnitude ?? "--"}</dd>
-                        </div>
-                      </dl>
-                    ) : null}
-                  </section>
-                  <section>
-                    <p className="eyebrow">{dictionary.viewer.atmosphere}</p>
-                    <div className="observer-moment-card">
-                      <strong>{language === "ko" ? "차분한 감상 설정" : "Calm viewing preset"}</strong>
-                      <span>
-                        {language === "ko"
-                          ? "기본값은 별의 가독성과 부드러운 움직임을 우선합니다."
-                          : "Defaults favor star readability and gentle motion."}
-                      </span>
-                    </div>
-                    <div className="viewer-dock-tuning-grid">
-                      <label className="stacked-field">
-                        <span>
-                          {dictionary.viewer.atmosphereDensity}: {Math.round(atmosphereStrength * 100)}%
-                        </span>
-                        <input type="range" min="0.2" max="1" step="0.05" value={atmosphereStrength} onChange={(event) => setAtmosphereStrength(Number(event.target.value))} />
-                      </label>
-                      <label className="stacked-field">
-                        <span>
-                          {dictionary.viewer.starGlow}: {Math.round(starGlowStrength * 100)}%
-                        </span>
-                        <input type="range" min="0.2" max="1" step="0.05" value={starGlowStrength} onChange={(event) => setStarGlowStrength(Number(event.target.value))} />
-                      </label>
-                      <label className="stacked-field">
-                        <span>
-                          {dictionary.viewer.limitingMagnitude}: {limitingMagnitude.toFixed(1)}
-                        </span>
-                        <input type="range" min="3" max="6" step="0.1" value={limitingMagnitude} onChange={(event) => setLimitingMagnitude(Number(event.target.value))} />
-                      </label>
-                      <label className="stacked-field">
-                        <span>
-                          {dictionary.viewer.maxStars}: {maxStars.toLocaleString()}
-                        </span>
-                        <input type="range" min="1800" max="6000" step="200" value={maxStars} onChange={(event) => setMaxStars(Number(event.target.value))} />
-                      </label>
-                    </div>
-                    <div className="toggle-grid">
-                      <label className="toggle-item">
-                        <input type="checkbox" checked={showConstellations} onChange={(event) => setShowConstellations(event.target.checked)} />
-                        <span>{dictionary.viewer.toggles.constellations}</span>
-                      </label>
-                      <label className="toggle-item">
-                        <input type="checkbox" checked={showLabels} onChange={(event) => setShowLabels(event.target.checked)} />
-                        <span>{dictionary.viewer.toggles.labels}</span>
-                      </label>
-                      <label className="toggle-item">
-                        <input type="checkbox" checked={autoRotate} onChange={(event) => setAutoRotate(event.target.checked)} />
-                        <span>{dictionary.viewer.toggles.autoRotate}</span>
-                      </label>
-                      <label className="toggle-item">
-                        <input type="checkbox" checked={showGuides} onChange={(event) => setShowGuides(event.target.checked)} />
-                        <span>{dictionary.viewer.toggles.guides}</span>
-                      </label>
-                    </div>
-                  </section>
-                </div>
-              </details>
-            </section>
-          ) : null}
-          <ViewerAmbientOverlay
-            dictionary={dictionary}
-            language={language}
-            ambientTrackPending={ambientTrackPending}
-            ambientTrackError={ambientTrackError}
-            ambientEnabled={ambientEnabled}
-            ambientStatus={ambientStatus}
-            ambientStatusLabel={ambientStatusLabel}
-            ambientStatusHint={ambientStatusHint}
-            ambientVolume={ambientVolume}
-            setAmbientVolume={setAmbientVolume}
-            isFullscreen={isFullscreen}
-            showHideControlsButton={isFullscreen && currentPage === "watch" && !auroraWatchLayout}
-            controlsHidden={controlsHiddenInFullscreen}
-            onToggleControlsHidden={() => setControlsHiddenInFullscreen((current) => !current)}
-            toggleFullscreen={toggleFullscreen}
-            toggleAmbientSound={toggleAmbientSound}
-          />
-          {isFullscreen && currentPage === "watch" && !auroraWatchLayout && controlsHiddenInFullscreen ? (
-            <button
-              type="button"
-              className="viewer-unhide-button"
-              onClick={() => {
-                setControlsHiddenInFullscreen(false);
-                revealViewerUi();
-              }}
-            >
-              {language === "ko" ? "UI" : "UI"}
-            </button>
-          ) : null}
-        </main>
-
-          <aside className="inspector-panel">
-          {currentPage === "sketch" ? (
-            <SelectionInspectorPanel
-              dictionary={dictionary}
-              language={language}
-              currentPage={isSketchWatch ? "sketch" : currentPage}
-              selectedCustomStar={selectedCustomStar}
-              selectedCustomConstellation={selectedCustomConstellation}
-              activeCustomConstellation={
-                isSketchWatch
-                  ? activeCreativeScene?.constellations.find((constellation) => constellation.id === activeCreativeScene.activeConstellationId) ||
-                    activeCreativeScene?.constellations?.[0] ||
-                    null
-                  : activeCustomConstellation
-              }
-              updateCustomObject={updateCustomObject}
-              selectedTarget={selectedTarget}
-              customSpace={activeCreativeScene || customSpace}
-              removeCustomObject={removeCustomObject}
-              selectedCustomPlanet={selectedCustomPlanet}
-              selectedStar={selectedStar}
-            />
-          ) : null}
-
-          {currentPage === "watch" ? (
-            <WatchInspectorPanel
-              dictionary={dictionary}
-              language={language}
-              selectedStar={selectedStar}
-              currentViewConstellationDetails={isSketchWatch ? [] : currentViewConstellationDetails}
-              focusedConstellation={focusedConstellation}
-              setFocusedConstellation={setFocusedConstellation}
-              focusConstellations={isSketchWatch ? [] : focusConstellations}
-              sceneState={sceneState}
-              viewMode={viewMode}
-              isSketchWatch={isSketchWatch}
-              auroraEnabled={auroraEnabled}
-            />
-          ) : (
-            <SketchLibraryPanel
-              dictionary={dictionary}
-              savedSketches={savedSketches}
-              sortedSavedSketches={sortedSavedSketches}
-              activeSketchId={activeSketchId}
-              loadSketch={loadSketch}
-              previewSketchInWatch={previewSketchInWatch}
-              renameSketch={renameSketch}
-              toggleSketchFavorite={toggleSketchFavorite}
-              removeSketch={removeSketch}
-            />
-          )}
-          </aside>
-          </div>
-        </>
+        <NightSkyExperience
+          dictionary={dictionary}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          language={language}
+          updateLanguage={updateLanguage}
+          observer={observer}
+          observedAt={observedAt}
+          setObservedAt={setObservedAt}
+          headerEyebrow={headerEyebrow}
+          headerTitle={headerTitle}
+          headerSubtitle={headerSubtitle}
+          themes={themes}
+          currentThemeId={currentThemeId}
+          handleThemeSwitch={handleThemeSwitch}
+          effectiveSketchEnabled={effectiveSketchEnabled}
+          showThemeSwitcher={showThemeSwitcher}
+          auroraWatchLayout={auroraWatchLayout}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          observerMomentLabel={observerMomentLabel}
+          observerFocusSummary={observerFocusSummary}
+          updateObserver={updateObserver}
+          requestLocation={requestLocation}
+          timeShiftCue={timeShiftCue}
+          focusedConstellation={focusedConstellation}
+          setFocusedConstellation={setFocusedConstellation}
+          activeConstellationKey={activeConstellationKey}
+          activeConstellationName={activeConstellationName}
+          activeConstellationIsFavorite={activeConstellationIsFavorite}
+          toggleFavoriteConstellation={toggleFavoriteConstellation}
+          visibleFavoriteConstellations={visibleFavoriteConstellations}
+          activeConstellationStory={activeConstellationStory}
+          activeConstellationStats={activeConstellationStats}
+          atmosphereStrength={atmosphereStrength}
+          setAtmosphereStrength={setAtmosphereStrength}
+          starGlowStrength={starGlowStrength}
+          setStarGlowStrength={setStarGlowStrength}
+          limitingMagnitude={limitingMagnitude}
+          setLimitingMagnitude={setLimitingMagnitude}
+          maxStars={maxStars}
+          setMaxStars={setMaxStars}
+          showConstellations={showConstellations}
+          setShowConstellations={setShowConstellations}
+          showLabels={showLabels}
+          setShowLabels={setShowLabels}
+          autoRotate={autoRotate}
+          setAutoRotate={setAutoRotate}
+          showGuides={showGuides}
+          setShowGuides={setShowGuides}
+          auroraEnabled={auroraEnabled}
+          auroraIntensity={auroraIntensity}
+          setAuroraIntensity={setAuroraIntensity}
+          auroraSpeed={auroraSpeed}
+          setAuroraSpeed={setAuroraSpeed}
+          isSketchWatch={isSketchWatch}
+          watchedSketch={watchedSketch}
+          watchedSketchSummary={watchedSketchSummary}
+          exitSketchWatch={exitSketchWatch}
+          shiftTime={shiftTime}
+          setTonightTimestamp={setTonightTimestamp}
+          setObserverHourTimestamp={setObserverHourTimestamp}
+          sketchWorkspace={sketchWorkspace}
+          themeViewModes={themeViewModes}
+          sketchViewDescription={sketchViewDescription}
+          viewerRef={viewerRef}
+          isFullscreen={isFullscreen}
+          viewerUiVisible={viewerUiVisible}
+          controlsHiddenInFullscreen={controlsHiddenInFullscreen}
+          wakeAmbient={wakeAmbient}
+          revealViewerUi={revealViewerUi}
+          immersiveIntro={immersiveIntro}
+          timeShiftOverlayLabel={timeShiftOverlayLabel}
+          sceneState={sceneState}
+          selectedTarget={selectedTarget}
+          selectTarget={selectTarget}
+          effectiveAtmosphereStrength={effectiveAtmosphereStrength}
+          effectiveStarGlowStrength={effectiveStarGlowStrength}
+          zoomLevel={zoomLevel}
+          trackConstellation={trackConstellation}
+          activeCreativeScene={activeCreativeScene}
+          resetViewToken={resetViewToken}
+          currentViewConstellationDetails={currentViewConstellationDetails}
+          focusConstellations={focusConstellations}
+          constellationSearch={constellationSearch}
+          setConstellationSearch={setConstellationSearch}
+          filteredConstellations={filteredConstellations}
+          setTrackConstellation={setTrackConstellation}
+          setZoomLevel={setZoomLevel}
+          changeZoom={changeZoom}
+          resetView={resetView}
+          constellationStoryStateLines={constellationStoryStateLines}
+          selectedStar={selectedStar}
+          ambientTrackPending={ambientTrackPending}
+          ambientTrackError={ambientTrackError}
+          ambientEnabled={ambientEnabled}
+          ambientStatus={ambientStatus}
+          ambientStatusLabel={ambientStatusLabel}
+          ambientStatusHint={ambientStatusHint}
+          ambientVolume={ambientVolume}
+          setAmbientVolume={setAmbientVolume}
+          onToggleControlsHidden={() => setControlsHiddenInFullscreen((current) => !current)}
+          toggleFullscreen={toggleFullscreen}
+          toggleAmbientSound={toggleAmbientSound}
+          selectedCustomStar={selectedCustomStar}
+          selectedCustomConstellation={selectedCustomConstellation}
+          selectedCustomPlanet={selectedCustomPlanet}
+          customSpace={customSpace}
+          removeCustomObject={removeCustomObject}
+          savedSketches={savedSketches}
+          sortedSavedSketches={sortedSavedSketches}
+          addCustomObject={addCustomObject}
+          updateCustomObject={updateCustomObject}
+          planetPresets={planetPresets}
+          removeSketch={removeSketch}
+        />
       )}
     </div>
   );

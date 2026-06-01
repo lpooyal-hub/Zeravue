@@ -135,8 +135,8 @@ export function ViewerAmbientOverlay({
         <span>{dictionary.viewer.ambient.volumeShort}</span>
         <input
           type="range"
-          min="0.35"
-          max="1"
+          min="0.5"
+          max="1.15"
           step="0.05"
           value={ambientVolume}
           aria-label={dictionary.viewer.ambient.volume}
@@ -151,7 +151,7 @@ export function ViewerAmbientOverlay({
         aria-label={isFullscreen ? dictionary.viewer.exitFullscreen : dictionary.viewer.enterFullscreen}
         onClick={toggleFullscreen}
       >
-        {isFullscreen ? "[]-" : "[]+"}
+        {language === "ko" ? (isFullscreen ? "전체화면 종료" : "전체화면") : isFullscreen ? "Exit fullscreen" : "Fullscreen"}
       </button>
       {showHideControlsButton ? (
         <button
@@ -171,7 +171,7 @@ export function ViewerAmbientOverlay({
         aria-label={ambientEnabled ? dictionary.viewer.ambient.off : dictionary.viewer.ambient.on}
         onClick={toggleAmbientSound}
       >
-        {ambientEnabled ? "SND-" : "SND+"}
+        {language === "ko" ? "사운드" : "Sound"}
       </button>
     </div>
   );

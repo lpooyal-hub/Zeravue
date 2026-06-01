@@ -293,13 +293,18 @@ function WatchInspectorPanel({
               onClick={() => setFocusedConstellation(item.name)}
             >
               <strong>{dictionary.constellations?.[item.name]?.[language] || item.name}</strong>
-              <small>
-                {item.visibleStars} {dictionary.viewer.constellationVisibleStars} · {dictionary.viewer.altitude} {item.averageAltitude}°
-                {viewMode === "observer"
-                  ? ` · ${dictionary.viewer.lookingToward} ${getCompassDirectionLabel(item.averageAzimuth, dictionary, language)}`
-                  : ""}
-              </small>
-              {viewMode === "observer" ? <small>{getAltitudeBandLabel(item.averageAltitude, dictionary)}</small> : null}
+              <div className="constellation-card-meta">
+                <span>{language === "ko" ? `별 ${item.visibleStars}` : `${item.visibleStars} stars`}</span>
+                <span>{language === "ko" ? `고도 ${item.averageAltitude}°` : `Alt ${item.averageAltitude}°`}</span>
+                {viewMode === "observer" ? (
+                  <span>
+                    {language === "ko"
+                      ? `${dictionary.viewer.lookingToward} ${getCompassDirectionLabel(item.averageAzimuth, dictionary, language)}`
+                      : `${dictionary.viewer.lookingToward} ${getCompassDirectionLabel(item.averageAzimuth, dictionary, language)}`}
+                  </span>
+                ) : null}
+              </div>
+              {viewMode === "observer" ? <small className="constellation-band-label">{getAltitudeBandLabel(item.averageAltitude, dictionary)}</small> : null}
             </button>
           ))}
         </div>

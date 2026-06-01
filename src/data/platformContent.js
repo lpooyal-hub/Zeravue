@@ -27,12 +27,12 @@ export const platformThemeCards = [
 
 export const platformHomeCopy = {
   en: {
-    title: "Choose the theme you want to rest in.",
-    subtitle: "Zeravue is a multi-theme immersive rest platform. Pick a scene and stay for a while."
+    title: "A calm digital place to pause.",
+    subtitle: "Choose a scene and settle in. Zeravue offers quiet themes for gentle viewing."
   },
   ko: {
-    title: "지금 머물고 싶은 테마를 고르세요.",
-    subtitle: "Zeravue는 여러 테마를 담은 몰입형 디지털 휴식 플랫폼입니다. 장면을 고르고 잠시 머물러 보세요."
+    title: "잠시 머물 수 있는 차분한 디지털 공간.",
+    subtitle: "장면을 고르고 천천히 감상해 보세요. Zeravue는 조용한 테마 중심의 휴식형 뷰어입니다."
   }
 };
 

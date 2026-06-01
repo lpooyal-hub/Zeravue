@@ -100,6 +100,11 @@ fi
 
 echo "Checked out commit: $(git rev-parse --short HEAD) on branch $(git rev-parse --abbrev-ref HEAD)"
 
+if [[ "$NORMALIZED_ENV" == "prod" ]]; then
+  # Keep prod runtime tree lean: dev logs are not required for serving.
+  rm -rf docs/devlog
+fi
+
 docker compose -f "$COMPOSE_FILE" up -d --build
 
 echo "Deployment complete."

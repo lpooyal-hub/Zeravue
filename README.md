@@ -123,9 +123,14 @@ Separated stacks:
 # Dev stack (dev.zeravue.xyz target)
 docker compose -f docker-compose.dev.yml up -d
 
-# Prod stack (zeravue.xyz target)
+# Prod stack (zeravue.xyz target, static build + nginx)
 docker compose -f docker-compose.prod.yml up -d
 ```
+
+Notes:
+- `Dockerfile`: development frontend container (Vite dev server)
+- `Dockerfile.prod`: production frontend image (`npm run build` + `nginx` static serving)
+- `nginx.prod.conf`: SPA fallback routing for production
 
 ## Environment
 
@@ -134,8 +139,12 @@ Frontend `.env`:
 ```text
 VITE_API_BASE_URL=
 VITE_NASA_API_KEY=DEMO_KEY
+VITE_AMBIENT_TRACK_URL=
+VITE_PROXY_TARGET=http://backend:8000
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
+VITE_ADSENSE_CLIENT=
+VITE_ADSENSE_HOME_SLOT=
 ```
 
 Backend `backend/.env`:
@@ -143,7 +152,10 @@ Backend `backend/.env`:
 ```text
 NASA_API_KEY=DEMO_KEY
 NASA_BASE_URL=https://api.nasa.gov
-FRONTEND_ORIGIN=
+FRONTEND_ORIGIN=http://localhost:5173
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+ADMIN_DASHBOARD_KEY=
 ```
 
 ## Branch and Deploy Flow
@@ -154,6 +166,13 @@ FRONTEND_ORIGIN=
 GitHub Actions:
 - validate on `dev`
 - validate + deploy on `main`
+
+## Production Notes
+
+- Main domain: `zeravue.xyz`
+- Dev domain: `dev.zeravue.xyz`
+- Vite `allowedHosts` includes both domains and localhost entries.
+- Admin analytics currently aggregates Supabase REST data in backend logic; when volume grows, migrate aggregation to Supabase view/RPC for better scalability.
 
 ## Related Docs
 

@@ -164,7 +164,7 @@ function AuroraBand({ intensity = 0.55, speed = 0.3, offset = 0, colorA, colorB,
 
           void main() {
             vec2 uv = vUv;
-            float t = uTime * (0.08 + uSpeed * 0.2);
+            float t = uTime * (0.085 + uSpeed * 0.225);
             vec2 flowUv = vec2(uv.x * 2.4 + uOffset, uv.y * 2.0);
             float wave = fbm(flowUv + vec2(t * 0.7, -t * 0.22));
             float wave2 = fbm(flowUv * 1.5 + vec2(-t * 0.3, t * 0.18));

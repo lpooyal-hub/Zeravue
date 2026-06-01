@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routers import admin, apod, sky
 from .settings import settings
 
-app = FastAPI(title="Celestial Atlas API", version="0.1.0")
+app = FastAPI(title="Zeravue API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
