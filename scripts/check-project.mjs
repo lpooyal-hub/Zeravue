@@ -6,14 +6,12 @@ const required = [
   "src/App.jsx",
   "src/astro/observability.js",
   "src/api/backend.js",
-  "src/api/nasa.js",
   "src/data/i18n.js",
   "src/data/planets.js",
   "src/data/zodiac.js",
   "src/scene/starfield.js",
   "src/styles.css",
   "backend/app/main.py",
-  "backend/app/routers/apod.py",
   "backend/app/routers/sky.py",
   "backend/app/services/observability.py"
 ];
