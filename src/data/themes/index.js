@@ -1,10 +1,11 @@
 import { auroraNightTheme } from "./auroraNight.config.js";
+import { monsoonCanopyTheme } from "./monsoonCanopy.config.js";
 import { nightSkyTheme } from "./nightSky.config.js";
 import { rainWindowTheme } from "./rainWindow.config.js";
 
 export const DEFAULT_THEME_ID = "night-sky";
 
-export const ALL_THEMES = [nightSkyTheme, auroraNightTheme, rainWindowTheme];
+export const ALL_THEMES = [nightSkyTheme, auroraNightTheme, monsoonCanopyTheme, rainWindowTheme];
 
 export const THEME_ROUTES = {
   "/night-sky": {
@@ -18,6 +19,10 @@ export const THEME_ROUTES = {
   "/aurora-live": {
     themeId: "aurora-night",
     auroraRenderer: "webgl"
+  },
+  "/monsoon-canopy": {
+    themeId: "monsoon-canopy",
+    auroraRenderer: null
   },
   "/rain-window": {
     themeId: "rain-window",

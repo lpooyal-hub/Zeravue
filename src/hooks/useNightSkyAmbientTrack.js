@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { renderAuroraAmbientTrack } from "../audio/renderAuroraAmbientTrack.js";
 import { renderNightSkyAmbientTrack } from "../audio/renderNightSkyAmbientTrack.js";
+import { renderRainAmbientTrack } from "../audio/renderRainAmbientTrack.js";
 
 const THEME_RENDERERS = {
-  "aurora-night": renderAuroraAmbientTrack
+  "aurora-night": renderAuroraAmbientTrack,
+  "monsoon-canopy": renderRainAmbientTrack,
+  "rain-window": renderRainAmbientTrack
 };
 
 export function useNightSkyAmbientTrack({ configuredTrackUrl = "", themeId = "night-sky" } = {}) {

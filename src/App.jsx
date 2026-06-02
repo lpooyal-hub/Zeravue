@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
 import { AuroraExperience } from "./components/experiences/AuroraExperience.jsx";
+import { MonsoonCanopyExperience } from "./components/experiences/MonsoonCanopyExperience.jsx";
 import { NightSkyExperience } from "./components/experiences/NightSkyExperience.jsx";
-import { RainWindowExperience } from "./components/experiences/RainWindowExperience.jsx";
 import { config } from "./config.js";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { useAmbientAudio } from "./hooks/useAmbientAudio.js";
@@ -65,11 +65,19 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [auroraSpeed, setAuroraSpeed] = useState(0.39);
   const [rainIntensity, setRainIntensity] = useState(0.56);
   const [rainFlow, setRainFlow] = useState(0.42);
+  const [rainPreset, setRainPreset] = useState("balanced");
+  const [rainThunderEnabled, setRainThunderEnabled] = useState(true);
+  const [showRainMoodControls, setShowRainMoodControls] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [controlsHiddenInFullscreen, setControlsHiddenInFullscreen] = useState(false);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
   const { favoriteConstellations, setFavoriteConstellations } = useFavoriteConstellations();
-  const configuredAmbientTrackUrl = currentThemeId === "aurora-night" ? config.auroraAmbientTrackUrl || config.ambientTrackUrl : config.ambientTrackUrl;
+  const configuredAmbientTrackUrl =
+    currentThemeId === "aurora-night"
+      ? config.auroraAmbientTrackUrl || config.ambientTrackUrl
+      : currentThemeId === "monsoon-canopy" || currentThemeId === "rain-window"
+        ? config.rainAmbientTrackUrl || "/audio/monsoon-canopy-rain-loop.wav"
+        : config.ambientTrackUrl;
   const { ambientTrackUrl, ambientTrackPending, ambientTrackError } = useNightSkyAmbientTrack({
     configuredTrackUrl: configuredAmbientTrackUrl,
     themeId: currentThemeId
@@ -165,7 +173,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const { updateObserver, requestLocation, toggleFavoriteConstellation, selectTarget, shiftTime, changeZoom, resetView } = watchWorkspace;
   const sketchEnabled = currentTheme?.features?.sketching !== false;
   const auroraEnabled = currentThemeId === "aurora-night";
-  const rainEnabled = currentThemeId === "rain-window";
+  const rainEnabled = currentThemeId === "monsoon-canopy" || currentThemeId === "rain-window";
   const immersiveThemeEnabled = auroraEnabled || rainEnabled;
   const auroraWatchLayout = auroraEnabled && currentPage === "watch";
   const rainWatchLayout = rainEnabled && currentPage === "watch";
@@ -591,6 +599,48 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     setAutoRotate(true);
     setZoomLevel(0.52);
   };
+
+  const applyRainPreset = (preset) => {
+    setRainPreset(preset);
+
+    if (preset === "light") {
+      setRainIntensity(0.4);
+      setRainFlow(0.32);
+      setAmbientVolume(0.72);
+      return;
+    }
+
+    if (preset === "deep") {
+      setRainIntensity(0.78);
+      setRainFlow(0.6);
+      setAmbientVolume(1.08);
+      return;
+    }
+
+    setRainIntensity(0.56);
+    setRainFlow(0.42);
+    setAmbientVolume(0.9);
+  };
+
+  useEffect(() => {
+    const isLight = Math.abs(rainIntensity - 0.4) < 0.015 && Math.abs(rainFlow - 0.32) < 0.015;
+    const isBalanced = Math.abs(rainIntensity - 0.56) < 0.015 && Math.abs(rainFlow - 0.42) < 0.015;
+    const isDeep = Math.abs(rainIntensity - 0.78) < 0.015 && Math.abs(rainFlow - 0.6) < 0.015;
+
+    if (isLight) {
+      setRainPreset("light");
+      return;
+    }
+    if (isBalanced) {
+      setRainPreset("balanced");
+      return;
+    }
+    if (isDeep) {
+      setRainPreset("deep");
+      return;
+    }
+    setRainPreset("custom");
+  }, [rainFlow, rainIntensity]);
   useEffect(() => {
     if (!importableConstellations.length) {
       setPresetConstellationName("");
@@ -651,7 +701,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           toggleFullscreen={toggleFullscreen}
         />
       ) : rainWatchLayout ? (
-        <RainWindowExperience
+        <MonsoonCanopyExperience
           isFullscreen={isFullscreen}
           language={language}
           updateLanguage={updateLanguage}
@@ -668,6 +718,12 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           setRainIntensity={setRainIntensity}
           rainFlow={rainFlow}
           setRainFlow={setRainFlow}
+          rainPreset={rainPreset}
+          applyRainPreset={applyRainPreset}
+          rainThunderEnabled={rainThunderEnabled}
+          setRainThunderEnabled={setRainThunderEnabled}
+          showRainMoodControls={showRainMoodControls}
+          setShowRainMoodControls={setShowRainMoodControls}
           ensureAmbientOn={ensureAmbientOn}
         />
       ) : (

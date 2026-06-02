@@ -24,15 +24,15 @@ export const platformThemeCards = [
     }
   },
   {
-    id: "rain-window",
-    href: "/rain-window",
+    id: "monsoon-canopy",
+    href: "/monsoon-canopy",
     title: {
-      en: "Rain Window",
-      ko: "비 오는 창가"
+      en: "Monsoon Canopy",
+      ko: "깊은 숲의 비"
     },
     description: {
-      en: "Listen to slow rain and distant city ambience in a quiet nighttime window scene.",
-      ko: "도시의 잔향과 함께 느린 빗소리를 감상하는 고요한 창가 테마입니다."
+      en: "Rest beneath a dense rainforest canopy with steady rain, mist, and humid forest air.",
+      ko: "짙은 수풀 아래에서 굵은 비와 안개, 습한 숲 공기에 천천히 머무는 테마입니다."
     }
   }
 ];

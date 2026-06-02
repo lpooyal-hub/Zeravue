@@ -8,6 +8,90 @@ import { getThemeRouteConfig } from "./data/themes/index.js";
 
 const buildLogs = [
   {
+    slug: "2026-06-02",
+    date: "2026-06-02",
+    title: {
+      en: "Monsoon Canopy reset and immersive rain rebuild",
+      ko: "깊은 숲의 비 방향 재정리와 몰입형 빗소리/비 효과 보강"
+    },
+    summary: {
+      en:
+        "Reframed the awkward Rain Window direction into Monsoon Canopy, rebuilt the scene around a rainforest image and canvas rain, and moved ambient sound to local samples for a smoother loop.",
+      ko:
+        "어색했던 Rain Window 방향을 깊은 숲의 비로 다시 세우고, 우림 배경 이미지와 캔버스 비 레이어를 중심으로 장면을 재구성했으며, 더 자연스러운 루프를 위해 로컬 사운드 샘플로 옮겼습니다."
+    },
+    areas: {
+      en: ["Theme reset", "Atmosphere tuning", "Ambient audio"],
+      ko: ["테마 재정리", "분위기 튜닝", "앰비언트 사운드"]
+    },
+    highlights: {
+      en: [
+        "Split Monsoon Canopy into its own theme path so it no longer collides with the earlier Rain Window direction.",
+        "Replaced weak decorative rain styling with a photo-based jungle backdrop and a dedicated canvas rain layer.",
+        "Switched the rain loop and thunder cue to local audio samples to reduce audible seams and make the scene feel steadier."
+      ],
+      ko: [
+        "초기 Rain Window 흔적과 충돌하지 않도록 깊은 숲의 비를 별도 테마 흐름으로 분리했습니다.",
+        "약한 장식형 비 스타일 대신, 우림 배경 이미지와 전용 캔버스 비 레이어 중심으로 장면을 다시 세웠습니다.",
+        "비 루프와 천둥 큐를 로컬 오디오 샘플로 옮겨 끊김 체감은 줄이고 장면의 안정감을 높였습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Raise thunder audibility until it is clearly noticeable without breaking the calm tone.",
+        "Polish planet/moon/sun selection feedback in Night Sky around a more immersive viewing mood.",
+        "Keep tightening shared bottom-control naming and placement rules across immersive themes."
+      ],
+      ko: [
+        "분위기를 해치지 않는 선에서 깊은 숲의 비 천둥 사운드 체감을 더 끌어올립니다.",
+        "Night Sky의 행성/달/태양 선택 경험을 감상형 톤에 맞게 더 다듬습니다.",
+        "몰입형 테마 공통 하단 컨트롤의 명칭과 위치 규칙을 더 정리합니다."
+      ]
+    }
+  },
+  {
+    slug: "2026-06-01",
+    date: "2026-06-01",
+    title: {
+      en: "Rain Window first structure and viewing flow alignment",
+      ko: "Rain Window 첫 구조와 감상 흐름 정렬"
+    },
+    summary: {
+      en:
+        "Added the first Rain Window route into Zeravue, aligned its controls with existing immersive pages, and improved first-entry sound behavior.",
+      ko:
+        "Rain Window 첫 진입 경로를 Zeravue에 붙이고, 기존 몰입형 페이지와 조작 흐름을 맞췄으며, 첫 진입 사운드 체감을 보강했습니다."
+    },
+    areas: {
+      en: ["Theme expansion", "Immersive controls", "Ambient onboarding"],
+      ko: ["테마 확장", "몰입형 컨트롤", "사운드 온보딩"]
+    },
+    highlights: {
+      en: [
+        "Connected the first Rain Window theme through home, routing, and dedicated viewer flow.",
+        "Aligned fullscreen, sound, and mood controls with the broader Zeravue interaction language.",
+        "Improved first-entry ambient activation so the scene feels less silent before the first action."
+      ],
+      ko: [
+        "첫 Rain Window 테마를 홈, 라우팅, 전용 감상 흐름까지 연결했습니다.",
+        "전체화면, 사운드, 무드 조작을 Zeravue 공통 감상 톤에 맞게 정리했습니다.",
+        "첫 조작 전 너무 조용하게 느껴지지 않도록 앰비언트 시작 감각을 보강했습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Deepen Rain Window background detail and reduce static scene feeling.",
+        "Unify lower overlay structure between Aurora and Rain experiences.",
+        "Apply a more consistent fade rule between entry and viewing states."
+      ],
+      ko: [
+        "Rain Window 배경 디테일을 더 보강해 정적인 느낌을 줄입니다.",
+        "Aurora와 Rain 경험의 하단 오버레이 구조를 더 통일합니다.",
+        "진입 화면과 감상 화면 사이 페이드 규칙을 더 일관되게 맞춥니다."
+      ]
+    }
+  },
+  {
     slug: "2026-05-31",
     date: "2026-05-31",
     title: {
@@ -617,6 +701,10 @@ export function RootApp() {
       "/aurora": {
         title: "Aurora Night · Zeravue",
         description: "Enter Zeravue Aurora Night for a gentle, immersive aurora viewing experience."
+      },
+      "/monsoon-canopy": {
+        title: "Monsoon Canopy · Zeravue",
+        description: "A calm tropical rainforest scene with dense rainfall, layered foliage, mist, and sheltered observation."
       },
       "/rain-window": {
         title: "Rain Window · Zeravue",

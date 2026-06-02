@@ -9,6 +9,17 @@ export function getThemeHeaderCopy({ currentThemeId, language, dictionary }) {
     };
   }
 
+  if (currentThemeId === "monsoon-canopy") {
+    return {
+      eyebrow: "Zeravue · Monsoon Canopy",
+      title: language === "ko" ? "짙은 캐노피 아래에서 빗소리를 천천히 바라보는 공간입니다." : "A quiet space beneath a dense monsoon canopy.",
+      subtitle:
+        language === "ko"
+          ? "빗줄기와 안개, 젖은 잎사귀의 흐름에 천천히 감각을 맡겨보세요."
+          : "Settle into heavy rain, mist, and wet leaves without urgency."
+    };
+  }
+
   if (currentThemeId === "rain-window") {
     return {
       eyebrow: "Zeravue · Rain Window",
