@@ -6,7 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile.prod
       args:
-        VITE_NASA_API_KEY: ${VITE_NASA_API_KEY:-DEMO_KEY}
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
         VITE_PROXY_TARGET: ${VITE_PROXY_TARGET:-}
     container_name: zeravue-prod-frontend
@@ -25,8 +24,6 @@ services:
     ports:
       - "${PROD_BACKEND_PORT:-5052}:8000"
     environment:
-      NASA_API_KEY: ${NASA_API_KEY:-DEMO_KEY}
-      NASA_BASE_URL: ${NASA_BASE_URL:-https://api.nasa.gov}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-https://zeravue.xyz}
       SUPABASE_URL: ${SUPABASE_URL:-}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}

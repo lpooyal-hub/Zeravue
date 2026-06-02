@@ -8,17 +8,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN mkdir -p /app/data
-RUN python - <<'PY'
-from pathlib import Path
-from urllib.request import urlretrieve
-
-target = Path("/app/data/hygdata_v42.csv.gz")
-url = "https://astronexus.com/downloads/catalogs/hygdata_v42.csv.gz"
-urlretrieve(url, target)
-print(f"Downloaded {target}")
-PY
-
+COPY data ./data
 COPY app ./app
 
 EXPOSE 8000

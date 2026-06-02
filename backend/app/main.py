@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import admin, apod, sky
+from .routers import admin, sky
 from .settings import settings
 
 app = FastAPI(title="Zeravue API", version="0.1.0")
@@ -14,7 +14,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(apod.router, prefix="/api", tags=["NASA"])
 app.include_router(sky.router, prefix="/api/sky", tags=["Sky"])
 app.include_router(admin.router, prefix="/api", tags=["Admin"])
 
