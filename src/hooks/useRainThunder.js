@@ -97,6 +97,78 @@ function playThunderCue(context, intensity = 0.56) {
   snapOsc.stop(now + 0.3);
 }
 
+function playBufferedThunder(context, buffer, intensity = 0.56) {
+  const source = context.createBufferSource();
+  const master = context.createGain();
+  const sampleGain = context.createGain();
+  const lowShelf = context.createBiquadFilter();
+  const lowPass = context.createBiquadFilter();
+  const compressor = context.createDynamicsCompressor();
+  const rumbleGain = context.createGain();
+  const rumbleLowPass = context.createBiquadFilter();
+  const rumbleNoise = context.createBufferSource();
+  const rumbleOsc = context.createOscillator();
+  const now = context.currentTime;
+
+  source.buffer = buffer;
+  rumbleNoise.buffer = createNoiseBuffer(context, 5.2);
+
+  lowShelf.type = "lowshelf";
+  lowShelf.frequency.value = 160;
+  lowShelf.gain.value = 5 + intensity * 2.4;
+
+  lowPass.type = "lowpass";
+  lowPass.frequency.value = 920 - intensity * 120;
+  lowPass.Q.value = 0.5;
+
+  rumbleLowPass.type = "lowpass";
+  rumbleLowPass.frequency.value = 140;
+  rumbleLowPass.Q.value = 0.4;
+
+  compressor.threshold.value = -22;
+  compressor.knee.value = 14;
+  compressor.ratio.value = 2.8;
+  compressor.attack.value = 0.03;
+  compressor.release.value = 0.6;
+
+  master.gain.setValueAtTime(0.0001, now);
+  master.gain.exponentialRampToValueAtTime(0.72 + intensity * 0.28, now + 0.2);
+  master.gain.exponentialRampToValueAtTime(0.34 + intensity * 0.16, now + 1.6);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
+
+  sampleGain.gain.setValueAtTime(0.0001, now);
+  sampleGain.gain.exponentialRampToValueAtTime(0.42 + intensity * 0.18, now + 0.14);
+  sampleGain.gain.exponentialRampToValueAtTime(0.18 + intensity * 0.08, now + 0.8);
+  sampleGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.6);
+
+  rumbleGain.gain.setValueAtTime(0.0001, now + 0.12);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.32 + intensity * 0.22, now + 0.48);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.18 + intensity * 0.12, now + 1.8);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.0);
+
+  rumbleOsc.type = "sine";
+  rumbleOsc.frequency.setValueAtTime(58, now + 0.08);
+  rumbleOsc.frequency.exponentialRampToValueAtTime(36, now + 4.8);
+
+  source.connect(lowShelf);
+  lowShelf.connect(lowPass);
+  lowPass.connect(sampleGain);
+  sampleGain.connect(compressor);
+
+  rumbleNoise.connect(rumbleLowPass);
+  rumbleLowPass.connect(rumbleGain);
+  rumbleOsc.connect(rumbleGain);
+  rumbleGain.connect(compressor);
+
+  compressor.connect(master);
+  master.connect(context.destination);
+  source.start();
+  rumbleNoise.start(now + 0.06);
+  rumbleNoise.stop(now + 5.2);
+  rumbleOsc.start(now + 0.08);
+  rumbleOsc.stop(now + 4.8);
+}
+
 export function useRainThunder({ enabled, audioEnabled, intensity }) {
   const [flashToken, setFlashToken] = useState(0);
   const timerRef = useRef(null);
@@ -149,8 +221,9 @@ export function useRainThunder({ enabled, audioEnabled, intensity }) {
       return undefined;
     }
 
+    let isFirstCue = true;
     const scheduleNext = () => {
-      const delay = 5500 + Math.random() * 5500 - intensity * 1200;
+      const delay = isFirstCue ? 1100 + Math.random() * 1700 : 4200 + Math.random() * 4200 - intensity * 900;
       timerRef.current = window.setTimeout(async () => {
         setFlashToken((current) => current + 1);
 
@@ -168,13 +241,7 @@ export function useRainThunder({ enabled, audioEnabled, intensity }) {
               if (audioContextRef.current.state === "running" || unlockedRef.current) {
                 unlockedRef.current = true;
                 if (thunderBufferRef.current) {
-                  const source = audioContextRef.current.createBufferSource();
-                  const gain = audioContextRef.current.createGain();
-                  source.buffer = thunderBufferRef.current;
-                  gain.gain.value = 0.56 + intensity * 0.2;
-                  source.connect(gain);
-                  gain.connect(audioContextRef.current.destination);
-                  source.start();
+                  playBufferedThunder(audioContextRef.current, thunderBufferRef.current, intensity);
                 } else {
                   playThunderCue(audioContextRef.current, intensity);
                 }
@@ -185,6 +252,7 @@ export function useRainThunder({ enabled, audioEnabled, intensity }) {
           }
         }
 
+        isFirstCue = false;
         scheduleNext();
       }, Math.max(3800, delay));
     };

@@ -43,6 +43,45 @@ function getAltitudeBandLabel(altitude, dictionary) {
   return dictionary.viewer.altitudeBands.low;
 }
 
+function getSolarBodyTypeLabel(bodyId, language) {
+  const labels = {
+    sun: language === "ko" ? "태양" : "Sun",
+    moon: language === "ko" ? "달" : "Moon",
+    venus: language === "ko" ? "금성" : "Venus",
+    jupiter: language === "ko" ? "목성" : "Jupiter",
+    mars: language === "ko" ? "화성" : "Mars"
+  };
+  return labels[bodyId] || (language === "ko" ? "태양계 천체" : "Solar system body");
+}
+
+function getSolarBodyMoodCopy(bodyId, altitude, language) {
+  const aboveHorizon = altitude > 0;
+
+  if (bodyId === "moon") {
+    if (aboveHorizon) {
+      return language === "ko" ? "밤하늘의 기준점처럼 차분하게 떠 있습니다." : "It hangs like a calm anchor point in the night sky.";
+    }
+    return language === "ko" ? "지평선 아래로 내려가며 잔광만 남기고 있습니다." : "It has slipped below the horizon, leaving only a trace of its presence.";
+  }
+
+  if (bodyId === "sun") {
+    if (aboveHorizon) {
+      return language === "ko" ? "하늘 전체의 밝기를 이끄는 중심 광원입니다." : "It is the central light source shaping the whole sky.";
+    }
+    return language === "ko" ? "지평선 아래에 있지만 하늘의 톤에는 여운을 남깁니다." : "It is below the horizon, but its tone still lingers in the sky.";
+  }
+
+  if (aboveHorizon) {
+    return language === "ko"
+      ? "별자리 사이에서 시선을 붙잡는 밝은 기준점입니다."
+      : "It acts as a bright visual anchor among the constellations.";
+  }
+
+  return language === "ko"
+    ? "지평선 아래로 기울며 잠시 숨는 중입니다."
+    : "It is dipping below the horizon and briefly slipping out of view.";
+}
+
 function WatchControlsPanel({
   dictionary,
   language,
@@ -343,7 +382,8 @@ function WatchInspectorPanel({
         {selectedSolarBody ? (
           <>
             <h2>{selectedSolarBody.name}</h2>
-            <p className="constellation-copy">{language === "ko" ? "태양계 천체" : "Solar system body"}</p>
+            <p className="constellation-copy">{getSolarBodyTypeLabel(selectedSolarBody.id, language)}</p>
+            <p className="helper-copy">{getSolarBodyMoodCopy(selectedSolarBody.id, selectedSolarBody.altitude, language)}</p>
             <dl className="summary-list compact">
               <div>
                 <dt>{dictionary.viewer.magnitude}</dt>
@@ -356,6 +396,10 @@ function WatchInspectorPanel({
               <div>
                 <dt>{dictionary.viewer.azimuth}</dt>
                 <dd>{selectedSolarBody.azimuth} deg</dd>
+              </div>
+              <div>
+                <dt>{dictionary.viewer.visibility}</dt>
+                <dd>{selectedSolarBody.altitude > 0 ? dictionary.viewer.aboveHorizon : dictionary.viewer.belowHorizon}</dd>
               </div>
             </dl>
             {viewMode === "observer" ? (

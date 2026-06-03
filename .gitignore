@@ -1,2 +1,7 @@
 docs/
 .zeravue-deploy-env
+.env
+backend/.env
+dist/
+__pycache__/
+*.pyc

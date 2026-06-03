@@ -3,6 +3,7 @@ import { MonsoonRainCanvas } from "./MonsoonRainCanvas.jsx";
 import { useRainThunder } from "../../hooks/useRainThunder.js";
 
 export function MonsoonCanopyExperience({
+  viewerRef,
   isFullscreen,
   language,
   updateLanguage,
@@ -37,9 +38,15 @@ export function MonsoonCanopyExperience({
     ensureAmbientOn?.();
   }, [ensureAmbientOn]);
 
+  useEffect(() => {
+    if (isFullscreen) {
+      setShowRainMoodControls(false);
+    }
+  }, [isFullscreen, setShowRainMoodControls]);
+
   return (
-    <div className={`rain-page ${isFullscreen ? "is-fullscreen-view" : ""}`}>
-      <header className="aurora-floating-header rain-floating-header">
+    <div ref={viewerRef} className={`rain-page ${isFullscreen ? "is-fullscreen-view" : ""}`}>
+      <header className={`aurora-floating-header rain-floating-header ${isFullscreen ? "is-hidden" : ""}`}>
         <a className="aurora-header-logo-wrap" href="/" aria-label={language === "ko" ? "메인 홈으로 이동" : "Go to home"}>
           <img className="aurora-header-logo" src="/branding/zeravue-logo.svg" alt="Zeravue logo" />
         </a>
@@ -55,7 +62,7 @@ export function MonsoonCanopyExperience({
         </div>
       </header>
 
-      <section className="rain-hero-copy">
+      <section className={`rain-hero-copy ${isFullscreen ? "is-hidden" : ""}`}>
         <p className="eyebrow">{headerEyebrow}</p>
         <h1 className="aurora-title">{headerTitle}</h1>
         <p className="aurora-subtitle">{headerSubtitle}</p>
@@ -71,12 +78,12 @@ export function MonsoonCanopyExperience({
         <div className="rain-canopy-mist rain-canopy-mist-front" />
       </section>
 
-      <section className={`rain-mood-dock ${showRainMoodControls ? "is-open" : ""}`}>
+      <section className={`rain-mood-dock immersive-mood-dock ${showRainMoodControls ? "is-open" : ""} ${isFullscreen ? "is-hidden" : ""}`}>
         <button type="button" className={`overlay-button ${showRainMoodControls ? "is-active" : ""}`} onClick={() => setShowRainMoodControls((current) => !current)}>
           {language === "ko" ? "무드" : "Mood"}
         </button>
         {showRainMoodControls ? (
-          <div className="rain-mood-panel">
+          <div className="rain-mood-panel immersive-mood-popover">
             <label>
               <span>{language === "ko" ? `빗줄기 강도 ${Math.round(rainIntensity * 100)}%` : `Rain intensity ${Math.round(rainIntensity * 100)}%`}</span>
               <input type="range" min="0.25" max="0.95" step="0.01" value={rainIntensity} onChange={(event) => setRainIntensity(Number(event.target.value))} />
@@ -113,13 +120,13 @@ export function MonsoonCanopyExperience({
         ) : null}
       </section>
 
-      <section className="viewer-overlay rain-bottom-controls">
+      <section className={`viewer-overlay rain-bottom-controls immersive-bottom-controls ${isFullscreen ? "is-hidden" : ""}`}>
         <label className="overlay-volume">
           <span>{language === "ko" ? "볼륨" : "Volume"}</span>
           <input type="range" min="0.5" max="1.15" step="0.05" value={ambientVolume} onChange={(event) => setAmbientVolume(Number(event.target.value))} />
           <strong>{Math.round(ambientVolume * 100)}%</strong>
         </label>
-        <div className="aurora-live-quick-actions">
+        <div className="aurora-live-quick-actions immersive-quick-actions">
           <button type="button" className={`overlay-button ${ambientEnabled ? "is-active" : ""}`} onClick={toggleAmbientSound}>
             {ambientEnabled ? (language === "ko" ? "사운드 끄기" : "Sound Off") : language === "ko" ? "사운드 켜기" : "Sound On"}
           </button>

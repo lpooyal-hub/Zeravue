@@ -8,6 +8,7 @@ It is designed as a quiet immersive space first, not a dashboard-style app.
 Current active themes:
 - Night Sky
 - Aurora Night
+- Monsoon Canopy (`깊은 숲의 비`)
 
 Upcoming theme direction:
 - underwater
@@ -22,8 +23,8 @@ Zeravue focuses on:
 - subtle motion before flashy effects
 - calm viewing flow across desktop and mobile
 
-Night Sky is the reference theme architecture.  
-Aurora is being developed to follow the same ambient viewing philosophy.
+Night Sky is the reference interaction surface.  
+Aurora and Monsoon Canopy follow the same ambient viewing philosophy with lighter, theme-specific scene layers.
 
 ## Core Features
 
@@ -43,7 +44,12 @@ Aurora is being developed to follow the same ambient viewing philosophy.
 - layered atmospheric effects
 - lightweight rendering path for broader device support
 
-4. Analytics/Admin
+4. Monsoon Canopy theme
+- rainforest image-based backdrop with canvas rain
+- local rain/thunder audio samples
+- minimal mood controls focused on intensity, flow, and distant thunder
+
+5. Analytics/Admin
 - anonymous visitor/session analytics
 - Supabase-backed metrics with local fallback mode
 
@@ -59,22 +65,48 @@ Aurora is being developed to follow the same ambient viewing philosophy.
 
 ```text
 backend/
+  data/
   app/
+    routers/
+    services/
 docs/
+  devlog/
 public/
+  audio/
+  branding/
 src/
   api/
+  astro/
+  audio/
   components/
+    canvas/
+    experiences/
   context/
   data/
     themes/
   hooks/
   lib/
+  scene/
   utils/
 scripts/
 docker-compose.dev.yml
 docker-compose.prod.yml
 ```
+
+## Theme Structure Notes
+
+- `src/data/themes/`
+  - theme metadata, display copy, route ids, and ambient defaults
+- `src/components/experiences/`
+  - theme-specific top-level experience surfaces
+- `src/hooks/`
+  - per-theme interaction/audio hooks (`useRainThunder`, `useNightSkyExperience`, etc.)
+- `src/audio/`
+  - generated or processed ambient helpers
+- `public/audio/`
+  - local loop/sample assets for themes that should not depend on generated audio alone
+
+When a new theme is added, update this README structure section in the same change so the current code layout stays easy to follow.
 
 ## Naming and Directory Convention
 
@@ -138,8 +170,9 @@ Frontend `.env`:
 
 ```text
 VITE_API_BASE_URL=
-VITE_NASA_API_KEY=DEMO_KEY
 VITE_AMBIENT_TRACK_URL=
+VITE_AURORA_AMBIENT_TRACK_URL=
+VITE_RAIN_AMBIENT_TRACK_URL=
 VITE_PROXY_TARGET=http://backend:8000
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
@@ -150,9 +183,7 @@ VITE_ADSENSE_HOME_SLOT=
 Backend `backend/.env`:
 
 ```text
-NASA_API_KEY=DEMO_KEY
-NASA_BASE_URL=https://api.nasa.gov
-FRONTEND_ORIGIN=http://localhost:5173
+FRONTEND_ORIGIN=http://127.0.0.1:5173
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 ADMIN_DASHBOARD_KEY=

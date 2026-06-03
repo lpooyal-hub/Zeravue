@@ -5,7 +5,7 @@ export function getThemeHeaderCopy({ currentThemeId, language, dictionary }) {
     return {
       eyebrow: "Zeravue · Aurora Night",
       title: language === "ko" ? "오로라의 흐름을 천천히 바라보는 공간입니다." : "A quiet space to watch the aurora drift.",
-      subtitle: language === "ko" ? "별자리 분석보다 분위기 감상에 집중하세요." : "Focus on atmosphere first, not star analysis."
+      subtitle: ""
     };
   }
 

@@ -294,6 +294,7 @@ export function ConstellationLines({ lines, stars, focusedConstellation, viewMod
 export function SolarBodyMarker({ body, viewMode = "space" }) {
   const spriteRef = useRef(null);
   const ringRef = useRef(null);
+  const auraRef = useRef(null);
   const texture = useMemo(() => buildBodyTexture(body.color, body.glowColor), [body.color, body.glowColor]);
   const ringTexture = useMemo(() => buildRingTexture("#ffe8a3"), []);
   const material = useMemo(
@@ -323,17 +324,24 @@ export function SolarBodyMarker({ body, viewMode = "space" }) {
     }
     const pulse = 1 + Math.sin(clock.elapsedTime * body.pulse + phaseSeed) * 0.04;
     spriteRef.current.scale.set(baseScale * pulse, baseScale * pulse, 1);
-    spriteRef.current.material.opacity = body.opacity + Math.sin(clock.elapsedTime * body.pulse * 0.6 + phaseSeed) * 0.04;
+    spriteRef.current.material.opacity = body.opacity + Math.sin(clock.elapsedTime * body.pulse * 0.6 + phaseSeed) * 0.04 + (body.selected ? 0.08 : 0);
 
     if (ringRef.current) {
-      const ringPulse = 1 + Math.sin(clock.elapsedTime * body.pulse * 1.25 + phaseSeed) * 0.05;
-      ringRef.current.scale.set(baseScale * 1.36 * ringPulse, baseScale * 1.36 * ringPulse, 1);
-      ringRef.current.material.opacity = 0.28 + Math.sin(clock.elapsedTime * body.pulse * 0.9 + phaseSeed) * 0.05;
+      const ringPulse = 1 + Math.sin(clock.elapsedTime * body.pulse * 1.25 + phaseSeed) * 0.08;
+      ringRef.current.scale.set(baseScale * 1.52 * ringPulse, baseScale * 1.52 * ringPulse, 1);
+      ringRef.current.material.opacity = 0.4 + Math.sin(clock.elapsedTime * body.pulse * 0.9 + phaseSeed) * 0.08;
+    }
+
+    if (auraRef.current) {
+      const auraPulse = 1 + Math.sin(clock.elapsedTime * body.pulse * 0.85 + phaseSeed) * 0.06;
+      auraRef.current.scale.set(baseScale * 2.2 * auraPulse, baseScale * 2.2 * auraPulse, 1);
+      auraRef.current.material.opacity = 0.16 + Math.sin(clock.elapsedTime * body.pulse * 0.55 + phaseSeed) * 0.04;
     }
   });
 
   return (
     <group position={[body.x, body.y, body.z]}>
+      {body.selected ? <sprite ref={auraRef} material={material} scale={[baseScale * 2.2, baseScale * 2.2, 1]} /> : null}
       {body.selected ? <sprite ref={ringRef} material={ringMaterial} scale={[baseScale * 1.36, baseScale * 1.36, 1]} /> : null}
       <sprite
         ref={spriteRef}

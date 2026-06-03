@@ -8,6 +8,48 @@ import { getThemeRouteConfig } from "./data/themes/index.js";
 
 const buildLogs = [
   {
+    slug: "2026-06-03",
+    date: "2026-06-03",
+    title: {
+      en: "Aurora polish pass and wind sound asset set",
+      ko: "오로라 마감 정리와 바람 사운드 자산화"
+    },
+    summary: {
+      en:
+        "Refined Aurora into a more direct immersive flow, reduced visual haze, unified immersive controls with Monsoon, and replaced the weak ambient bed with selectable local wind loops.",
+      ko:
+        "오로라를 더 직접적인 감상 흐름으로 정리하고, 과한 흐림을 줄였으며, 깊은 숲의 비와 몰입형 조작 규칙을 맞추고, 약했던 앰비언트를 선택 가능한 로컬 바람 루프로 교체했습니다."
+    },
+    areas: {
+      en: ["Aurora polish", "Immersive UI", "Audio assets"],
+      ko: ["오로라 마감", "몰입형 UI", "사운드 자산"]
+    },
+    highlights: {
+      en: [
+        "Removed the extra landing-style step so Aurora now opens and exits with the same direct flow as other immersive themes.",
+        "Reduced blur, restored header visibility, tightened text placement, and removed explanatory copy that competed with the scene.",
+        "Generated local wind-loop variants for Aurora and set a colder mountain-wind profile as the default ambient tone."
+      ],
+      ko: [
+        "오로라도 다른 몰입형 테마처럼 중간 단계 없이 바로 열리고 바로 닫히는 흐름으로 다시 맞췄습니다.",
+        "블러를 줄이고 로고와 카피 위치를 정리했으며, 장면과 경쟁하던 설명 문구를 덜어냈습니다.",
+        "오로라 전용 로컬 바람 루프를 여러 타입으로 만들고, 차가운 설산 바람 톤을 기본 앰비언트로 고정했습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Keep softening Night Sky so it feels closer to the calmer immersive themes without losing its viewing depth.",
+        "Refine fullscreen hide/show rules across immersive themes so the transition feels even cleaner.",
+        "Compare Aurora wind variants again and confirm whether the cold profile should remain the long-term default."
+      ],
+      ko: [
+        "Night Sky도 오로라/깊은 숲의 비와 충돌하지 않게 감상 톤을 더 부드럽게 정리합니다.",
+        "몰입형 테마 전체화면 전환 시 UI 숨김 규칙을 더 매끈하게 다듬습니다.",
+        "오로라 바람 3종을 다시 비교해 차가운 바람이 장기 기본값으로 가장 적절한지 확인합니다."
+      ]
+    }
+  },
+  {
     slug: "2026-06-02",
     date: "2026-06-02",
     title: {

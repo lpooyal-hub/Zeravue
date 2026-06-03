@@ -63,6 +63,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [resetViewToken, setResetViewToken] = useState(0);
   const [auroraIntensity, setAuroraIntensity] = useState(0.54);
   const [auroraSpeed, setAuroraSpeed] = useState(0.39);
+  const [auroraWindProfile, setAuroraWindProfile] = useState("cold");
   const [rainIntensity, setRainIntensity] = useState(0.56);
   const [rainFlow, setRainFlow] = useState(0.42);
   const [rainPreset, setRainPreset] = useState("balanced");
@@ -72,9 +73,15 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [controlsHiddenInFullscreen, setControlsHiddenInFullscreen] = useState(false);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
   const { favoriteConstellations, setFavoriteConstellations } = useFavoriteConstellations();
+  const auroraAmbientTrackMap = {
+    default: "/audio/aurora-wind-loop.wav",
+    rough: "/audio/aurora-wind-rough.wav",
+    distant: "/audio/aurora-wind-distant.wav",
+    cold: "/audio/aurora-wind-cold.wav"
+  };
   const configuredAmbientTrackUrl =
     currentThemeId === "aurora-night"
-      ? config.auroraAmbientTrackUrl || config.ambientTrackUrl
+      ? config.auroraAmbientTrackUrl || config.ambientTrackUrl || auroraAmbientTrackMap[auroraWindProfile] || auroraAmbientTrackMap.cold
       : currentThemeId === "monsoon-canopy" || currentThemeId === "rain-window"
         ? config.rainAmbientTrackUrl || "/audio/monsoon-canopy-rain-loop.wav"
         : config.ambientTrackUrl;
@@ -82,7 +89,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     configuredTrackUrl: configuredAmbientTrackUrl,
     themeId: currentThemeId
   });
-  const ambientOutputGain = currentThemeId === "aurora-night" ? 1.42 : 1.18;
+  const ambientOutputGain = currentThemeId === "aurora-night" ? 1.62 : 1.18;
   const { ambientEnabled, ambientVolume, setAmbientVolume, ambientStatus, toggleAmbientSound, wakeAmbient, ensureAmbientOn } = useAmbientAudio({
     trackUrl: ambientTrackUrl,
     isReady: sceneState.status === "ready",
@@ -197,6 +204,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     auroraUiVisible,
     revealAuroraUi,
     startAuroraViewer,
+    toggleAuroraFullscreen,
     closeAuroraViewer,
     shouldShowAuroraPageChrome
   } = useAuroraExperience({
@@ -355,6 +363,13 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     }
     ensureAmbientOn();
   }, [ensureAmbientOn, rainWatchLayout]);
+
+  useEffect(() => {
+    if (!auroraWatchLayout) {
+      return;
+    }
+    ensureAmbientOn();
+  }, [auroraWatchLayout, ensureAmbientOn]);
 
   useEffect(() => {
     const defaultViewMode = currentTheme?.defaultViewMode;
@@ -691,17 +706,23 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           currentThemeId={currentThemeId}
           ambientEnabled={ambientEnabled}
           toggleAmbientSound={toggleAmbientSound}
-          closeAuroraViewer={closeAuroraViewer}
+          closeAuroraViewer={async () => {
+            await closeAuroraViewer();
+            window.location.assign("/");
+          }}
           auroraIntensity={auroraIntensity}
           setAuroraIntensity={setAuroraIntensity}
           auroraSpeed={auroraSpeed}
           setAuroraSpeed={setAuroraSpeed}
+          auroraWindProfile={auroraWindProfile}
+          setAuroraWindProfile={setAuroraWindProfile}
           ambientVolume={ambientVolume}
           setAmbientVolume={setAmbientVolume}
-          toggleFullscreen={toggleFullscreen}
+          toggleFullscreen={toggleAuroraFullscreen}
         />
       ) : rainWatchLayout ? (
         <MonsoonCanopyExperience
+          viewerRef={viewerRef}
           isFullscreen={isFullscreen}
           language={language}
           updateLanguage={updateLanguage}

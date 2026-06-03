@@ -76,10 +76,19 @@ function scheduleAuroraGraph(context, destination, initialVolume = 0.8, loopDura
   master.connect(compressor);
   compressor.connect(destination);
 
+  const windNoiseBuffer = context.createBuffer(1, context.sampleRate * loopDuration, context.sampleRate);
+  const windNoiseData = windNoiseBuffer.getChannelData(0);
+  let previous = 0;
+  for (let index = 0; index < windNoiseData.length; index += 1) {
+    const white = random() * 2 - 1;
+    previous = previous * 0.992 + white * 0.1;
+    windNoiseData[index] = previous;
+  }
+
   const bedVoices = [
-    { frequency: 46.25, gain: 0.08, lfo: 0.012 }, // F#1
-    { frequency: 69.3, gain: 0.05, lfo: 0.01 }, // C#2
-    { frequency: 103.83, gain: 0.036, lfo: 0.008 } // G#2
+    { frequency: 46.25, gain: 0.048, lfo: 0.012 }, // F#1
+    { frequency: 69.3, gain: 0.03, lfo: 0.01 }, // C#2
+    { frequency: 103.83, gain: 0.022, lfo: 0.008 } // G#2
   ];
 
   bedVoices.forEach((voice, index) => {
@@ -111,10 +120,74 @@ function scheduleAuroraGraph(context, destination, initialVolume = 0.8, loopDura
     lfo.stop(loopDuration);
   });
 
+  function createWindLayer({ gainValue, lowpassFrequency, highpassFrequency, lfoRate, lfoDepth, pan = 0 }) {
+    const source = context.createBufferSource();
+    const highpass = context.createBiquadFilter();
+    const lowpass = context.createBiquadFilter();
+    const gain = context.createGain();
+    const lfo = context.createOscillator();
+    const lfoGain = context.createGain();
+    const panner = context.createStereoPanner();
+
+    source.buffer = windNoiseBuffer;
+    source.loop = true;
+    highpass.type = "highpass";
+    highpass.frequency.value = highpassFrequency;
+    lowpass.type = "lowpass";
+    lowpass.frequency.value = lowpassFrequency;
+    gain.gain.value = gainValue;
+    lfo.type = "sine";
+    lfo.frequency.value = lfoRate;
+    lfoGain.gain.value = lfoDepth;
+    panner.pan.value = pan;
+
+    source.connect(highpass);
+    highpass.connect(lowpass);
+    lowpass.connect(gain);
+    gain.connect(panner);
+    panner.connect(master);
+    panner.connect(reverbSend);
+    lfo.connect(lfoGain);
+    lfoGain.connect(lowpass.frequency);
+    lfoGain.connect(gain.gain);
+
+    source.start(0);
+    source.stop(loopDuration);
+    lfo.start(0);
+    lfo.stop(loopDuration);
+  }
+
+  createWindLayer({
+    gainValue: 0.22,
+    lowpassFrequency: 640,
+    highpassFrequency: 90,
+    lfoRate: 0.043,
+    lfoDepth: 140,
+    pan: -0.16
+  });
+
+  createWindLayer({
+    gainValue: 0.14,
+    lowpassFrequency: 1220,
+    highpassFrequency: 240,
+    lfoRate: 0.057,
+    lfoDepth: 220,
+    pan: 0.22
+  });
+
+  createWindLayer({
+    gainValue: 0.085,
+    lowpassFrequency: 2100,
+    highpassFrequency: 420,
+    lfoRate: 0.074,
+    lfoDepth: 260,
+    pan: 0.05
+  });
+
   const shimmerBuffer = context.createBuffer(1, context.sampleRate * 4, context.sampleRate);
   const shimmerData = shimmerBuffer.getChannelData(0);
   for (let index = 0; index < shimmerData.length; index += 1) {
-    shimmerData[index] = (random() * 2 - 1) * 0.028;
+    shimmerData[index] = (random() * 2 - 1) * 0.018;
   }
 
   const shimmer = context.createBufferSource();
@@ -123,9 +196,9 @@ function scheduleAuroraGraph(context, destination, initialVolume = 0.8, loopDura
   shimmer.buffer = shimmerBuffer;
   shimmer.loop = true;
   shimmerFilter.type = "bandpass";
-  shimmerFilter.frequency.value = 980;
+  shimmerFilter.frequency.value = 760;
   shimmerFilter.Q.value = 0.55;
-  shimmerGain.gain.value = 0.044;
+  shimmerGain.gain.value = 0.026;
   shimmer.connect(shimmerFilter);
   shimmerFilter.connect(shimmerGain);
   shimmerGain.connect(master);
@@ -161,16 +234,15 @@ function scheduleAuroraGraph(context, destination, initialVolume = 0.8, loopDura
     oscillator.stop(Math.min(loopDuration, startAt + 6.6));
   }
 
-  playGlassTone(0.4);
-  playGlassTone(3.7);
-  for (let moment = 8.8; moment < loopDuration; moment += 8.7) {
+  playGlassTone(1.6);
+  for (let moment = 10.4; moment < loopDuration; moment += 11.6) {
     playGlassTone(moment);
   }
 
   master.gain.setTargetAtTime(initialVolume, 0, 1.1);
 }
 
-export async function renderAuroraAmbientTrack({ durationSeconds = 27.5, volume = 0.8 } = {}) {
+export async function renderAuroraAmbientTrack({ durationSeconds = 27.5, volume = 0.92 } = {}) {
   const OfflineAudioContextClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   if (!OfflineAudioContextClass) {
     throw new Error("OfflineAudioContext is not available in this browser.");

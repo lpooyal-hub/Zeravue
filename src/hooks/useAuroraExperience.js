@@ -17,7 +17,7 @@ export function useAuroraExperience({
   setViewMode
 }) {
   const [showAuroraMoodControls, setShowAuroraMoodControls] = useState(false);
-  const [auroraViewerOpen, setAuroraViewerOpen] = useState(false);
+  const [auroraViewerOpen, setAuroraViewerOpen] = useState(true);
   const [immersiveIntro, setImmersiveIntro] = useState(null);
   const auroraViewerRef = useRef(null);
   const auroraUiTimerRef = useRef(null);
@@ -74,6 +74,33 @@ export function useAuroraExperience({
     if (!target?.requestFullscreen) {
       return;
     }
+
+    try {
+      markFullscreenEnter(analyticsSessionRef.current);
+      markViewerEnter(analyticsSessionRef.current, currentThemeId, window.location.pathname || "/");
+      await target.requestFullscreen();
+    } catch (error) {
+      console.error("Aurora fullscreen request failed:", error);
+    }
+  }
+
+  async function toggleAuroraFullscreen() {
+    const target = auroraViewerRef.current;
+    if (!target?.requestFullscreen) {
+      return;
+    }
+
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+      } catch (error) {
+        console.error("Aurora fullscreen exit failed:", error);
+      }
+      return;
+    }
+
+    wakeAmbient();
+    await ensureAmbientOn();
 
     try {
       markFullscreenEnter(analyticsSessionRef.current);
@@ -146,7 +173,7 @@ export function useAuroraExperience({
     };
   }, [auroraViewerOpen]);
 
-  const shouldShowAuroraPageChrome = auroraWatchLayout && !auroraViewerOpen;
+  const shouldShowAuroraPageChrome = auroraWatchLayout;
 
   return {
     showAuroraMoodControls,
@@ -157,6 +184,7 @@ export function useAuroraExperience({
     auroraUiVisible,
     revealAuroraUi,
     startAuroraViewer,
+    toggleAuroraFullscreen,
     closeAuroraViewer,
     shouldShowAuroraPageChrome
   };
