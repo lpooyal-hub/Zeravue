@@ -54,7 +54,6 @@ function SketchControlsPanel({
           </button>
         ))}
       </div>
-      <p className="helper-copy">{sketchViewDescription}</p>
 
       <div className="toggle-grid">
         <button type="button" className={`focus-chip ${creativeTool === "star" ? "is-active" : ""}`} onClick={() => setCreativeTool("star")}>
@@ -87,162 +86,183 @@ function SketchControlsPanel({
         <small>{activeToolHint}</small>
       </div>
 
-      <label className="stacked-field">
-        <span>{dictionary.viewer.activeConstellation}</span>
-        <select
-          value={customSpace.activeConstellationId}
-          onChange={(event) => setCustomSpace((current) => ({ ...current, activeConstellationId: event.target.value }))}
-        >
-          {customSpace.constellations.map((constellation) => (
-            <option key={constellation.id} value={constellation.id}>
-              {constellation.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <details className="panel-collapsible" open>
+        <summary>
+          <span className="eyebrow">{dictionary.viewer.activeConstellation}</span>
+          <strong>{activeCustomConstellation?.name || dictionary.viewer.activeConstellation}</strong>
+        </summary>
+        <div className="panel-collapsible-body">
+          <label className="stacked-field">
+            <span>{dictionary.viewer.activeConstellation}</span>
+            <select
+              value={customSpace.activeConstellationId}
+              onChange={(event) => setCustomSpace((current) => ({ ...current, activeConstellationId: event.target.value }))}
+            >
+              {customSpace.constellations.map((constellation) => (
+                <option key={constellation.id} value={constellation.id}>
+                  {constellation.name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-      <div className="observer-moment-card">
-        <strong>{activeCustomConstellation?.name || dictionary.viewer.activeConstellation}</strong>
-        <span>
-          {activeCustomConstellationStars.length} {dictionary.viewer.customStars}
-        </span>
-        <small>
-          {activeCustomConstellationStars.length > 0
-            ? dictionary.viewer.activeConstellationHintReady
-            : dictionary.viewer.activeConstellationHintEmpty}
-        </small>
-      </div>
+          <div className="observer-moment-card">
+            <strong>{activeCustomConstellation?.name || dictionary.viewer.activeConstellation}</strong>
+            <span>
+              {activeCustomConstellationStars.length} {dictionary.viewer.customStars}
+            </span>
+            <small>
+              {activeCustomConstellationStars.length > 0
+                ? dictionary.viewer.activeConstellationHintReady
+                : dictionary.viewer.activeConstellationHintEmpty}
+            </small>
+          </div>
 
-      <label className="stacked-field">
-        <span>{dictionary.viewer.presetConstellation}</span>
-        <select value={presetConstellationName} onChange={(event) => setPresetConstellationName(event.target.value)}>
-          {importableConstellations.length === 0 ? (
-            <option value="">{dictionary.viewer.noPresetConstellations}</option>
-          ) : (
-            importableConstellations.map((name) => (
-              <option key={name} value={name}>
-                {dictionary.constellations?.[name]?.[language] || name}
+          <label className="stacked-field">
+            <span>{dictionary.viewer.constellationName}</span>
+            <input type="text" value={activeCustomConstellation?.name || ""} onChange={(event) => updateActiveConstellationName(event.target.value)} />
+          </label>
+
+          <label className="stacked-field">
+            <span>{dictionary.viewer.constellationColor}</span>
+            <input type="color" value={activeCustomConstellation?.color || "#ffcf70"} onChange={(event) => updateActiveConstellationColor(event.target.value)} />
+          </label>
+
+          <button type="button" className="focus-chip" onClick={removeActiveConstellation} disabled={customSpace.constellations.length <= 1}>
+            {dictionary.viewer.removeConstellation}
+          </button>
+        </div>
+      </details>
+
+      <details className="panel-collapsible">
+        <summary>
+          <span className="eyebrow">{dictionary.viewer.presetConstellation}</span>
+          <strong>{language === "ko" ? "불러와서 시작하기" : "Import a starting shape"}</strong>
+        </summary>
+        <div className="panel-collapsible-body">
+          <label className="stacked-field">
+            <span>{dictionary.viewer.presetConstellation}</span>
+            <select value={presetConstellationName} onChange={(event) => setPresetConstellationName(event.target.value)}>
+              {importableConstellations.length === 0 ? (
+                <option value="">{dictionary.viewer.noPresetConstellations}</option>
+              ) : (
+                importableConstellations.map((name) => (
+                  <option key={name} value={name}>
+                    {dictionary.constellations?.[name]?.[language] || name}
+                  </option>
+                ))
+              )}
+            </select>
+          </label>
+
+          <button type="button" className="focus-chip" onClick={importPresetConstellation} disabled={!presetConstellationName}>
+            {dictionary.viewer.importConstellation}
+          </button>
+        </div>
+      </details>
+
+      <details className="panel-collapsible">
+        <summary>
+          <span className="eyebrow">{dictionary.viewer.arrangeTitle}</span>
+          <strong>{language === "ko" ? "위치와 크기 다듬기" : "Refine placement"}</strong>
+        </summary>
+        <div className="panel-collapsible-body">
+          <div className="toggle-grid">
+            <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(-0.7, 0)} disabled={!activeCustomConstellationStars.length}>
+              {dictionary.viewer.arrange.left}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(0.7, 0)} disabled={!activeCustomConstellationStars.length}>
+              {dictionary.viewer.arrange.right}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(0, 0.7)} disabled={!activeCustomConstellationStars.length}>
+              {dictionary.viewer.arrange.up}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(0, -0.7)} disabled={!activeCustomConstellationStars.length}>
+              {dictionary.viewer.arrange.down}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => scaleActiveConstellation(1.14)} disabled={activeCustomConstellationStars.length < 2}>
+              {dictionary.viewer.arrange.bigger}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => scaleActiveConstellation(0.88)} disabled={activeCustomConstellationStars.length < 2}>
+              {dictionary.viewer.arrange.smaller}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => spreadActiveConstellation(1.12)} disabled={activeCustomConstellationStars.length < 2}>
+              {dictionary.viewer.arrange.spread}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => spreadActiveConstellation(0.9)} disabled={activeCustomConstellationStars.length < 2}>
+              {dictionary.viewer.arrange.tighten}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => rotateActiveConstellation(-12)} disabled={activeCustomConstellationStars.length < 2}>
+              {dictionary.viewer.arrange.rotateLeft}
+            </button>
+            <button type="button" className="focus-chip" onClick={() => rotateActiveConstellation(12)} disabled={activeCustomConstellationStars.length < 2}>
+              {dictionary.viewer.arrange.rotateRight}
+            </button>
+          </div>
+          <p className="helper-copy">{dictionary.viewer.arrangeHint}</p>
+        </div>
+      </details>
+
+      {creativeTool === "planet" ? (
+        <label className="stacked-field">
+          <span>{dictionary.viewer.planetStyle}</span>
+          <select value={planetPreset} onChange={(event) => setPlanetPreset(event.target.value)}>
+            {planetPresets.map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {dictionary.viewer.planetPresets[preset.id]}
               </option>
-            ))
-          )}
-        </select>
-      </label>
+            ))}
+          </select>
+        </label>
+      ) : null}
 
-      <button type="button" className="focus-chip" onClick={importPresetConstellation} disabled={!presetConstellationName}>
-        {dictionary.viewer.importConstellation}
-      </button>
+      <details className="panel-collapsible">
+        <summary>
+          <span className="eyebrow">{dictionary.viewer.currentSketch}</span>
+          <strong>{activeSketchName}</strong>
+        </summary>
+        <div className="panel-collapsible-body">
+          <label className="stacked-field">
+            <span>{dictionary.viewer.sketchName}</span>
+            <input type="text" value={sketchName} placeholder={dictionary.viewer.sketchPlaceholder} onChange={(event) => setSketchName(event.target.value)} />
+          </label>
 
-      <p className="eyebrow section-subtle">{dictionary.viewer.arrangeTitle}</p>
-      <div className="toggle-grid">
-        <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(-0.7, 0)} disabled={!activeCustomConstellationStars.length}>
-          {dictionary.viewer.arrange.left}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(0.7, 0)} disabled={!activeCustomConstellationStars.length}>
-          {dictionary.viewer.arrange.right}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(0, 0.7)} disabled={!activeCustomConstellationStars.length}>
-          {dictionary.viewer.arrange.up}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => nudgeActiveConstellation(0, -0.7)} disabled={!activeCustomConstellationStars.length}>
-          {dictionary.viewer.arrange.down}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => scaleActiveConstellation(1.14)} disabled={activeCustomConstellationStars.length < 2}>
-          {dictionary.viewer.arrange.bigger}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => scaleActiveConstellation(0.88)} disabled={activeCustomConstellationStars.length < 2}>
-          {dictionary.viewer.arrange.smaller}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => spreadActiveConstellation(1.12)} disabled={activeCustomConstellationStars.length < 2}>
-          {dictionary.viewer.arrange.spread}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => spreadActiveConstellation(0.9)} disabled={activeCustomConstellationStars.length < 2}>
-          {dictionary.viewer.arrange.tighten}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => rotateActiveConstellation(-12)} disabled={activeCustomConstellationStars.length < 2}>
-          {dictionary.viewer.arrange.rotateLeft}
-        </button>
-        <button type="button" className="focus-chip" onClick={() => rotateActiveConstellation(12)} disabled={activeCustomConstellationStars.length < 2}>
-          {dictionary.viewer.arrange.rotateRight}
-        </button>
-      </div>
-      <p className="helper-copy">{dictionary.viewer.arrangeHint}</p>
+          <dl className="summary-list compact">
+            <div>
+              <dt>{dictionary.viewer.currentSketch}</dt>
+              <dd>{activeSketchName}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.activeConstellation}</dt>
+              <dd>{activeCustomConstellation?.name || "--"}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.customStars}</dt>
+              <dd>{customSpace.stars.length}</dd>
+            </div>
+            <div>
+              <dt>{dictionary.viewer.customPlanets}</dt>
+              <dd>{customSpace.planets.length}</dd>
+            </div>
+          </dl>
 
-      <label className="stacked-field">
-        <span>{dictionary.viewer.constellationName}</span>
-        <input type="text" value={activeCustomConstellation?.name || ""} onChange={(event) => updateActiveConstellationName(event.target.value)} />
-      </label>
-
-      <label className="stacked-field">
-        <span>{dictionary.viewer.constellationColor}</span>
-        <input type="color" value={activeCustomConstellation?.color || "#ffcf70"} onChange={(event) => updateActiveConstellationColor(event.target.value)} />
-      </label>
-
-      <dl className="summary-list compact">
-        <div>
-          <dt>{dictionary.viewer.activeConstellation}</dt>
-          <dd>{activeCustomConstellation?.name || "--"}</dd>
+          <div className="constellation-list">
+            <button type="button" className="focus-chip" onClick={startNewSketch}>
+              {dictionary.viewer.newSketch}
+            </button>
+            <button type="button" className="focus-chip" onClick={clearDraftSketch} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
+              {dictionary.viewer.clearSketch}
+            </button>
+            <button type="button" className="focus-chip is-active" onClick={saveDraftSketch} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
+              {saveSketchLabel}
+            </button>
+            <button type="button" className="focus-chip" onClick={saveSketchAsNew} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
+              {dictionary.viewer.saveSketchAsNew}
+            </button>
+          </div>
         </div>
-        <div>
-          <dt>{dictionary.viewer.customStars}</dt>
-          <dd>{activeCustomConstellationStars.length}</dd>
-        </div>
-      </dl>
+      </details>
 
-      <button type="button" className="focus-chip" onClick={removeActiveConstellation} disabled={customSpace.constellations.length <= 1}>
-        {dictionary.viewer.removeConstellation}
-      </button>
-
-      <label className="stacked-field">
-        <span>{dictionary.viewer.planetStyle}</span>
-        <select value={planetPreset} onChange={(event) => setPlanetPreset(event.target.value)} disabled={creativeTool !== "planet"}>
-          {planetPresets.map((preset) => (
-            <option key={preset.id} value={preset.id}>
-              {dictionary.viewer.planetPresets[preset.id]}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="stacked-field">
-        <span>{dictionary.viewer.sketchName}</span>
-        <input type="text" value={sketchName} placeholder={dictionary.viewer.sketchPlaceholder} onChange={(event) => setSketchName(event.target.value)} />
-      </label>
-
-      <dl className="summary-list compact">
-        <div>
-          <dt>{dictionary.viewer.currentSketch}</dt>
-          <dd>{activeSketchName}</dd>
-        </div>
-        <div>
-          <dt>{dictionary.viewer.activeConstellation}</dt>
-          <dd>{activeCustomConstellation?.name || "--"}</dd>
-        </div>
-        <div>
-          <dt>{dictionary.viewer.customStars}</dt>
-          <dd>{customSpace.stars.length}</dd>
-        </div>
-        <div>
-          <dt>{dictionary.viewer.customPlanets}</dt>
-          <dd>{customSpace.planets.length}</dd>
-        </div>
-      </dl>
-
-      <div className="constellation-list">
-        <button type="button" className="focus-chip" onClick={startNewSketch}>
-          {dictionary.viewer.newSketch}
-        </button>
-        <button type="button" className="focus-chip" onClick={clearDraftSketch} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
-          {dictionary.viewer.clearSketch}
-        </button>
-        <button type="button" className="focus-chip is-active" onClick={saveDraftSketch} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
-          {saveSketchLabel}
-        </button>
-        <button type="button" className="focus-chip" onClick={saveSketchAsNew} disabled={customSpace.stars.length === 0 && customSpace.planets.length === 0}>
-          {dictionary.viewer.saveSketchAsNew}
-        </button>
-      </div>
-
-      <p className="helper-copy">{dictionary.viewer.sketchHint}</p>
     </section>
   );
 }

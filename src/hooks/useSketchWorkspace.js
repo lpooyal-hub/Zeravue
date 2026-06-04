@@ -47,6 +47,24 @@ export function useSketchWorkspace({
       z: total.z / activeCustomConstellationStars.length
     };
   }, [activeCustomConstellationStars]);
+  const importableConstellations = useMemo(() => {
+    if (!sceneData?.stars?.length) {
+      return [];
+    }
+
+    const available = new Map();
+    sceneData.stars.forEach((star) => {
+      if (!star.visible || !star.constellation || star.constellation === "Unknown") {
+        return;
+      }
+      available.set(star.constellation, (available.get(star.constellation) || 0) + 1);
+    });
+
+    return [...available.entries()]
+      .filter(([, count]) => count >= 2)
+      .sort((left, right) => left[0].localeCompare(right[0]))
+      .map(([name]) => name);
+  }, [sceneData]);
   const watchedSketch = useMemo(() => savedSketches.find((sketch) => sketch.id === watchSketchId) || null, [savedSketches, watchSketchId]);
   const isSketchWatch = currentPage === "watch" && Boolean(watchedSketch);
   const watchedSketchSummary = useMemo(() => {
@@ -520,6 +538,7 @@ export function useSketchWorkspace({
     spreadActiveConstellation,
     rotateActiveConstellation,
     duplicateActiveConstellation,
+    importableConstellations,
     importPresetConstellation,
     updateActiveConstellationName,
     updateActiveConstellationColor,

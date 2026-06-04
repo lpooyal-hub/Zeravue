@@ -16,91 +16,99 @@ export function ViewerFocusOverlay({
 }) {
   return (
     <div className="viewer-focus-overlay">
-      <label className="overlay-focus-field">
-        <span>{dictionary.viewer.searchConstellation}</span>
-        <input
-          type="text"
-          value={constellationSearch}
-          placeholder={dictionary.viewer.searchPlaceholder}
-          onChange={(event) => setConstellationSearch(event.target.value)}
-        />
-      </label>
-      <label className="overlay-focus-field">
-        <span>{dictionary.viewer.focusConstellation}</span>
-        <select value={focusedConstellation} onChange={(event) => setFocusedConstellation(event.target.value)}>
-          <option value="all">{dictionary.viewer.allSky}</option>
-          {(filteredConstellations.length ? filteredConstellations : focusConstellations).map((name) => (
-            <option key={name} value={name}>
-              {dictionary.constellations?.[name]?.[language] || name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="overlay-track-toggle">
-        <input
-          type="checkbox"
-          checked={trackConstellation}
-          disabled={focusedConstellation === "all"}
-          onChange={(event) => setTrackConstellation(event.target.checked)}
-        />
-        <span>{dictionary.viewer.trackConstellation}</span>
-      </label>
-      {focusedConstellation !== "all" ? (
-        <button
-          type="button"
-          className="overlay-button"
-          title={language === "ko" ? "선택 해제" : "Clear selection"}
-          aria-label={language === "ko" ? "선택 해제" : "Clear selection"}
-          onClick={() => {
-            setFocusedConstellation("all");
-            setTrackConstellation(false);
-          }}
-        >
-          {language === "ko" ? "선택 해제" : "Clear selection"}
-        </button>
-      ) : null}
-      <label className="overlay-zoom">
-        <span>{dictionary.viewer.zoom}</span>
-        <div className="overlay-zoom-controls">
-          <button
-            type="button"
-            className="overlay-button overlay-icon-button"
-            title={dictionary.viewer.zoomOut}
-            aria-label={dictionary.viewer.zoomOut}
-            onClick={() => changeZoom(-0.1)}
-          >
-            -
-          </button>
+      <div className="overlay-focus-shell">
+        <label className="overlay-focus-field">
+          <span>{dictionary.viewer.searchConstellation}</span>
           <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={zoomLevel}
-            aria-label={dictionary.viewer.zoom}
-            onChange={(event) => setZoomLevel(Number(event.target.value))}
+            type="text"
+            value={constellationSearch}
+            placeholder={dictionary.viewer.searchPlaceholder}
+            onChange={(event) => setConstellationSearch(event.target.value)}
           />
+        </label>
+        <label className="overlay-focus-field">
+          <span>{dictionary.viewer.focusConstellation}</span>
+          <select value={focusedConstellation} onChange={(event) => setFocusedConstellation(event.target.value)}>
+            <option value="all">{dictionary.viewer.allSky}</option>
+            {(filteredConstellations.length ? filteredConstellations : focusConstellations).map((name) => (
+              <option key={name} value={name}>
+                {dictionary.constellations?.[name]?.[language] || name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="overlay-focus-actions">
+          <label className="overlay-track-toggle">
+            <input
+              type="checkbox"
+              checked={trackConstellation}
+              disabled={focusedConstellation === "all"}
+              onChange={(event) => setTrackConstellation(event.target.checked)}
+            />
+            <span>{dictionary.viewer.trackConstellation}</span>
+          </label>
+          {focusedConstellation !== "all" ? (
+            <button
+              type="button"
+              className="overlay-button overlay-inline-button"
+              title={language === "ko" ? "선택 해제" : "Clear selection"}
+              aria-label={language === "ko" ? "선택 해제" : "Clear selection"}
+              onClick={() => {
+                setFocusedConstellation("all");
+                setTrackConstellation(false);
+              }}
+            >
+              {language === "ko" ? "선택 해제" : "Clear selection"}
+            </button>
+          ) : null}
+        </div>
+      </div>
+      <div className="overlay-zoom-shell">
+        <label className="overlay-zoom">
+          <span>{dictionary.viewer.zoom}</span>
+          <div className="overlay-zoom-controls">
+            <button
+              type="button"
+              className="overlay-button overlay-icon-button"
+              title={dictionary.viewer.zoomOut}
+              aria-label={dictionary.viewer.zoomOut}
+              onClick={() => changeZoom(-0.1)}
+            >
+              -
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={zoomLevel}
+              aria-label={dictionary.viewer.zoom}
+              onChange={(event) => setZoomLevel(Number(event.target.value))}
+            />
+            <button
+              type="button"
+              className="overlay-button overlay-icon-button"
+              title={dictionary.viewer.zoomIn}
+              aria-label={dictionary.viewer.zoomIn}
+              onClick={() => changeZoom(0.1)}
+            >
+              +
+            </button>
+          </div>
+        </label>
+        <div className="overlay-zoom-footer">
+          <span className="overlay-shortcut-hint">{language === "ko" ? "R 초기화 · +/- 줌" : "R reset · +/- zoom"}</span>
           <button
             type="button"
-            className="overlay-button overlay-icon-button"
-            title={dictionary.viewer.zoomIn}
-            aria-label={dictionary.viewer.zoomIn}
-            onClick={() => changeZoom(0.1)}
+            className="overlay-button overlay-inline-button"
+            title={dictionary.viewer.resetView}
+            aria-label={dictionary.viewer.resetView}
+            onClick={resetView}
           >
-            +
+            {language === "ko" ? "시점 초기화" : "Reset view"}
           </button>
         </div>
-      </label>
-      <button
-        type="button"
-        className="overlay-button overlay-icon-button"
-        title={dictionary.viewer.resetView}
-        aria-label={dictionary.viewer.resetView}
-        onClick={resetView}
-      >
-        R
-      </button>
-      <span className="overlay-shortcut-hint">{language === "ko" ? "R: 시점 초기화  ·  +/-: 줌" : "R: reset view  ·  +/-: zoom"}</span>
+      </div>
     </div>
   );
 }

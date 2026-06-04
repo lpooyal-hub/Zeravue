@@ -1,8 +1,8 @@
 import * as THREE from "three";
 
-const PROJECTION_RADIUS_MIN = 0.45;
-const PROJECTION_RADIUS_MAX = 11.45;
-const PROJECTION_PLANE_Z = -13.3;
+const PROJECTION_RADIUS_MIN = 0.28;
+const PROJECTION_RADIUS_MAX = 10.9;
+const PROJECTION_PLANE_Z = -12.9;
 
 export function pushLinePath(points, from, to, curved) {
   if (!curved) {
@@ -91,12 +91,13 @@ export function projectSkyPosition(star, viewMode) {
     z = direction.z * radius * 0.88 + swirlZ;
   } else if (viewMode === "projection") {
     const zenithDistance = (90 - Math.max(0, star.altitude)) / 90;
-    const radiusCurve = Math.sqrt(zenithDistance);
+    const radiusCurve = Math.pow(zenithDistance, 0.82);
     const domeRadius = THREE.MathUtils.lerp(PROJECTION_RADIUS_MIN, PROJECTION_RADIUS_MAX, radiusCurve);
-    const bowlDepth = Math.pow(1 - altitudeRatio, 1.12);
-    x = Math.sin(azWrapped) * domeRadius;
+    const bowlDepth = Math.pow(1 - altitudeRatio, 1.28);
+    const gentleOval = THREE.MathUtils.lerp(0.92, 1, altitudeRatio);
+    x = Math.sin(azWrapped) * domeRadius * gentleOval;
     y = Math.cos(azWrapped) * domeRadius;
-    z = PROJECTION_PLANE_Z - bowlDepth * 0.28 + altitudeRatio * 0.08;
+    z = PROJECTION_PLANE_Z - bowlDepth * 1.75 + altitudeRatio * 0.22;
   } else if (viewMode === "panorama") {
     const horizontalRatio = azWrapped / Math.PI;
     const horizonSpread = 22.5;

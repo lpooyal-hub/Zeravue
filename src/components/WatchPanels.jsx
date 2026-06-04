@@ -173,10 +173,7 @@ function WatchControlsPanel({
         <p className="eyebrow">{language === "ko" ? "로컬 하늘" : "Your Local Sky"}</p>
         <div className="observer-moment-card observer-local-card">
           <strong>{observer.label}</strong>
-          <span>{language === "ko" ? "지금 이 위치의 밤하늘을 반영하고 있습니다." : "Reflecting the night sky above your current place."}</span>
-          <small>
-            {language === "ko" ? "좌표 정보는 고급 설정에서 확인할 수 있어요." : "Coordinates are available in advanced settings."}
-          </small>
+          <small>{language === "ko" ? "지금 이 위치의 밤하늘을 반영하고 있습니다." : "Reflecting the night sky above your current place."}</small>
         </div>
         <button className="primary-button" type="button" onClick={requestLocation}>
           {language === "ko" ? "현재 위치로 맞추기" : "Use Current Location"}
@@ -208,11 +205,6 @@ function WatchControlsPanel({
             <div className="observer-moment-card">
               <strong>{language === "ko" ? "현재 하늘 시각" : "Sky time"}</strong>
               <span>{observerMomentLabel}</span>
-              <small>
-                {language === "ko"
-                  ? "시간을 바꾸면 지평선 위 별자리 위치가 함께 이동합니다."
-                  : "Changing the time shifts where constellations sit above the horizon."}
-              </small>
             </div>
             <div className="constellation-list focus-list">
               <button type="button" className="focus-chip" onClick={() => setObservedAt((current) => setObserverHourTimestamp(current, 21))}>

@@ -41,7 +41,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const viewerRef = useRef(null);
   const analyticsSessionRef = useRef(null);
   const hasMarkedAmbientRef = useRef(false);
-  const [currentPage, setCurrentPage] = useState("watch");
+  const [currentPage, setCurrentPage] = useState(() => (window.location.hash === "#sketch" ? "sketch" : "watch"));
   const [language, setLanguage] = useState(() => forcedLanguage || getInitialLanguage());
   const [observer, setObserver] = useState(defaultObserver);
   const [observedAt, setObservedAt] = useState(getInitialObservedAt);
@@ -344,6 +344,29 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       setCurrentPage("watch");
     }
   }, [currentPage, effectiveSketchEnabled]);
+
+  useEffect(() => {
+    if (immersiveThemeEnabled) {
+      if (window.location.hash) {
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+      }
+      return;
+    }
+
+    const nextHash = currentPage === "sketch" ? "#sketch" : "";
+    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
+    window.history.replaceState(null, "", nextUrl);
+  }, [currentPage, immersiveThemeEnabled]);
+
+  useEffect(() => {
+    function handleHashChange() {
+      const wantsSketch = window.location.hash === "#sketch";
+      setCurrentPage(wantsSketch && effectiveSketchEnabled ? "sketch" : "watch");
+    }
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [effectiveSketchEnabled]);
 
   useEffect(() => {
     if (!immersiveThemeEnabled) {

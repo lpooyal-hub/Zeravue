@@ -185,9 +185,8 @@ export function CreativeSpaceScene({
         <MilkyWayBand viewMode="panorama" />
         <DeepSkyField viewMode="panorama" atmosphereStrength={0.48} />
         <SpaceDepthField atmosphereStrength={0.36} />
-        <CreativeCanvasPlane />
+        <CreativeCanvasPlane creativeTool={creativeTool} onCreativeSpaceClick={onCreativeSpaceClick} editingEnabled={editingEnabled} />
         {showGuides ? <CreativeCanvasGuides /> : null}
-        <CreativePlacementPlane creativeTool={creativeTool} onCreativeSpaceClick={onCreativeSpaceClick} editingEnabled={editingEnabled} />
         <CreativeConstellationLines customSpace={customSpace} />
         {customSpace?.stars.map((star) => (
           <CreativeStar
@@ -240,11 +239,20 @@ export function CreativeSpaceScene({
   );
 }
 
-function CreativeCanvasPlane() {
+function CreativeCanvasPlane({ creativeTool, onCreativeSpaceClick, editingEnabled }) {
   return (
-    <mesh position={[0, 0, -12.24]}>
-      <planeGeometry args={[42, 26]} />
-      <meshBasicMaterial color="#020611" transparent opacity={0.42} depthWrite={false} />
+    <mesh
+      position={[0, 0, -12.24]}
+      onPointerDown={(event) => {
+        if (!editingEnabled || creativeTool === "delete") {
+          return;
+        }
+        event.stopPropagation();
+        onCreativeSpaceClick?.(event.point);
+      }}
+    >
+      <planeGeometry args={[44, 28]} />
+      <meshBasicMaterial color="#04101d" transparent opacity={editingEnabled ? 0.54 : 0.42} depthWrite={false} />
     </mesh>
   );
 }
@@ -279,24 +287,6 @@ function CreativeCanvasGuides() {
         <lineBasicMaterial color="#8eaed8" transparent opacity={0.28} />
       </lineSegments>
     </>
-  );
-}
-
-function CreativePlacementPlane({ creativeTool, onCreativeSpaceClick, editingEnabled }) {
-  return (
-    <mesh
-      position={[0, 0, -12.2]}
-      onPointerDown={(event) => {
-        if (!editingEnabled || creativeTool === "delete") {
-          return;
-        }
-        event.stopPropagation();
-        onCreativeSpaceClick?.(event.point);
-      }}
-    >
-      <planeGeometry args={[42, 26]} />
-      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-    </mesh>
   );
 }
 

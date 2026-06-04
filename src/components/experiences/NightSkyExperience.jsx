@@ -119,6 +119,14 @@ export function NightSkyExperience(props) {
     sortedSavedSketches
   } = props;
 
+  function handlePageChange(nextPage) {
+    setCurrentPage(nextPage);
+    if (typeof window !== "undefined") {
+      const nextHash = nextPage === "sketch" ? "#sketch" : "";
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+    }
+  }
+
   const {
     creativeTool,
     setCreativeTool,
@@ -160,7 +168,7 @@ export function NightSkyExperience(props) {
       <ViewerHeader
         dictionary={dictionary}
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        setCurrentPage={handlePageChange}
         language={language}
         setLanguage={updateLanguage}
         observer={observer}
@@ -172,21 +180,11 @@ export function NightSkyExperience(props) {
         currentThemeId={currentThemeId}
         switchTheme={handleThemeSwitch}
         sketchEnabled={effectiveSketchEnabled}
-        showPageSwitcher={false}
+        showPageSwitcher={effectiveSketchEnabled}
         showThemeSwitcher={showThemeSwitcher}
         homeHref="/"
       />
-      <div className="workspace">
-        {!auroraWatchLayout ? (
-          <div className="workspace-page-switcher page-switcher" aria-label={dictionary.viewer.pageMode}>
-            <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
-              {dictionary.viewer.pages.watch}
-            </button>
-            <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!effectiveSketchEnabled}>
-              {dictionary.viewer.pages.sketch}
-            </button>
-          </div>
-        ) : null}
+      <div className={`workspace ${currentPage === "sketch" ? "is-sketch-page" : ""}`}>
         <aside className="control-panel">
           {currentPage === "watch" ? (
             <WatchControlsPanel
@@ -385,8 +383,11 @@ export function NightSkyExperience(props) {
           ) : null}
           {currentPage === "watch" && !isSketchWatch && !auroraEnabled ? (
             <section className="viewer-bottom-dock">
-              <details className="viewer-bottom-dock-details">
-                <summary>{language === "ko" ? "무드 · 분위기 · 하늘 조정" : "Mood · Atmosphere · Sky tuning"}</summary>
+              <details className="viewer-bottom-dock-details viewer-mood-dock">
+                <summary>
+                  <span>{language === "ko" ? "오늘 밤의 분위기" : "Tonight's mood"}</span>
+                  <strong>{activeConstellationName || dictionary.viewer.allSky}</strong>
+                </summary>
                 <div className="viewer-bottom-dock-content">
                   <section className="story-card">
                     <p className="eyebrow">{dictionary.viewer.tonightMood}</p>

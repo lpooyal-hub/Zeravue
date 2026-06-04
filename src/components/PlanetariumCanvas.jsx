@@ -344,8 +344,10 @@ function SceneContents({
     const driftB = clock.elapsedTime * 0.068;
     trackingBlend.current = THREE.MathUtils.damp(trackingBlend.current, trackedCenter ? 1 : 0, 3.2, delta);
     const trackWeight = trackingBlend.current;
-    const targetTiltX = trackedCenter || projectionMode || observerMode
+    const targetTiltX = trackedCenter || observerMode
       ? 0
+      : projectionMode
+        ? -0.075
       : auroraWatchMode
         ? Math.sin(driftB * 0.58) * 0.009 + manualOrbit.current.pitch * 0.03
         : spaceMode
@@ -368,7 +370,7 @@ function SceneContents({
           ? pointer.x * 0.04
           : pointer.x * 0.26;
     const baseCameraY = projectionMode
-      ? 0
+      ? 0.58
       : auroraWatchMode
         ? -0.12 + Math.cos(driftB * 0.54) * 0.1 + manualOrbit.current.pitch * 0.2
         : spaceMode
@@ -377,7 +379,7 @@ function SceneContents({
           ? pointer.y * 0.02
           : -0.15 + pointer.y * 0.08;
     const targetCameraZ = projectionMode
-      ? -0.65
+      ? 1.45
       : auroraWatchMode
         ? -11.55 + Math.sin(driftA * 0.36) * 0.08
         : spaceMode
@@ -395,7 +397,7 @@ function SceneContents({
             ? pointer.x * 0.2
             : pointer.x * 1.45;
     const baseLookY = projectionMode
-      ? 0
+      ? 0.42
       : auroraWatchMode
         ? 1.15 + Math.cos(driftB * 0.5) * 0.2 + manualOrbit.current.pitch * 0.45
         : spaceMode
@@ -403,7 +405,7 @@ function SceneContents({
           : observerMode
             ? 10.2 + pointer.y * 0.12
             : 2.35 + pointer.y * 0.46;
-    const baseLookZ = projectionMode ? -13.5 : spaceMode ? 0 : observerMode ? -0.9 : -14.6;
+    const baseLookZ = projectionMode ? -13.15 : spaceMode ? 0 : observerMode ? -0.9 : -14.6;
     const targetCameraX = THREE.MathUtils.lerp(baseCameraX, trackedCenter ? trackedCenter.x * (spaceMode ? 0.03 : observerMode ? 0.04 : 0.06) : baseCameraX, trackWeight);
     const targetCameraY = THREE.MathUtils.lerp(baseCameraY, trackedCenter ? baseCameraY + trackedCenter.y * (observerMode ? 0.014 : spaceMode ? 0.02 : 0.028) : baseCameraY, trackWeight);
     const targetLookX = THREE.MathUtils.lerp(baseLookX, trackedCenter ? trackedCenter.x * (spaceMode ? 0.84 : 0.92) : baseLookX, trackWeight);
@@ -459,7 +461,7 @@ function SceneContents({
     const targetFov = observerMode
       ? THREE.MathUtils.lerp(92, 62, zoomLevel)
       : projectionMode
-        ? THREE.MathUtils.lerp(44, 26, zoomLevel)
+        ? THREE.MathUtils.lerp(50, 32, zoomLevel)
         : auroraWatchMode
           ? THREE.MathUtils.lerp(72, 44, zoomLevel)
           : spaceMode
