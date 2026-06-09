@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { AuroraPanoramaScene } from "../AuroraPanoramaScene.jsx";
 import { AuroraLiveViewer } from "../AuroraLiveViewer.jsx";
 
@@ -36,6 +37,12 @@ export function AuroraExperience({
   setAmbientVolume,
   toggleFullscreen
 }) {
+  useEffect(() => {
+    if (isFullscreen) {
+      setShowAuroraMoodControls(false);
+    }
+  }, [isFullscreen, setShowAuroraMoodControls]);
+
   return (
     <div className={`aurora-page ${isFullscreen ? "is-fullscreen-view" : ""}`}>
       {shouldShowAuroraPageChrome ? (
@@ -87,7 +94,7 @@ export function AuroraExperience({
             <p>{immersiveIntro.subtitle}</p>
           </div>
         ) : null}
-        <section className={`aurora-mood-dock immersive-mood-dock ${showAuroraMoodControls ? "is-open" : ""}`}>
+        <section className={`aurora-mood-dock immersive-mood-dock ${showAuroraMoodControls ? "is-open" : ""} ${isFullscreen ? "is-hidden" : ""}`}>
           <button
             type="button"
             className={`overlay-button ${showAuroraMoodControls ? "is-active" : ""}`}
@@ -139,7 +146,7 @@ export function AuroraExperience({
           ) : null}
         </section>
 
-        <section className={`viewer-overlay aurora-live-controls immersive-bottom-controls ${showAuroraMoodControls ? "is-open" : ""}`}>
+        <section className={`viewer-overlay aurora-live-controls immersive-bottom-controls ${showAuroraMoodControls ? "is-open" : ""} ${isFullscreen ? "is-hidden" : ""}`}>
           <label className="overlay-volume">
             <span>{language === "ko" ? "볼륨" : "Volume"}</span>
             <input type="range" min="0.5" max="1.15" step="0.05" value={ambientVolume} onChange={(event) => setAmbientVolume(Number(event.target.value))} />

@@ -104,9 +104,9 @@ function ViewerHeader({
               }}
             />
           ) : null}
-          <span>{language === "ko" ? "오늘 밤 하늘" : "Tonight Sky"}</span>
+          <span>{language === "ko" ? "오늘 밤 하늘" : "Sky now"}</span>
           <strong>{observer.label} · {language === "ko" ? "KR" : "KR"}</strong>
-          <small>{language === "ko" ? "현재 시각" : "Local Time"} · {localTimeLabel}</small>
+          <small>{language === "ko" ? "현재 시각" : "Local time"} · {localTimeLabel}</small>
         </div>
       </div>
     </header>

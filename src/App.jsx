@@ -703,7 +703,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   }, [focusedConstellation, trackConstellation]);
 
   return (
-    <div className={`planetarium-app theme-${currentThemeId}`}>
+    <div className={`planetarium-app theme-${currentThemeId}`} data-language={language}>
       {auroraWatchLayout ? (
         <AuroraExperience
           isFullscreen={isFullscreen}

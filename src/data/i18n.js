@@ -175,10 +175,10 @@ export const translations = {
       },
       viewModeLabel: "Sky view",
       viewModes: {
-        space: "Space drift",
-        observer: "Looking up",
-        panorama: "Panorama view",
-        projection: "Dome circle"
+        space: "Drift",
+        observer: "Skyward",
+        panorama: "Wide sky",
+        projection: "Dome view"
       },
       viewModeDescriptions: {
         space: "A floating, in-space feeling where the constellations surround you instead of sitting on a dome.",
@@ -187,8 +187,8 @@ export const translations = {
         projection: "A circular sky layout that turns the scene into a softer ceiling-like view."
       },
       ambient: {
-        on: "Ambient on",
-        off: "Ambient off",
+        on: "Sound On",
+        off: "Sound Off",
         volume: "Ambient volume",
         volumeShort: "Volume",
         preparing: "Preparing ambient",
@@ -204,7 +204,7 @@ export const translations = {
       zoom: "Zoom",
       zoomIn: "Zoom in",
       zoomOut: "Zoom out",
-      resetView: "Reset view",
+      resetView: "Reset",
       controls: "Viewing controls",
       sketchControls: "Sketch controls",
       observerCue: "Sky cue",
@@ -247,10 +247,10 @@ export const translations = {
         planets: "Planet markers",
         autoRotate: "Auto rotate"
       },
-      focusConstellation: "Spotlight constellation",
-      searchConstellation: "Find constellation",
+      focusConstellation: "Focus constellation",
+      searchConstellation: "Search sky",
       searchPlaceholder: "Type a constellation",
-      trackConstellation: "Follow selected constellation",
+      trackConstellation: "Follow focus",
       favoriteConstellations: "Favorite constellations",
       addFavorite: "Save favorite",
       removeFavorite: "Remove favorite",
@@ -365,7 +365,7 @@ export const translations = {
         draw: "Place stars and planets in your own empty space"
       },
       starInspector: "Star inspector",
-      constellationsInFrame: "Constellations in frame",
+      constellationsInFrame: "In view",
       magnitude: "Magnitude",
       altitude: "Altitude",
       azimuth: "Azimuth",
@@ -522,8 +522,8 @@ export const translations = {
         projection: "하늘 전체를 부드러운 원형 장면으로 펼쳐보는 시점입니다."
       },
       ambient: {
-        on: "앰비언트 켜기",
-        off: "앰비언트 끄기",
+        on: "사운드 켜기",
+        off: "사운드 끄기",
         volume: "앰비언트 볼륨",
         volumeShort: "볼륨",
         preparing: "앰비언트 준비 중",

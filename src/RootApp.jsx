@@ -364,9 +364,15 @@ function HomePage({ language, setLanguage }) {
       <div id="themes" className="theme-home-grid" aria-label={language === "ko" ? "테마 선택" : "Theme selection"}>
         {platformThemeCards.map((theme) => (
           <a key={theme.id} className="theme-home-card" href={theme.href} onClick={(event) => enterTheme(event, theme.href)}>
-            <strong>{theme.title[language] || theme.title.en}</strong>
-            <small>{theme.description[language] || theme.description.en}</small>
-            <span>{language === "ko" ? "감상 열기" : "Open scene"}</span>
+            <p className="theme-home-card-eyebrow">{theme.eyebrow?.[language] || theme.eyebrow?.en}</p>
+            <div className="theme-home-card-body">
+              <strong>{theme.title[language] || theme.title.en}</strong>
+              <small>{theme.description[language] || theme.description.en}</small>
+            </div>
+            <div className="theme-home-card-footer">
+              <span className="theme-home-card-meta">{theme.meta?.[language] || theme.meta?.en}</span>
+              <span className="theme-home-card-action">{language === "ko" ? "감상 열기" : "Open scene"}</span>
+            </div>
           </a>
         ))}
       </div>

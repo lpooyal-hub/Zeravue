@@ -471,6 +471,7 @@ export function NightSkyExperience(props) {
           ) : (
             <SketchLibraryPanel
               dictionary={dictionary}
+              language={language}
               savedSketches={savedSketches}
               sortedSavedSketches={sortedSavedSketches}
               activeSketchId={activeSketchId}

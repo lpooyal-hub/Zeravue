@@ -82,6 +82,24 @@ function getSolarBodyMoodCopy(bodyId, altitude, language) {
     : "It is dipping below the horizon and briefly slipping out of view.";
 }
 
+function formatInspectorAngle(value) {
+  if (typeof value !== "number") {
+    return "--";
+  }
+
+  return `${value}°`;
+}
+
+function InspectorHighlightCard({ title, subtitle, body }) {
+  return (
+    <div className="inspector-highlight-card">
+      <h2>{title}</h2>
+      {subtitle ? <p className="constellation-copy">{subtitle}</p> : null}
+      {body ? <p className="helper-copy">{body}</p> : null}
+    </div>
+  );
+}
+
 function WatchControlsPanel({
   dictionary,
   language,
@@ -170,13 +188,13 @@ function WatchControlsPanel({
         </section>
       ) : null}
       <section>
-        <p className="eyebrow">{language === "ko" ? "로컬 하늘" : "Your Local Sky"}</p>
+        <p className="eyebrow">{language === "ko" ? "로컬 하늘" : "Local sky"}</p>
         <div className="observer-moment-card observer-local-card">
           <strong>{observer.label}</strong>
-          <small>{language === "ko" ? "지금 이 위치의 밤하늘을 반영하고 있습니다." : "Reflecting the night sky above your current place."}</small>
+          <small>{language === "ko" ? "지금 이 위치의 밤하늘을 반영하고 있습니다." : "Matching the sky above you."}</small>
         </div>
         <button className="primary-button" type="button" onClick={requestLocation}>
-          {language === "ko" ? "현재 위치로 맞추기" : "Use Current Location"}
+          {language === "ko" ? "현재 위치로 맞추기" : "Use location"}
         </button>
       </section>
 
@@ -230,7 +248,7 @@ function WatchControlsPanel({
           </>
         ) : null}
         <details className="advanced-location-details">
-          <summary>{language === "ko" ? "고급 위치 설정" : "Advanced Location Details"}</summary>
+          <summary>{language === "ko" ? "고급 위치 설정" : "Location details"}</summary>
           <div className="field-grid">
             <label>
               <span>{dictionary.viewer.latitude}</span>
@@ -258,7 +276,7 @@ function WatchControlsPanel({
         </details>
         {!auroraEnabled ? (
           <>
-            <p className="eyebrow">{language === "ko" ? "하늘 분위기 프리셋" : "Sky mood presets"}</p>
+            <p className="eyebrow">{language === "ko" ? "하늘 분위기 프리셋" : "Mood presets"}</p>
             <div className="time-jump-row">
               <button type="button" className="focus-chip" onClick={() => applyNightSkyPreset("calm")}>
                 {language === "ko" ? "잔잔한 밤" : "Calm night"}
@@ -330,7 +348,7 @@ function WatchInspectorPanel({
           <p className="helper-copy">{dictionary.viewer.observerConstellationHint}</p>
         ) : (
           <p className="helper-copy">
-            {language === "ko" ? "별자리를 누르면 바로 강조됩니다." : "Click any constellation below to focus it instantly."}
+            {language === "ko" ? "별자리를 누르면 바로 강조됩니다." : "Pick a constellation to bring it forward."}
           </p>
         )}
         <div className="saved-sketch-list constellation-frame-list">
@@ -342,7 +360,7 @@ function WatchInspectorPanel({
               onClick={() => setFocusedConstellation(item.name)}
             >
               <strong>{dictionary.constellations?.[item.name]?.[language] || item.name}</strong>
-              <div className="constellation-card-meta">
+              <div className="constellation-card-meta constellation-card-meta-soft">
                 <span>{language === "ko" ? `별 ${item.visibleStars}` : `${item.visibleStars} stars`}</span>
                 <span>{language === "ko" ? `고도 ${item.averageAltitude}°` : `Alt ${item.averageAltitude}°`}</span>
                 {viewMode === "observer" ? (
@@ -373,21 +391,23 @@ function WatchInspectorPanel({
         <p className="eyebrow">{dictionary.viewer.starInspector}</p>
         {selectedSolarBody ? (
           <>
-            <h2>{selectedSolarBody.name}</h2>
-            <p className="constellation-copy">{getSolarBodyTypeLabel(selectedSolarBody.id, language)}</p>
-            <p className="helper-copy">{getSolarBodyMoodCopy(selectedSolarBody.id, selectedSolarBody.altitude, language)}</p>
-            <dl className="summary-list compact">
+            <InspectorHighlightCard
+              title={selectedSolarBody.name}
+              subtitle={getSolarBodyTypeLabel(selectedSolarBody.id, language)}
+              body={getSolarBodyMoodCopy(selectedSolarBody.id, selectedSolarBody.altitude, language)}
+            />
+            <dl className="summary-list compact inspector-summary-grid">
               <div>
                 <dt>{dictionary.viewer.magnitude}</dt>
                 <dd>{selectedSolarBody.magnitude}</dd>
               </div>
               <div>
                 <dt>{dictionary.viewer.altitude}</dt>
-                <dd>{selectedSolarBody.altitude} deg</dd>
+                <dd>{formatInspectorAngle(selectedSolarBody.altitude)}</dd>
               </div>
               <div>
                 <dt>{dictionary.viewer.azimuth}</dt>
-                <dd>{selectedSolarBody.azimuth} deg</dd>
+                <dd>{formatInspectorAngle(selectedSolarBody.azimuth)}</dd>
               </div>
               <div>
                 <dt>{dictionary.viewer.visibility}</dt>
@@ -406,20 +426,22 @@ function WatchInspectorPanel({
           </>
         ) : selectedStar ? (
           <>
-            <h2>{selectedStar.name}</h2>
-            <p className="constellation-copy">{dictionary.constellations?.[selectedStar.constellation]?.[language] || selectedStar.constellation}</p>
-            <dl className="summary-list compact">
+            <InspectorHighlightCard
+              title={selectedStar.name}
+              subtitle={dictionary.constellations?.[selectedStar.constellation]?.[language] || selectedStar.constellation}
+            />
+            <dl className="summary-list compact inspector-summary-grid">
               <div>
                 <dt>{dictionary.viewer.magnitude}</dt>
                 <dd>{selectedStar.magnitude}</dd>
               </div>
               <div>
                 <dt>{dictionary.viewer.altitude}</dt>
-                <dd>{selectedStar.altitude} deg</dd>
+                <dd>{formatInspectorAngle(selectedStar.altitude)}</dd>
               </div>
               <div>
                 <dt>{dictionary.viewer.azimuth}</dt>
-                <dd>{selectedStar.azimuth} deg</dd>
+                <dd>{formatInspectorAngle(selectedStar.azimuth)}</dd>
               </div>
               <div>
                 <dt>{dictionary.viewer.visibility}</dt>

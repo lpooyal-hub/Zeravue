@@ -1,5 +1,7 @@
 import { VIEW_MODE_ORDER } from "./viewerState.js";
 
+const HIDDEN_VIEW_MODES = new Set(["projection"]);
+
 export function getThemeHeaderCopy({ currentThemeId, language, dictionary }) {
   if (currentThemeId === "aurora-night") {
     return {
@@ -37,5 +39,5 @@ export function getThemeHeaderCopy({ currentThemeId, language, dictionary }) {
 
 export function getThemeViewModes(currentTheme) {
   const supported = Array.isArray(currentTheme?.viewModes) && currentTheme.viewModes.length ? currentTheme.viewModes : VIEW_MODE_ORDER;
-  return VIEW_MODE_ORDER.filter((mode) => supported.includes(mode));
+  return VIEW_MODE_ORDER.filter((mode) => supported.includes(mode) && !HIDDEN_VIEW_MODES.has(mode));
 }

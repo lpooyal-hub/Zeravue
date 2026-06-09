@@ -13,6 +13,7 @@ from astropy.utils import iers
 from ..data.bright_stars import BRIGHT_STARS, CONSTELLATION_LINES
 
 iers.conf.auto_download = False
+iers.conf.auto_max_age = None
 
 DEFAULT_LIMITING_MAGNITUDE = 4.8
 DEFAULT_MAX_STARS = 4500

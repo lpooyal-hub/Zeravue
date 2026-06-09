@@ -179,7 +179,7 @@ export function ViewerAmbientOverlay({
         aria-label={ambientEnabled ? dictionary.viewer.ambient.off : dictionary.viewer.ambient.on}
         onClick={toggleAmbientSound}
       >
-        {language === "ko" ? "사운드" : "Sound"}
+        {ambientEnabled ? dictionary.viewer.ambient.off : dictionary.viewer.ambient.on}
       </button>
     </div>
   );

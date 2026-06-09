@@ -269,6 +269,7 @@ function SketchControlsPanel({
 
 function SketchLibraryPanel({
   dictionary,
+  language,
   savedSketches,
   sortedSavedSketches,
   activeSketchId,
@@ -290,24 +291,33 @@ function SketchLibraryPanel({
               <div key={sketch.id} className={`saved-sketch-card ${activeSketchId === sketch.id ? "is-active" : ""}`}>
                 <button type="button" className="saved-sketch-button" onClick={() => loadSketch(sketch.id)}>
                   <strong>{sketch.name}</strong>
-                  <small>
-                    {sketch.stars.length} {dictionary.viewer.customStars} / {sketch.planets.length} {dictionary.viewer.customPlanets}
-                  </small>
+                  <div className="constellation-card-meta constellation-card-meta-soft">
+                    <span>
+                      {sketch.stars.length} {dictionary.viewer.customStars}
+                    </span>
+                    <span>
+                      {sketch.planets.length} {dictionary.viewer.customPlanets}
+                    </span>
+                    {sketch.favorite ? <span>{language === "ko" ? "고정됨" : "Pinned"}</span> : null}
+                  </div>
                 </button>
-                <div className="saved-sketch-actions">
-                  <button type="button" className="focus-chip" onClick={() => previewSketchInWatch(sketch.id)}>
-                    {dictionary.viewer.previewInWatch}
-                  </button>
-                  <button type="button" className="focus-chip" onClick={() => renameSketch(sketch.id)}>
-                    {dictionary.viewer.renameSketch}
-                  </button>
-                  <button type="button" className={`focus-chip ${sketch.favorite ? "is-active" : ""}`} onClick={() => toggleSketchFavorite(sketch.id)}>
-                    {sketch.favorite ? dictionary.viewer.unpinSketch : dictionary.viewer.pinSketch}
-                  </button>
-                  <button type="button" className="focus-chip" onClick={() => removeSketch(sketch.id)}>
-                    {dictionary.viewer.deleteSketch}
-                  </button>
-                </div>
+                <details className="saved-sketch-manage">
+                  <summary>{language === "ko" ? "관리" : "Manage"}</summary>
+                  <div className="saved-sketch-actions">
+                    <button type="button" className="focus-chip" onClick={() => previewSketchInWatch(sketch.id)}>
+                      {dictionary.viewer.previewInWatch}
+                    </button>
+                    <button type="button" className="focus-chip" onClick={() => renameSketch(sketch.id)}>
+                      {dictionary.viewer.renameSketch}
+                    </button>
+                    <button type="button" className={`focus-chip ${sketch.favorite ? "is-active" : ""}`} onClick={() => toggleSketchFavorite(sketch.id)}>
+                      {sketch.favorite ? dictionary.viewer.unpinSketch : dictionary.viewer.pinSketch}
+                    </button>
+                    <button type="button" className="focus-chip" onClick={() => removeSketch(sketch.id)}>
+                      {dictionary.viewer.deleteSketch}
+                    </button>
+                  </div>
+                </details>
               </div>
             ))
           )}

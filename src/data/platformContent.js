@@ -6,9 +6,17 @@ export const platformThemeCards = [
       en: "Night Sky",
       ko: "밤하늘 감상"
     },
+    eyebrow: {
+      en: "Starfield",
+      ko: "별빛 테마"
+    },
     description: {
       en: "Settle into a quiet star field with gentle motion and constellation focus.",
       ko: "부드럽게 흐르는 별빛과 함께 차분한 밤하늘에 머무를 수 있는 테마입니다."
+    },
+    meta: {
+      en: "Slow sky viewing",
+      ko: "차분한 하늘 감상"
     }
   },
   {
@@ -18,9 +26,17 @@ export const platformThemeCards = [
       en: "Aurora Night",
       ko: "오로라 감상"
     },
+    eyebrow: {
+      en: "Aurora",
+      ko: "대기 테마"
+    },
     description: {
       en: "Enjoy a soft aurora atmosphere designed for slow, immersive viewing.",
       ko: "느리게 감상하기 좋은 부드러운 오로라 분위기 중심 테마입니다."
+    },
+    meta: {
+      en: "Wind and wide light",
+      ko: "바람과 빛의 흐름"
     }
   },
   {
@@ -30,9 +46,17 @@ export const platformThemeCards = [
       en: "Monsoon Canopy",
       ko: "깊은 숲의 비"
     },
+    eyebrow: {
+      en: "Rainforest Rain",
+      ko: "우림 테마"
+    },
     description: {
       en: "Rest beneath a dense rainforest canopy with steady rain, mist, and humid forest air.",
       ko: "짙은 수풀 아래에서 굵은 비와 안개, 습한 숲 공기에 천천히 머무는 테마입니다."
+    },
+    meta: {
+      en: "Rain, mist, and shelter",
+      ko: "비, 안개, 숲의 쉼"
     }
   }
 ];
@@ -40,11 +64,11 @@ export const platformThemeCards = [
 export const platformHomeCopy = {
   en: {
     title: "A calm digital place to pause.",
-    subtitle: "Choose a scene and settle in. Zeravue offers quiet themes for gentle viewing."
+    subtitle: "Choose a scene and settle in. Zeravue brings together quiet themes built for slow viewing, soft motion, and full-screen rest."
   },
   ko: {
     title: "잠시 머물 수 있는 차분한 디지털 공간.",
-    subtitle: "장면을 고르고 천천히 감상해 보세요. Zeravue는 조용한 테마 중심의 휴식형 뷰어입니다."
+    subtitle: "장면을 고르고 천천히 감상해 보세요. Zeravue는 조용한 테마와 부드러운 움직임, 전체 화면 감상에 맞춘 휴식형 뷰어입니다."
   }
 };
 
