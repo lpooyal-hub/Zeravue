@@ -91,11 +91,17 @@ echo "Using compose file: $COMPOSE_FILE"
 if [[ -n "$GIT_SSH_COMMAND_VALUE" ]]; then
   GIT_SSH_COMMAND="$GIT_SSH_COMMAND_VALUE" git fetch origin "$BRANCH"
   git checkout "$BRANCH"
-  GIT_SSH_COMMAND="$GIT_SSH_COMMAND_VALUE" git pull --ff-only origin "$BRANCH"
+  if ! git diff --quiet --ignore-submodules -- || ! git diff --cached --quiet --ignore-submodules --; then
+    echo "Discarding local tracked changes in deploy tree before sync."
+  fi
+  git reset --hard "origin/$BRANCH"
 else
   git fetch origin "$BRANCH"
   git checkout "$BRANCH"
-  git pull --ff-only origin "$BRANCH"
+  if ! git diff --quiet --ignore-submodules -- || ! git diff --cached --quiet --ignore-submodules --; then
+    echo "Discarding local tracked changes in deploy tree before sync."
+  fi
+  git reset --hard "origin/$BRANCH"
 fi
 
 echo "Checked out commit: $(git rev-parse --short HEAD) on branch $(git rev-parse --abbrev-ref HEAD)"

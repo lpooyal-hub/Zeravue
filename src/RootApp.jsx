@@ -8,6 +8,48 @@ import { getThemeRouteConfig } from "./data/themes/index.js";
 
 const buildLogs = [
   {
+    slug: "2026-06-09",
+    date: "2026-06-09",
+    title: {
+      en: "Night Sky recovery pass and quieter home flow",
+      ko: "Night Sky 복구 점검과 홈 흐름 재정리"
+    },
+    summary: {
+      en:
+        "Recovered the Night Sky scene endpoint from a backend time-table failure, cleaned up the home theme cards, and softened English panel density so the viewer feels calmer again.",
+      ko:
+        "Night Sky 장면 API가 시간 보정 테이블 문제로 멈추던 구간을 복구하고, 홈 테마 카드 흐름을 다시 정리했으며, 영문 패널 밀도도 덜어내 감상 톤을 한 번 더 차분하게 맞췄습니다."
+    },
+    areas: {
+      en: ["Night Sky recovery", "Home polish", "UI density"],
+      ko: ["Night Sky 복구", "홈 정리", "UI 밀도 조정"]
+    },
+    highlights: {
+      en: [
+        "Fixed the backend sky-scene failure so Night Sky can generate HYG-based scenes again without tripping over stale IERS timing data.",
+        "Restructured the home theme cards with clearer eyebrow, title, description, and meta layers so the first screen reads more cleanly.",
+        "Trimmed English-facing labels and softened inspector and sketch-list density so Night Sky feels less tool-heavy."
+      ],
+      ko: [
+        "오래된 IERS 시간 보정 데이터 때문에 멈추던 Night Sky 백엔드 장면 생성 구간을 복구해 HYG 기반 하늘 장면이 다시 열리게 했습니다.",
+        "홈 테마 카드를 작은 성격표시, 제목, 설명, 메타 흐름으로 다시 묶어 첫 화면이 더 또렷하게 읽히도록 정리했습니다.",
+        "영문 라벨과 inspector, 스케치 저장 목록 밀도를 덜어내 Night Sky가 도구보다 감상 화면에 가깝게 느껴지도록 맞췄습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Add a minimal fullscreen overlay for Night Sky sketch mode so core actions remain reachable without breaking immersion.",
+        "Decide whether the dome-style circular sky should stay hidden or return as a calmer support view.",
+        "Keep reducing the gap between feature richness and quiet viewing tone in Night Sky."
+      ],
+      ko: [
+        "Night Sky 스케치 모드 전체화면에서도 핵심 기능을 열 수 있는 최소 오버레이를 추가합니다.",
+        "원형하늘 뷰를 계속 숨길지, 더 차분한 보조 뷰로 다시 풀지 방향을 정리합니다.",
+        "Night Sky의 기능 밀도와 감상 톤 사이 간격을 계속 좁혀갑니다."
+      ]
+    }
+  },
+  {
     slug: "2026-06-03",
     date: "2026-06-03",
     title: {

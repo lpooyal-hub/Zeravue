@@ -2,7 +2,7 @@ import { PlanetariumCanvas } from "../PlanetariumCanvas.jsx";
 import { SelectionInspectorPanel } from "../SelectionInspectorPanel.jsx";
 import { SketchControlsPanel, SketchLibraryPanel } from "../SketchPanel.jsx";
 import { ViewerHeader } from "../ViewerLayout.jsx";
-import { ViewerAmbientOverlay, ViewerFocusOverlay } from "../ViewerOverlays.jsx";
+import { SketchFullscreenOverlay, ViewerAmbientOverlay, ViewerFocusOverlay } from "../ViewerOverlays.jsx";
 import { WatchControlsPanel, WatchInspectorPanel } from "../WatchPanels.jsx";
 
 export function NightSkyExperience(props) {
@@ -162,6 +162,7 @@ export function NightSkyExperience(props) {
     renameSketch,
     toggleSketchFavorite
   } = sketchWorkspace;
+  const sketchViewModes = themeViewModes.filter((mode) => mode === "panorama");
 
   return (
     <>
@@ -246,7 +247,7 @@ export function NightSkyExperience(props) {
                   dictionary={dictionary}
                   language={language}
                   viewMode={viewMode}
-                  viewModeOrder={themeViewModes}
+                  viewModeOrder={sketchViewModes}
                   setViewMode={props.setViewMode}
                   sketchViewDescription={sketchViewDescription}
                   creativeTool={creativeTool}
@@ -410,6 +411,27 @@ export function NightSkyExperience(props) {
                 </div>
               </details>
             </section>
+          ) : null}
+          {currentPage === "sketch" && isFullscreen ? (
+            <SketchFullscreenOverlay
+              dictionary={dictionary}
+              language={language}
+              viewMode={viewMode}
+              viewModeOrder={sketchViewModes}
+              setViewMode={props.setViewMode}
+              creativeTool={creativeTool}
+              setCreativeTool={setCreativeTool}
+              activeSketchName={activeSketchName}
+              saveSketchLabel={saveSketchLabel}
+              saveDraftSketch={saveDraftSketch}
+              startNewSketch={startNewSketch}
+              presetConstellationName={presetConstellationName}
+              setPresetConstellationName={setPresetConstellationName}
+              importableConstellations={importableConstellations}
+              importPresetConstellation={importPresetConstellation}
+              sortedSavedSketches={sortedSavedSketches}
+              loadSketch={loadSketch}
+            />
           ) : null}
           <ViewerAmbientOverlay
             dictionary={dictionary}

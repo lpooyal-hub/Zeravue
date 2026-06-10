@@ -60,16 +60,6 @@ function ViewerHeader({
       </div>
       <div className="topbar-controls">
         <div className="topbar-controls-row">
-          {showPageSwitcher ? (
-            <div className="page-switcher" aria-label={dictionary.viewer.pageMode}>
-              <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
-                {dictionary.viewer.pages.watch}
-              </button>
-              <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!sketchEnabled}>
-                {dictionary.viewer.pages.sketch}
-              </button>
-            </div>
-          ) : null}
           <div className="language-switcher" aria-label="Language">
             <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
               EN
@@ -108,6 +98,18 @@ function ViewerHeader({
           <strong>{observer.label} · {language === "ko" ? "KR" : "KR"}</strong>
           <small>{language === "ko" ? "현재 시각" : "Local time"} · {localTimeLabel}</small>
         </div>
+        {showPageSwitcher ? (
+          <div className="topbar-controls-row topbar-page-row">
+            <div className="page-switcher" aria-label={dictionary.viewer.pageMode}>
+              <button type="button" aria-pressed={currentPage === "watch"} onClick={() => setCurrentPage("watch")}>
+                {dictionary.viewer.pages.watch}
+              </button>
+              <button type="button" aria-pressed={currentPage === "sketch"} onClick={() => setCurrentPage("sketch")} disabled={!sketchEnabled}>
+                {dictionary.viewer.pages.sketch}
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </header>
   );

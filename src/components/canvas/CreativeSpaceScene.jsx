@@ -167,9 +167,9 @@ export function CreativeSpaceScene({
           onUpdateCustomObject?.(
             { kind: dragging.kind, id: dragging.id },
             {
-              x: clampCoordinate(dragPointRef.current.x),
-              y: clampCoordinate(dragPointRef.current.y),
-              z: -12.2
+              x: clampCoordinate(dragging.dragOrigin.x + (dragPointRef.current.x - dragging.originPoint.x)),
+              y: clampCoordinate(dragging.dragOrigin.y + (dragPointRef.current.y - dragging.originPoint.y)),
+              z: dragging.dragOrigin.z
             }
           );
         }
@@ -194,9 +194,9 @@ export function CreativeSpaceScene({
             star={star}
             selected={selectedTarget?.kind === "custom-star" && selectedTarget.id === star.id}
             onSelectTarget={onSelectTarget}
-            onStartDrag={(starId) => {
+            onStartDrag={(starId, originPoint, dragOrigin) => {
               if (editingEnabled) {
-                draggingObjectRef.current = { kind: "custom-star", id: starId };
+                draggingObjectRef.current = { kind: "custom-star", id: starId, originPoint, dragOrigin };
               }
             }}
             editingEnabled={editingEnabled}
@@ -208,9 +208,9 @@ export function CreativeSpaceScene({
             planet={planet}
             selected={selectedTarget?.kind === "custom-planet" && selectedTarget.id === planet.id}
             onSelectTarget={onSelectTarget}
-            onStartDrag={(planetId) => {
+            onStartDrag={(planetId, originPoint, dragOrigin) => {
               if (editingEnabled) {
-                draggingObjectRef.current = { kind: "custom-planet", id: planetId };
+                draggingObjectRef.current = { kind: "custom-planet", id: planetId, originPoint, dragOrigin };
               }
             }}
             editingEnabled={editingEnabled}
@@ -363,13 +363,13 @@ function CreativeStar({ star, selected, onSelectTarget, onStartDrag, editingEnab
       ) : null}
       <sprite ref={haloRef} material={material} scale={[star.size * 2.6, star.size * 2.6, 1]} />
       <mesh
-        onPointerDown={(event) => {
-          event.stopPropagation();
-          onSelectTarget({ kind: "custom-star", id: star.id });
-          if (editingEnabled) {
-            onStartDrag?.(star.id);
-          }
-        }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        onSelectTarget({ kind: "custom-star", id: star.id });
+        if (editingEnabled) {
+          onStartDrag?.(star.id, { x: event.point.x, y: event.point.y }, { x: star.x, y: star.y, z: star.z });
+        }
+      }}
         onClick={(event) => {
           event.stopPropagation();
           onSelectTarget({ kind: "custom-star", id: star.id });
@@ -400,7 +400,7 @@ function CreativePlanet({ planet, selected, onSelectTarget, onStartDrag, editing
         event.stopPropagation();
         onSelectTarget({ kind: "custom-planet", id: planet.id });
         if (editingEnabled) {
-          onStartDrag?.(planet.id);
+          onStartDrag?.(planet.id, { x: event.point.x, y: event.point.y }, { x: planet.x, y: planet.y, z: planet.z });
         }
       }}
       onClick={(event) => {
@@ -439,7 +439,7 @@ function CreativeConstellationHandle({ handle, selected, onSelectTarget, onStart
       onPointerDown={(event) => {
         event.stopPropagation();
         onSelectTarget({ kind: "custom-constellation", id: handle.id });
-        onStartDrag?.(handle.id, { x: handle.x, y: handle.y }, handle.stars);
+        onStartDrag?.(handle.id, { x: event.point.x, y: event.point.y }, handle.stars);
       }}
       onClick={(event) => {
         event.stopPropagation();

@@ -113,6 +113,119 @@ export function ViewerFocusOverlay({
   );
 }
 
+export function SketchFullscreenOverlay({
+  dictionary,
+  language,
+  viewMode,
+  viewModeOrder,
+  setViewMode,
+  creativeTool,
+  setCreativeTool,
+  activeSketchName,
+  saveSketchLabel,
+  saveDraftSketch,
+  startNewSketch,
+  presetConstellationName,
+  setPresetConstellationName,
+  importableConstellations,
+  importPresetConstellation,
+  sortedSavedSketches,
+  loadSketch
+}) {
+  const overlayTitle = language === "ko" ? "스케치 도구" : "Sketch tools";
+  const importLabel = language === "ko" ? "별자리 불러오기" : "Import shape";
+  const loadLabel = language === "ko" ? "저장 스케치 열기" : "Open saved sketch";
+  const currentToolLabel = dictionary.viewer.creativeTools?.[creativeTool] || dictionary.viewer.addStarTool;
+
+  return (
+    <section className="sketch-fullscreen-overlay">
+      <details className="sketch-fullscreen-dock" open>
+        <summary>
+          <span>{overlayTitle}</span>
+          <strong>{activeSketchName}</strong>
+          <small>{currentToolLabel}</small>
+        </summary>
+        <div className="sketch-fullscreen-dock-body">
+          {viewModeOrder.length > 1 ? (
+            <div className="constellation-list focus-list">
+              {viewModeOrder.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`focus-chip ${viewMode === mode ? "is-active" : ""}`}
+                  onClick={() => setViewMode(mode)}
+                >
+                  {dictionary.viewer.viewModes[mode]}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="sketch-fullscreen-tool-row">
+            <button type="button" className={`focus-chip ${creativeTool === "star" ? "is-active" : ""}`} onClick={() => setCreativeTool("star")}>
+              {dictionary.viewer.addStarTool}
+            </button>
+            <button type="button" className={`focus-chip ${creativeTool === "planet" ? "is-active" : ""}`} onClick={() => setCreativeTool("planet")}>
+              {dictionary.viewer.addPlanetTool}
+            </button>
+            <button type="button" className={`focus-chip ${creativeTool === "delete" ? "is-active" : ""}`} onClick={() => setCreativeTool("delete")}>
+              {dictionary.viewer.deleteTool}
+            </button>
+          </div>
+
+          <div className="sketch-fullscreen-action-row">
+            <button type="button" className="focus-chip" onClick={startNewSketch}>
+              {dictionary.viewer.newSketch}
+            </button>
+            <button type="button" className="focus-chip is-active" onClick={saveDraftSketch}>
+              {saveSketchLabel}
+            </button>
+          </div>
+
+          <details className="sketch-fullscreen-section">
+            <summary>{language === "ko" ? "불러오기" : "Load options"}</summary>
+            <div className="sketch-fullscreen-section-body">
+              <div className="sketch-fullscreen-field-row">
+                <label className="overlay-focus-field">
+                  <span>{importLabel}</span>
+                  <select value={presetConstellationName} onChange={(event) => setPresetConstellationName(event.target.value)}>
+                    {importableConstellations.length === 0 ? (
+                      <option value="">{dictionary.viewer.noPresetConstellations}</option>
+                    ) : (
+                      importableConstellations.map((name) => (
+                        <option key={name} value={name}>
+                          {dictionary.constellations?.[name]?.[language] || name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+                <button type="button" className="overlay-button overlay-inline-button" onClick={importPresetConstellation} disabled={!presetConstellationName}>
+                  {dictionary.viewer.importConstellation}
+                </button>
+              </div>
+
+              <div className="sketch-fullscreen-field-row">
+                <label className="overlay-focus-field">
+                  <span>{loadLabel}</span>
+                  <select defaultValue="" onChange={(event) => event.target.value && loadSketch(event.target.value)}>
+                    <option value="">{sortedSavedSketches.length ? (language === "ko" ? "저장한 스케치 선택" : "Choose a saved sketch") : dictionary.viewer.noSavedSketches}</option>
+                    {sortedSavedSketches.map((sketch) => (
+                      <option key={sketch.id} value={sketch.id}>
+                        {sketch.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </div>
+          </details>
+        </div>
+      </details>
+    </section>
+  );
+}
+
 export function ViewerAmbientOverlay({
   dictionary,
   language,

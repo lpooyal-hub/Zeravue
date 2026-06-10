@@ -289,35 +289,34 @@ function SketchLibraryPanel({
           ) : (
             sortedSavedSketches.map((sketch) => (
               <div key={sketch.id} className={`saved-sketch-card ${activeSketchId === sketch.id ? "is-active" : ""}`}>
-                <button type="button" className="saved-sketch-button" onClick={() => loadSketch(sketch.id)}>
-                  <strong>{sketch.name}</strong>
-                  <div className="constellation-card-meta constellation-card-meta-soft">
-                    <span>
-                      {sketch.stars.length} {dictionary.viewer.customStars}
-                    </span>
-                    <span>
-                      {sketch.planets.length} {dictionary.viewer.customPlanets}
-                    </span>
-                    {sketch.favorite ? <span>{language === "ko" ? "고정됨" : "Pinned"}</span> : null}
-                  </div>
-                </button>
-                <details className="saved-sketch-manage">
-                  <summary>{language === "ko" ? "관리" : "Manage"}</summary>
-                  <div className="saved-sketch-actions">
-                    <button type="button" className="focus-chip" onClick={() => previewSketchInWatch(sketch.id)}>
-                      {dictionary.viewer.previewInWatch}
-                    </button>
-                    <button type="button" className="focus-chip" onClick={() => renameSketch(sketch.id)}>
-                      {dictionary.viewer.renameSketch}
-                    </button>
-                    <button type="button" className={`focus-chip ${sketch.favorite ? "is-active" : ""}`} onClick={() => toggleSketchFavorite(sketch.id)}>
-                      {sketch.favorite ? dictionary.viewer.unpinSketch : dictionary.viewer.pinSketch}
-                    </button>
-                    <button type="button" className="focus-chip" onClick={() => removeSketch(sketch.id)}>
-                      {dictionary.viewer.deleteSketch}
-                    </button>
-                  </div>
-                </details>
+                <div className="saved-sketch-main">
+                  <button type="button" className="saved-sketch-button" onClick={() => loadSketch(sketch.id)}>
+                    <strong>{sketch.name}</strong>
+                    <div className="constellation-card-meta constellation-card-meta-soft">
+                      <span>
+                        {sketch.stars.length} {dictionary.viewer.customStars}
+                      </span>
+                      <span>
+                        {sketch.planets.length} {dictionary.viewer.customPlanets}
+                      </span>
+                      {sketch.favorite ? <span>{language === "ko" ? "고정됨" : "Pinned"}</span> : null}
+                    </div>
+                  </button>
+                  <button type="button" className="saved-sketch-preview" onClick={() => previewSketchInWatch(sketch.id)}>
+                    {language === "ko" ? "감상" : "View"}
+                  </button>
+                </div>
+                <div className="saved-sketch-actions-inline">
+                  <button type="button" className="saved-sketch-link" onClick={() => renameSketch(sketch.id)}>
+                    {dictionary.viewer.renameSketch}
+                  </button>
+                  <button type="button" className="saved-sketch-link" onClick={() => toggleSketchFavorite(sketch.id)}>
+                    {sketch.favorite ? dictionary.viewer.unpinSketch : dictionary.viewer.pinSketch}
+                  </button>
+                  <button type="button" className="saved-sketch-link is-danger" onClick={() => removeSketch(sketch.id)}>
+                    {dictionary.viewer.deleteSketch}
+                  </button>
+                </div>
               </div>
             ))
           )}
