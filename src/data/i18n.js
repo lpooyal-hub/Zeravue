@@ -364,7 +364,7 @@ export const translations = {
         screensaver: "Pure screensaver mode with slow camera drift",
         draw: "Place stars and planets in your own empty space"
       },
-      starInspector: "Star inspector",
+      starInspector: "Selected star",
       constellationsInFrame: "In view",
       magnitude: "Magnitude",
       altitude: "Altitude",
@@ -699,8 +699,8 @@ export const translations = {
         screensaver: "느린 카메라 전환으로 감상하는 화면보호기 모드",
         draw: "빈 우주에 나만의 별과 행성을 배치하세요"
       },
-      starInspector: "별 정보",
-      constellationsInFrame: "현재 시야의 별자리",
+      starInspector: "선택한 별",
+      constellationsInFrame: "시야 별자리",
       magnitude: "등급",
       altitude: "고도",
       azimuth: "방위각",

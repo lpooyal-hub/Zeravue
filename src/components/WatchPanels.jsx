@@ -191,7 +191,7 @@ function WatchControlsPanel({
         <p className="eyebrow">{language === "ko" ? "로컬 하늘" : "Local sky"}</p>
         <div className="observer-moment-card observer-local-card">
           <strong>{observer.label}</strong>
-          <small>{language === "ko" ? "지금 이 위치의 밤하늘을 반영하고 있습니다." : "Matching the sky above you."}</small>
+          <small>{language === "ko" ? "현재 위치를 반영합니다." : "Using your current location."}</small>
         </div>
         <button className="primary-button" type="button" onClick={requestLocation}>
           {language === "ko" ? "현재 위치로 맞추기" : "Use location"}
@@ -348,7 +348,7 @@ function WatchInspectorPanel({
           <p className="helper-copy">{dictionary.viewer.observerConstellationHint}</p>
         ) : (
           <p className="helper-copy">
-            {language === "ko" ? "별자리를 누르면 바로 강조됩니다." : "Pick a constellation to bring it forward."}
+            {language === "ko" ? "눌러서 바로 강조" : "Tap to focus"}
           </p>
         )}
         <div className="saved-sketch-list constellation-frame-list">

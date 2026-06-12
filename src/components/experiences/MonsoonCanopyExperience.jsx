@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { MonsoonRainCanvas } from "./MonsoonRainCanvas.jsx";
 import { useRainThunder } from "../../hooks/useRainThunder.js";
+import { HeaderActionGroup } from "../HeaderActionGroup.jsx";
 
 export function MonsoonCanopyExperience({
   viewerRef,
@@ -47,18 +48,8 @@ export function MonsoonCanopyExperience({
   return (
     <div ref={viewerRef} className={`rain-page ${isFullscreen ? "is-fullscreen-view" : ""}`}>
       <header className={`aurora-floating-header rain-floating-header ${isFullscreen ? "is-hidden" : ""}`}>
-        <a className="aurora-header-logo-wrap" href="/" aria-label={language === "ko" ? "메인 홈으로 이동" : "Go to home"}>
-          <img className="aurora-header-logo" src="/branding/zeravue-logo.svg" alt="Zeravue logo" />
-        </a>
         <div className="aurora-header-controls">
-          <div className="language-switcher" aria-label="Language">
-            <button type="button" aria-pressed={language === "en"} onClick={() => updateLanguage("en")}>
-              EN
-            </button>
-            <button type="button" aria-pressed={language === "ko"} onClick={() => updateLanguage("ko")}>
-              KR
-            </button>
-          </div>
+          <HeaderActionGroup language={language} onLanguageChange={updateLanguage} showHome />
         </div>
       </header>
 

@@ -166,25 +166,29 @@ export function NightSkyExperience(props) {
 
   return (
     <>
-      <ViewerHeader
-        dictionary={dictionary}
-        currentPage={currentPage}
-        setCurrentPage={handlePageChange}
-        language={language}
-        setLanguage={updateLanguage}
-        observer={observer}
-        observedAt={observedAt}
-        headerEyebrow={headerEyebrow}
-        headerTitle={headerTitle}
-        headerSubtitle={headerSubtitle}
-        themes={themes}
-        currentThemeId={currentThemeId}
-        switchTheme={handleThemeSwitch}
-        sketchEnabled={effectiveSketchEnabled}
-        showPageSwitcher={effectiveSketchEnabled}
-        showThemeSwitcher={showThemeSwitcher}
-        homeHref="/"
-      />
+      <section className="night-sky-header-shell">
+        <ViewerHeader
+          className="topbar--workspace-aligned"
+          dictionary={dictionary}
+          currentPage={currentPage}
+          setCurrentPage={handlePageChange}
+          language={language}
+          setLanguage={updateLanguage}
+          observer={observer}
+          observedAt={observedAt}
+          headerEyebrow={headerEyebrow}
+          headerTitle={headerTitle}
+          headerSubtitle={headerSubtitle}
+          themes={themes}
+          currentThemeId={currentThemeId}
+          switchTheme={handleThemeSwitch}
+          sketchEnabled={effectiveSketchEnabled}
+          showPageSwitcher={effectiveSketchEnabled}
+          showThemeSwitcher={showThemeSwitcher}
+          showHeaderLogo={false}
+          homeHref="/"
+        />
+      </section>
       <div className={`workspace ${currentPage === "sketch" ? "is-sketch-page" : ""}`}>
         <aside className="control-panel">
           {currentPage === "watch" ? (
@@ -425,6 +429,9 @@ export function NightSkyExperience(props) {
               saveSketchLabel={saveSketchLabel}
               saveDraftSketch={saveDraftSketch}
               startNewSketch={startNewSketch}
+              clearDraftSketch={clearDraftSketch}
+              saveSketchAsNew={saveSketchAsNew}
+              addCustomConstellation={addCustomConstellation}
               presetConstellationName={presetConstellationName}
               setPresetConstellationName={setPresetConstellationName}
               importableConstellations={importableConstellations}

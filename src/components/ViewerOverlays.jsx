@@ -125,6 +125,9 @@ export function SketchFullscreenOverlay({
   saveSketchLabel,
   saveDraftSketch,
   startNewSketch,
+  clearDraftSketch,
+  saveSketchAsNew,
+  addCustomConstellation,
   presetConstellationName,
   setPresetConstellationName,
   importableConstellations,
@@ -174,11 +177,20 @@ export function SketchFullscreenOverlay({
           </div>
 
           <div className="sketch-fullscreen-action-row">
+            <button type="button" className="focus-chip" onClick={addCustomConstellation}>
+              {dictionary.viewer.addConstellation}
+            </button>
             <button type="button" className="focus-chip" onClick={startNewSketch}>
               {dictionary.viewer.newSketch}
             </button>
+            <button type="button" className="focus-chip" onClick={clearDraftSketch}>
+              {dictionary.viewer.clearSketch}
+            </button>
             <button type="button" className="focus-chip is-active" onClick={saveDraftSketch}>
               {saveSketchLabel}
+            </button>
+            <button type="button" className="focus-chip" onClick={saveSketchAsNew}>
+              {dictionary.viewer.saveSketchAsNew}
             </button>
           </div>
 

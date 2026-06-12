@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AuroraPanoramaScene } from "../AuroraPanoramaScene.jsx";
 import { AuroraLiveViewer } from "../AuroraLiveViewer.jsx";
+import { HeaderActionGroup } from "../HeaderActionGroup.jsx";
 
 export function AuroraExperience({
   isFullscreen,
@@ -48,18 +49,8 @@ export function AuroraExperience({
       {shouldShowAuroraPageChrome ? (
         <>
           <header className={`aurora-floating-header aurora-landing-header ${isFullscreen ? "is-hidden" : ""}`}>
-            <a className="aurora-header-logo-wrap" href="/" aria-label={language === "ko" ? "메인 홈으로 이동" : "Go to home"}>
-              <img className="aurora-header-logo" src="/branding/zeravue-logo.svg" alt="Zeravue logo" />
-            </a>
             <div className="aurora-header-controls">
-              <div className="language-switcher" aria-label="Language">
-                <button type="button" aria-pressed={language === "en"} onClick={() => updateLanguage("en")}>
-                  EN
-                </button>
-                <button type="button" aria-pressed={language === "ko"} onClick={() => updateLanguage("ko")}>
-                  KR
-                </button>
-              </div>
+              <HeaderActionGroup language={language} onLanguageChange={updateLanguage} showHome />
             </div>
           </header>
 

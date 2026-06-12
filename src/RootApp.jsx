@@ -8,6 +8,48 @@ import { getThemeRouteConfig } from "./data/themes/index.js";
 
 const buildLogs = [
   {
+    slug: "2026-06-10",
+    date: "2026-06-10",
+    title: {
+      en: "Brand cleanup pass and quieter immersive pages",
+      ko: "브랜드 정리와 메인/감상 화면 역할 재정리"
+    },
+    summary: {
+      en:
+        "Removed logos from immersive pages, turned the home screen into a stronger front-door layout, and reduced Night Sky panel copy so the whole platform feels calmer.",
+      ko:
+        "감상 페이지에서는 로고를 걷어내고, 메인은 더 대문 같은 구조로 다시 세웠으며, Night Sky 패널 문구와 밀도도 덜어내 전체 플랫폼이 더 차분하게 읽히도록 정리했습니다."
+    },
+    areas: {
+      en: ["Brand cleanup", "Home direction", "Night Sky polish"],
+      ko: ["브랜드 정리", "메인 방향 정리", "Night Sky 마감"]
+    },
+    highlights: {
+      en: [
+        "Removed page-level logos from Night Sky, Aurora, and Monsoon so immersive scenes can breathe without banner-like branding blocks.",
+        "Rebuilt the home hero into a larger front-door composition with a stronger Zeravue logo presence, cleaner alignment, and gentler theme card separation.",
+        "Trimmed Night Sky inspector and in-frame constellation copy so the viewer reads less like a tool and more like a quiet viewing space."
+      ],
+      ko: [
+        "Night Sky, Aurora, 깊은 숲의 비 감상 화면에서 페이지 로고를 걷어내, 브랜드 배너보다 장면 자체가 먼저 읽히게 정리했습니다.",
+        "메인 히어로는 더 큰 Zeravue 로고와 정렬된 중심축을 기준으로 다시 세워, 대문 같은 첫 인상이 남도록 다듬었습니다.",
+        "Night Sky 우측 패널과 시야 별자리 문구를 덜어내, 관측 도구보다 조용한 감상 화면에 더 가깝게 맞췄습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Reduce Night Sky inspector height and padding a little further without hiding useful information.",
+        "Soften theme-card hover behavior so scene selection feels more tactile without turning into a flashy landing page.",
+        "Tune Aurora and Monsoon first-view text placement so their entry mood feels as settled as the home page."
+      ],
+      ko: [
+        "Night Sky 우측 inspector 카드 높이와 내부 여백을 조금 더 줄여도 정보가 답답하지 않은지 확인합니다.",
+        "메인 테마 카드 hover 반응을 더 부드럽게 다듬어, 과장되지 않게 장면 선택 감각만 살립니다.",
+        "Aurora와 깊은 숲의 비 첫 진입 텍스트 위치를 한 번 더 조정해, 홈과 비슷한 안정감을 맞춥니다."
+      ]
+    }
+  },
+  {
     slug: "2026-06-09",
     date: "2026-06-09",
     title: {
@@ -311,7 +353,7 @@ function normalizePath(pathname) {
 function HomePage({ language, setLanguage }) {
   const homeCopy = platformHomeCopy[language] || platformHomeCopy.en;
   const [showBrandLogo, setShowBrandLogo] = useState(true);
-  const [brandLogoSrc, setBrandLogoSrc] = useState("/branding/zeravue-logo.svg");
+  const [brandLogoSrc, setBrandLogoSrc] = useState("/branding/zeravue-logo.png");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showAdSlot, setShowAdSlot] = useState(false);
   const adsenseClient = import.meta.env.VITE_ADSENSE_CLIENT || "";
@@ -384,19 +426,21 @@ function HomePage({ language, setLanguage }) {
           </div>
         </div>
         {showBrandLogo ? (
-          <img
-            className="theme-home-brand-logo"
-            src={brandLogoSrc}
-            alt="Zeravue logo"
-            loading="eager"
-            onError={() => {
-              if (brandLogoSrc.endsWith(".svg")) {
-                setBrandLogoSrc("/branding/zeravue-logo.png");
-                return;
-              }
-              setShowBrandLogo(false);
-            }}
-          />
+          <div className="theme-home-brand-hero" aria-hidden="true">
+            <img
+              className="theme-home-brand-logo"
+              src={brandLogoSrc}
+              alt="Zeravue logo"
+              loading="eager"
+              onError={() => {
+                if (brandLogoSrc.endsWith(".png")) {
+                  setBrandLogoSrc("/branding/zeravue-logo.svg");
+                  return;
+                }
+                setShowBrandLogo(false);
+              }}
+            />
+          </div>
         ) : null}
         <p className="eyebrow">Zeravue</p>
         <h1>{homeCopy.title}</h1>
@@ -405,7 +449,13 @@ function HomePage({ language, setLanguage }) {
 
       <div id="themes" className="theme-home-grid" aria-label={language === "ko" ? "테마 선택" : "Theme selection"}>
         {platformThemeCards.map((theme) => (
-          <a key={theme.id} className="theme-home-card" href={theme.href} onClick={(event) => enterTheme(event, theme.href)}>
+          <a
+            key={theme.id}
+            className="theme-home-card"
+            data-theme-card={theme.id}
+            href={theme.href}
+            onClick={(event) => enterTheme(event, theme.href)}
+          >
             <p className="theme-home-card-eyebrow">{theme.eyebrow?.[language] || theme.eyebrow?.en}</p>
             <div className="theme-home-card-body">
               <strong>{theme.title[language] || theme.title.en}</strong>

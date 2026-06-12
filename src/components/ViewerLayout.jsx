@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
+import { HeaderActionGroup } from "./HeaderActionGroup.jsx";
 
 function ViewerHeader({
+  className = "",
   dictionary,
   currentPage,
   setCurrentPage,
@@ -17,11 +19,9 @@ function ViewerHeader({
   sketchEnabled = true,
   showPageSwitcher = true,
   showThemeSwitcher = true,
+  showHeaderLogo = true,
   homeHref = "/"
 }) {
-  const [showProfileImage, setShowProfileImage] = useState(true);
-  const [profileImageSrc, setProfileImageSrc] = useState("/branding/zeravue-mark.svg");
-  const [showHeaderLogo, setShowHeaderLogo] = useState(true);
   const [headerLogoSrc, setHeaderLogoSrc] = useState("/branding/zeravue-logo.svg");
   const localTimeLabel = useMemo(() => {
     const value = new Date(observedAt);
@@ -35,7 +35,7 @@ function ViewerHeader({
   }, [language, observedAt]);
 
   return (
-    <header className="topbar">
+    <header className={`topbar ${className}`.trim()}>
       <div className="topbar-brand">
         {showHeaderLogo ? (
           <a className="topbar-logo-link" href={homeHref} aria-label={language === "ko" ? "메인 홈으로 이동" : "Go to home"}>
@@ -49,7 +49,6 @@ function ViewerHeader({
                   setHeaderLogoSrc("/branding/zeravue-logo.png");
                   return;
                 }
-                setShowHeaderLogo(false);
               }}
             />
           </a>
@@ -59,42 +58,9 @@ function ViewerHeader({
         <p className="topbar-copy">{headerSubtitle || dictionary.viewer.subtitle}</p>
       </div>
       <div className="topbar-controls">
-        <div className="topbar-controls-row">
-          <div className="language-switcher" aria-label="Language">
-            <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-              EN
-            </button>
-            <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-              KR
-            </button>
-          </div>
-        </div>
-        {showThemeSwitcher ? (
-          <div className="theme-switcher topbar-controls-row topbar-theme-row" aria-label={dictionary.viewer.themeLabel}>
-            {themes.map((theme) => (
-              <button key={theme.id} type="button" aria-pressed={currentThemeId === theme.id} onClick={() => switchTheme(theme.id)}>
-                {theme.displayName?.[language] || theme.name}
-              </button>
-            ))}
-          </div>
-        ) : null}
-        <div className="observer-pill">
-          {showProfileImage ? (
-            <img
-              className="observer-avatar"
-              src={profileImageSrc}
-              alt="Zeravue profile"
-              loading="lazy"
-              onError={() => {
-                if (profileImageSrc.endsWith(".svg")) {
-                  setProfileImageSrc("/branding/zeravue-profile.png");
-                  return;
-                }
-                setShowProfileImage(false);
-              }}
-            />
-          ) : null}
-          <span>{language === "ko" ? "오늘 밤 하늘" : "Sky now"}</span>
+        <HeaderActionGroup language={language} onLanguageChange={setLanguage} showHome={!showHeaderLogo} homeHref={homeHref} />
+        <div className="observer-pill observer-pill--quiet">
+          <span>{language === "ko" ? "현재 위치" : "Current location"}</span>
           <strong>{observer.label} · {language === "ko" ? "KR" : "KR"}</strong>
           <small>{language === "ko" ? "현재 시각" : "Local time"} · {localTimeLabel}</small>
         </div>
@@ -108,6 +74,15 @@ function ViewerHeader({
                 {dictionary.viewer.pages.sketch}
               </button>
             </div>
+          </div>
+        ) : null}
+        {showThemeSwitcher ? (
+          <div className="theme-switcher topbar-controls-row topbar-theme-row" aria-label={dictionary.viewer.themeLabel}>
+            {themes.map((theme) => (
+              <button key={theme.id} type="button" aria-pressed={currentThemeId === theme.id} onClick={() => switchTheme(theme.id)}>
+                {theme.displayName?.[language] || theme.name}
+              </button>
+            ))}
           </div>
         ) : null}
       </div>
