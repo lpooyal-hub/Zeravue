@@ -8,6 +8,48 @@ import { getThemeRouteConfig } from "./data/themes/index.js";
 
 const buildLogs = [
   {
+    slug: "2026-06-12",
+    date: "2026-06-12",
+    title: {
+      en: "Night Sky density cleanup and shared control rhythm",
+      ko: "Night Sky 밀도 정리와 공통 조작 리듬 정돈"
+    },
+    summary: {
+      en:
+        "Softened the Night Sky header and side panels, tightened inspector and update-card hierarchy, and aligned immersive control sizing across themes so Zeravue feels more consistent.",
+      ko:
+        "Night Sky 상단과 좌우 패널 밀도를 더 차분하게 정리하고, inspector와 업데이트 카드 위계를 다시 맞췄으며, 몰입형 테마 하단 컨트롤 크기도 통일해 Zeravue 전체 감각을 더 일관되게 다듬었습니다."
+    },
+    areas: {
+      en: ["Night Sky polish", "Home refinement", "Shared controls"],
+      ko: ["Night Sky 마감", "메인 정리", "공통 컨트롤 정리"]
+    },
+    highlights: {
+      en: [
+        "Reduced visual weight in the Night Sky header, observer card, control panel, and inspector so the scene feels calmer without losing functionality.",
+        "Reworked home hero spacing, update-card hierarchy, and theme-card hover behavior to make the front page read more quietly.",
+        "Matched bottom control sizing across Aurora and Monsoon so immersive themes share a steadier interaction rhythm."
+      ],
+      ko: [
+        "Night Sky 헤더, 현재 위치 카드, 좌측 control panel, 우측 inspector 무게를 조금씩 덜어내 기능은 유지하면서도 화면이 더 조용하게 읽히도록 정리했습니다.",
+        "메인 히어로 간격, 업데이트 카드 위계, 테마 카드 hover 강도를 다시 맞춰 첫 화면이 더 차분하게 읽히도록 다듬었습니다.",
+        "오로라와 깊은 숲의 비 하단 컨트롤 높이와 패딩을 맞춰, 몰입형 테마 사이 조작 리듬이 더 일정하게 느껴지도록 정리했습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Finish the final alignment pass between the Night Sky header and main canvas start line.",
+        "Bring the fullscreen sketch tool panel down to the same density standard as the rest of Night Sky.",
+        "Keep softening shared hover and focus feedback so the platform feels responsive without becoming flashy."
+      ],
+      ko: [
+        "Night Sky 헤더와 메인 캔버스 시작선 사이 마지막 정렬 미세 조정을 마무리합니다.",
+        "스케치 전체화면 도구 패널도 지금 Night Sky 밀도 기준에 맞춰 다시 정리합니다.",
+        "hover와 focus 반응을 더 차분하게 다듬어, 반응성은 남기되 화면이 과하게 튀지 않게 계속 정리합니다."
+      ]
+    }
+  },
+  {
     slug: "2026-06-10",
     date: "2026-06-10",
     title: {

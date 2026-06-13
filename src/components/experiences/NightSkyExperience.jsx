@@ -189,7 +189,7 @@ export function NightSkyExperience(props) {
           homeHref="/"
         />
       </section>
-      <div className={`workspace ${currentPage === "sketch" ? "is-sketch-page" : ""}`}>
+      <div className={`workspace workspace--night-sky ${currentPage === "sketch" ? "is-sketch-page" : ""}`}>
         <aside className="control-panel">
           {currentPage === "watch" ? (
             <WatchControlsPanel

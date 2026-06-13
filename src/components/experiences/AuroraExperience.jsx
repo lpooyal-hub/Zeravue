@@ -49,7 +49,7 @@ export function AuroraExperience({
       {shouldShowAuroraPageChrome ? (
         <>
           <header className={`aurora-floating-header aurora-landing-header ${isFullscreen ? "is-hidden" : ""}`}>
-            <div className="aurora-header-controls">
+            <div className="scene-floating-header-shell aurora-header-controls">
               <HeaderActionGroup language={language} onLanguageChange={updateLanguage} showHome />
             </div>
           </header>

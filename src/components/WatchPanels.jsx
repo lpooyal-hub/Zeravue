@@ -187,7 +187,7 @@ function WatchControlsPanel({
           </button>
         </section>
       ) : null}
-      <section>
+      <section className="watch-panel-section watch-panel-section--location">
         <p className="eyebrow">{language === "ko" ? "로컬 하늘" : "Local sky"}</p>
         <div className="observer-moment-card observer-local-card">
           <strong>{observer.label}</strong>
@@ -198,7 +198,7 @@ function WatchControlsPanel({
         </button>
       </section>
 
-      <section>
+      <section className="watch-panel-section watch-panel-section--controls">
         <p className="eyebrow">{dictionary.viewer.controls}</p>
         <label className="stacked-field">
           <span>{dictionary.viewer.observedAt}</span>
@@ -247,7 +247,7 @@ function WatchControlsPanel({
             ) : null}
           </>
         ) : null}
-        <details className="advanced-location-details">
+        <details className="advanced-location-details watch-panel-advanced-details">
           <summary>{language === "ko" ? "고급 위치 설정" : "Location details"}</summary>
           <div className="field-grid">
             <label>
@@ -347,9 +347,7 @@ function WatchInspectorPanel({
         ) : viewMode === "observer" ? (
           <p className="helper-copy">{dictionary.viewer.observerConstellationHint}</p>
         ) : (
-          <p className="helper-copy">
-            {language === "ko" ? "눌러서 바로 강조" : "Tap to focus"}
-          </p>
+          <p className="helper-copy">{language === "ko" ? "눌러서 강조" : "Tap to focus"}</p>
         )}
         <div className="saved-sketch-list constellation-frame-list">
           {currentViewConstellationDetails.map((item) => (
@@ -387,7 +385,7 @@ function WatchInspectorPanel({
         </section>
       )}
 
-      <section>
+      <section className="watch-panel-section watch-panel-section--inspector">
         <p className="eyebrow">{dictionary.viewer.starInspector}</p>
         {selectedSolarBody ? (
           <>
@@ -459,7 +457,7 @@ function WatchInspectorPanel({
             ) : null}
           </>
         ) : (
-          <p className="helper-copy">{dictionary.viewer.pickHint}</p>
+          <p className="helper-copy">{language === "ko" ? "별을 선택해 정보를 확인하세요." : "Select a star to inspect it."}</p>
         )}
       </section>
 

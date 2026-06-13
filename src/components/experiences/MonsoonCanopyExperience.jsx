@@ -48,7 +48,7 @@ export function MonsoonCanopyExperience({
   return (
     <div ref={viewerRef} className={`rain-page ${isFullscreen ? "is-fullscreen-view" : ""}`}>
       <header className={`aurora-floating-header rain-floating-header ${isFullscreen ? "is-hidden" : ""}`}>
-        <div className="aurora-header-controls">
+        <div className="scene-floating-header-shell aurora-header-controls">
           <HeaderActionGroup language={language} onLanguageChange={updateLanguage} showHome />
         </div>
       </header>

@@ -139,6 +139,7 @@ export function SketchFullscreenOverlay({
   const importLabel = language === "ko" ? "별자리 불러오기" : "Import shape";
   const loadLabel = language === "ko" ? "저장 스케치 열기" : "Open saved sketch";
   const currentToolLabel = dictionary.viewer.creativeTools?.[creativeTool] || dictionary.viewer.addStarTool;
+  const quickActionLabel = language === "ko" ? "빠른 정리와 저장" : "Quick cleanup and save";
 
   return (
     <section className="sketch-fullscreen-overlay">
@@ -176,15 +177,16 @@ export function SketchFullscreenOverlay({
             </button>
           </div>
 
+          <p className="sketch-fullscreen-copy">{quickActionLabel}</p>
           <div className="sketch-fullscreen-action-row">
-            <button type="button" className="focus-chip" onClick={addCustomConstellation}>
-              {dictionary.viewer.addConstellation}
-            </button>
             <button type="button" className="focus-chip" onClick={startNewSketch}>
               {dictionary.viewer.newSketch}
             </button>
             <button type="button" className="focus-chip" onClick={clearDraftSketch}>
               {dictionary.viewer.clearSketch}
+            </button>
+            <button type="button" className="focus-chip" onClick={addCustomConstellation}>
+              {dictionary.viewer.addConstellation}
             </button>
             <button type="button" className="focus-chip is-active" onClick={saveDraftSketch}>
               {saveSketchLabel}
