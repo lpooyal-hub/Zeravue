@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { App as NightSkyApp } from "./App.jsx";
 import { AdminAnalyticsPage } from "./components/AdminAnalyticsPage.jsx";
+import { HeaderActionGroup } from "./components/HeaderActionGroup.jsx";
 import { useTheme } from "./context/ThemeContext.jsx";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { platformAboutCopy, platformHomeCopy, platformThemeCards } from "./data/platformContent.js";
@@ -458,14 +459,7 @@ function HomePage({ language, setLanguage }) {
     <div className={`theme-home ${isTransitioning ? "is-transitioning" : ""}`}>
       <header className="theme-home-header">
         <div className="theme-home-header-top">
-          <div className="language-switcher" aria-label="Language">
-            <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-              EN
-            </button>
-            <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-              KR
-            </button>
-          </div>
+          <HeaderActionGroup language={language} onLanguageChange={setLanguage} showHome={false} />
         </div>
         {showBrandLogo ? (
           <div className="theme-home-brand-hero" aria-hidden="true">
@@ -673,17 +667,7 @@ function LegalPage({ type, language, setLanguage }) {
   return (
     <main className="legal-page">
       <div className="legal-page-topbar">
-        <a className="home-link-button" href="/">
-          {language === "ko" ? "홈으로" : "Home"}
-        </a>
-        <div className="language-switcher" aria-label="Language">
-          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-            EN
-          </button>
-          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-            KR
-          </button>
-        </div>
+        <HeaderActionGroup language={language} onLanguageChange={setLanguage} showHome homeFirst homeLabel={language === "ko" ? "홈으로" : "Home"} />
       </div>
       <header className="legal-page-header">
         <p className="eyebrow">Zeravue</p>
@@ -707,17 +691,7 @@ function UpdatesPage({ language, setLanguage }) {
   return (
     <main className="legal-page">
       <div className="legal-page-topbar">
-        <a className="home-link-button" href="/">
-          {language === "ko" ? "홈으로" : "Home"}
-        </a>
-        <div className="language-switcher" aria-label="Language">
-          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-            EN
-          </button>
-          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-            KR
-          </button>
-        </div>
+        <HeaderActionGroup language={language} onLanguageChange={setLanguage} showHome homeFirst homeLabel={language === "ko" ? "홈으로" : "Home"} />
       </div>
       <header className="legal-page-header">
         <p className="eyebrow">Zeravue</p>
@@ -758,17 +732,14 @@ function UpdateDetailPage({ language, setLanguage, slug }) {
   return (
     <main className="legal-page">
       <div className="legal-page-topbar">
-        <a className="home-link-button" href="/updates">
-          {language === "ko" ? "업데이트 목록" : "Back to updates"}
-        </a>
-        <div className="language-switcher" aria-label="Language">
-          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-            EN
-          </button>
-          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-            KR
-          </button>
-        </div>
+        <HeaderActionGroup
+          language={language}
+          onLanguageChange={setLanguage}
+          showHome
+          homeFirst
+          homeHref="/updates"
+          homeLabel={language === "ko" ? "업데이트 목록" : "Back to updates"}
+        />
       </div>
       <header className="legal-page-header">
         <p className="eyebrow">Zeravue Build Log</p>
@@ -818,17 +789,7 @@ function AboutPage({ language, setLanguage }) {
   return (
     <main className="legal-page">
       <div className="legal-page-topbar">
-        <a className="home-link-button" href="/">
-          {language === "ko" ? "홈으로" : "Home"}
-        </a>
-        <div className="language-switcher" aria-label="Language">
-          <button type="button" aria-pressed={language === "en"} onClick={() => setLanguage("en")}>
-            EN
-          </button>
-          <button type="button" aria-pressed={language === "ko"} onClick={() => setLanguage("ko")}>
-            KR
-          </button>
-        </div>
+        <HeaderActionGroup language={language} onLanguageChange={setLanguage} showHome homeFirst homeLabel={language === "ko" ? "홈으로" : "Home"} />
       </div>
       <header className="legal-page-header">
         <p className="eyebrow">Zeravue</p>

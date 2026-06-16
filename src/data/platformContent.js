@@ -11,11 +11,11 @@ export const platformThemeCards = [
       ko: "별빛 테마"
     },
     description: {
-      en: "Settle into a quiet star field with gentle motion and constellation focus.",
+      en: "Quiet star viewing with gentle motion and a calmer constellation focus.",
       ko: "부드럽게 흐르는 별빛과 함께 차분한 밤하늘에 머무를 수 있는 테마입니다."
     },
     meta: {
-      en: "Slow sky viewing",
+      en: "Quiet sky viewing",
       ko: "차분한 하늘 감상"
     }
   },
@@ -31,7 +31,7 @@ export const platformThemeCards = [
       ko: "대기 테마"
     },
     description: {
-      en: "Enjoy a soft aurora atmosphere designed for slow, immersive viewing.",
+      en: "Soft aurora light shaped for slow viewing and wide, immersive rest.",
       ko: "느리게 감상하기 좋은 부드러운 오로라 분위기 중심 테마입니다."
     },
     meta: {
@@ -51,11 +51,11 @@ export const platformThemeCards = [
       ko: "우림 테마"
     },
     description: {
-      en: "Rest beneath a dense rainforest canopy with steady rain, mist, and humid forest air.",
+      en: "Steady rainforest rain, mist, and shelter beneath a dense tropical canopy.",
       ko: "짙은 수풀 아래에서 굵은 비와 안개, 습한 숲 공기에 천천히 머무는 테마입니다."
     },
     meta: {
-      en: "Rain, mist, and shelter",
+      en: "Rain, mist, shelter",
       ko: "비, 안개, 숲의 쉼"
     }
   }

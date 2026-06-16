@@ -1,5 +1,9 @@
 # Zeravue
 
+<p align="center">
+  <img src="./public/branding/zeravue-profile.png" alt="Zeravue brand image" width="360" />
+</p>
+
 `Open a scene, breathe, stay for a while.`
 
 Zeravue is an ambient digital themes platform.  
