@@ -37,6 +37,17 @@ export function LagoonBelowExperience({
       })),
     []
   );
+  const fishSilhouettes = useMemo(
+    () =>
+      Array.from({ length: 5 }, (_, index) => ({
+        id: index,
+        top: `${24 + index * 9}%`,
+        delay: `${index * -6}s`,
+        duration: `${34 + index * 7}s`,
+        scale: 0.72 + index * 0.08
+      })),
+    []
+  );
 
   useEffect(() => {
     ensureAmbientOn?.();
@@ -62,21 +73,47 @@ export function LagoonBelowExperience({
         <p className="aurora-subtitle">{headerSubtitle}</p>
       </section>
 
-      <section className="lagoon-scene" style={{ "--lagoon-clarity": lagoonClarity, "--lagoon-drift": lagoonDrift }}>
+      <section
+        className={`lagoon-scene lagoon-scene--${lagoonPreset}`}
+        data-lagoon-preset={lagoonPreset}
+        style={{ "--lagoon-clarity": lagoonClarity, "--lagoon-drift": lagoonDrift }}
+      >
         <div className="lagoon-depth-gradient" />
         <div className="lagoon-surface-glow" />
+        <div className="lagoon-surface-ripple" />
         <div className="lagoon-light-shafts lagoon-light-shafts-a" />
         <div className="lagoon-light-shafts lagoon-light-shafts-b" />
         <div className="lagoon-caustics" />
         <div className="lagoon-haze lagoon-haze-near" />
         <div className="lagoon-haze lagoon-haze-far" />
+        <div className="lagoon-depth-vignette" />
         <div className="lagoon-bubble-column lagoon-bubble-column-left" />
         <div className="lagoon-bubble-column lagoon-bubble-column-right" />
         <div className="lagoon-reef lagoon-reef-left" />
         <div className="lagoon-reef lagoon-reef-center" />
         <div className="lagoon-reef lagoon-reef-right" />
+        <div className="lagoon-coral-cluster lagoon-coral-left" />
+        <div className="lagoon-coral-cluster lagoon-coral-center" />
+        <div className="lagoon-coral-cluster lagoon-coral-right" />
+        <div className="lagoon-seagrass-bed lagoon-seagrass-left" />
+        <div className="lagoon-seagrass-bed lagoon-seagrass-center" />
+        <div className="lagoon-seagrass-bed lagoon-seagrass-right" />
         <div className="lagoon-sway lagoon-sway-left" />
         <div className="lagoon-sway lagoon-sway-right" />
+        <div className="lagoon-fish-layer" aria-hidden="true">
+          {fishSilhouettes.map((fish) => (
+            <span
+              key={fish.id}
+              className="lagoon-fish"
+              style={{
+                top: fish.top,
+                animationDelay: fish.delay,
+                animationDuration: fish.duration,
+                transform: `scale(${fish.scale})`
+              }}
+            />
+          ))}
+        </div>
         <div className="lagoon-particles-layer" aria-hidden="true">
           {floatingParticles.map((particle) => (
             <span

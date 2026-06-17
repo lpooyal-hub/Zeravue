@@ -2,18 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://zeravue.xyz/</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zeravue.xyz/updates</loc>
+    <lastmod>2026-06-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zeravue.xyz/night-sky</loc>
+    <lastmod>2026-06-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zeravue.xyz/aurora</loc>
+    <lastmod>2026-06-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zeravue.xyz/monsoon-canopy</loc>
+    <lastmod>2026-06-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zeravue.xyz/lagoon-below</loc>
+    <lastmod>2026-06-17</lastmod>
   </url>
   <url>
     <loc>https://zeravue.xyz/about</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-17</lastmod>
   </url>
   <url>
     <loc>https://zeravue.xyz/privacy</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-17</lastmod>
   </url>
   <url>
     <loc>https://zeravue.xyz/cookies</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-17</lastmod>
   </url>
 </urlset>

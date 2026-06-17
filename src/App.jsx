@@ -90,7 +90,7 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       : currentThemeId === "monsoon-canopy" || currentThemeId === "rain-window"
         ? config.rainAmbientTrackUrl || "/audio/monsoon-canopy-rain-loop.wav"
         : currentThemeId === "lagoon-below"
-          ? config.lagoonAmbientTrackUrl || "/audio/aurora-wind-distant.wav"
+          ? config.lagoonAmbientTrackUrl || ""
         : config.ambientTrackUrl;
   const { ambientTrackUrl, ambientTrackPending, ambientTrackError } = useNightSkyAmbientTrack({
     configuredTrackUrl: configuredAmbientTrackUrl,

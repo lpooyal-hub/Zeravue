@@ -306,14 +306,36 @@
     linear-gradient(180deg, #0d415d 0%, #0b3750 18%, #082a3f 42%, #071f32 68%, #04111d 100%);
 }
 
+.lagoon-scene--shallow {
+  background:
+    radial-gradient(circle at 50% -8%, rgba(218, 255, 246, calc(var(--lagoon-clarity) * 0.42)), transparent 36%),
+    linear-gradient(180deg, #166b89 0%, #0f5471 22%, #0b425a 48%, #082d43 74%, #051a2c 100%);
+}
+
+.lagoon-scene--balanced {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(190, 255, 240, calc(var(--lagoon-clarity) * 0.32)), transparent 34%),
+    linear-gradient(180deg, #0d415d 0%, #0b3750 18%, #082a3f 42%, #071f32 68%, #04111d 100%);
+}
+
+.lagoon-scene--deep {
+  background:
+    radial-gradient(circle at 50% -14%, rgba(162, 230, 242, calc(var(--lagoon-clarity) * 0.2)), transparent 30%),
+    linear-gradient(180deg, #0a334c 0%, #07273b 20%, #061d2f 44%, #041625 70%, #020b14 100%);
+}
+
 .lagoon-depth-gradient,
 .lagoon-surface-glow,
+.lagoon-surface-ripple,
 .lagoon-light-shafts,
 .lagoon-caustics,
 .lagoon-haze,
 .lagoon-bubble-column,
 .lagoon-reef,
+.lagoon-coral-cluster,
+.lagoon-seagrass-bed,
 .lagoon-sway,
+.lagoon-fish-layer,
 .lagoon-particles-layer {
   position: absolute;
   inset: 0;
@@ -323,6 +345,18 @@
   background:
     radial-gradient(circle at 50% 4%, rgba(174, 255, 237, 0.16), transparent 24%),
     linear-gradient(180deg, rgba(125, 230, 214, 0.08), transparent 24%, rgba(2, 8, 16, 0.2) 72%, rgba(1, 4, 8, 0.44) 100%);
+}
+
+.lagoon-scene--shallow .lagoon-depth-gradient {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(210, 255, 247, 0.2), transparent 26%),
+    linear-gradient(180deg, rgba(160, 245, 232, 0.12), transparent 28%, rgba(3, 12, 22, 0.18) 70%, rgba(1, 6, 12, 0.34) 100%);
+}
+
+.lagoon-scene--deep .lagoon-depth-gradient {
+  background:
+    radial-gradient(circle at 50% 2%, rgba(122, 214, 227, 0.12), transparent 22%),
+    linear-gradient(180deg, rgba(84, 154, 172, 0.05), transparent 20%, rgba(2, 8, 16, 0.34) 66%, rgba(0, 3, 8, 0.62) 100%);
 }
 
 .lagoon-surface-glow {
@@ -335,10 +369,60 @@
   opacity: 0.84;
 }
 
+.lagoon-scene--shallow .lagoon-surface-glow {
+  height: 38%;
+  opacity: 0.94;
+}
+
+.lagoon-scene--deep .lagoon-surface-glow {
+  height: 28%;
+  filter: blur(34px);
+  opacity: 0.58;
+}
+
+.lagoon-surface-ripple {
+  inset: 0 0 auto;
+  height: 32%;
+  background:
+    radial-gradient(ellipse at 18% 20%, rgba(230, 255, 251, 0.08), transparent 24%),
+    radial-gradient(ellipse at 52% 14%, rgba(204, 255, 245, 0.06), transparent 28%),
+    radial-gradient(ellipse at 84% 18%, rgba(221, 255, 251, 0.06), transparent 22%),
+    repeating-linear-gradient(
+      102deg,
+      rgba(236, 255, 253, 0.06) 0 10px,
+      rgba(236, 255, 253, 0) 10px 24px
+    );
+  opacity: calc(0.16 + var(--lagoon-clarity) * 0.12);
+  mix-blend-mode: screen;
+  filter: blur(10px);
+  animation: lagoon-surface-shimmer calc(18s - var(--lagoon-drift) * 5s) ease-in-out infinite alternate;
+}
+
+.lagoon-scene--shallow .lagoon-surface-ripple {
+  opacity: calc(0.24 + var(--lagoon-clarity) * 0.16);
+  filter: blur(8px);
+}
+
+.lagoon-scene--deep .lagoon-surface-ripple {
+  height: 24%;
+  opacity: calc(0.1 + var(--lagoon-clarity) * 0.07);
+  filter: blur(14px);
+}
+
 .lagoon-light-shafts {
   opacity: calc(0.22 + var(--lagoon-clarity) * 0.22);
   mix-blend-mode: screen;
   filter: blur(8px);
+}
+
+.lagoon-scene--shallow .lagoon-light-shafts {
+  opacity: calc(0.3 + var(--lagoon-clarity) * 0.24);
+  filter: blur(6px);
+}
+
+.lagoon-scene--deep .lagoon-light-shafts {
+  opacity: calc(0.14 + var(--lagoon-clarity) * 0.12);
+  filter: blur(12px);
 }
 
 .lagoon-light-shafts-a {
@@ -367,6 +451,17 @@
   animation: lagoon-caustic-shift calc(18s - var(--lagoon-drift) * 6s) ease-in-out infinite alternate;
 }
 
+.lagoon-scene--shallow .lagoon-caustics {
+  opacity: calc(0.3 + var(--lagoon-clarity) * 0.22);
+  filter: blur(14px);
+}
+
+.lagoon-scene--deep .lagoon-caustics {
+  inset: 24% -10% 8%;
+  opacity: calc(0.1 + var(--lagoon-clarity) * 0.08);
+  filter: blur(24px);
+}
+
 .lagoon-haze-near {
   background: linear-gradient(180deg, rgba(195, 255, 250, 0.06), transparent 22%, rgba(5, 16, 24, 0.12) 68%, rgba(3, 8, 14, 0.34) 100%);
 }
@@ -380,6 +475,32 @@
     radial-gradient(ellipse at 82% 50%, rgba(88, 152, 155, 0.1), transparent 24%);
   filter: blur(26px);
   opacity: 0.78;
+}
+
+.lagoon-scene--shallow .lagoon-haze-far {
+  opacity: 0.62;
+}
+
+.lagoon-scene--deep .lagoon-haze-far {
+  height: 42%;
+  filter: blur(30px);
+  opacity: 0.94;
+}
+
+.lagoon-depth-vignette {
+  background:
+    radial-gradient(circle at 50% 34%, transparent 0 34%, rgba(3, 8, 14, 0.12) 58%, rgba(1, 3, 7, 0.4) 100%);
+  opacity: 0.62;
+}
+
+.lagoon-scene--shallow .lagoon-depth-vignette {
+  opacity: 0.36;
+}
+
+.lagoon-scene--deep .lagoon-depth-vignette {
+  background:
+    radial-gradient(circle at 50% 28%, transparent 0 26%, rgba(2, 8, 14, 0.22) 54%, rgba(0, 2, 6, 0.62) 100%);
+  opacity: 0.88;
 }
 
 .lagoon-bubble-column {
@@ -396,6 +517,14 @@
     radial-gradient(circle at 34% 42%, rgba(230, 255, 252, 0.4) 0 2px, transparent 3px),
     radial-gradient(circle at 62% 24%, rgba(240, 255, 255, 0.34) 0 2px, transparent 3px);
   animation: lagoon-bubble-rise calc(18s - var(--lagoon-drift) * 5s) linear infinite;
+}
+
+.lagoon-scene--shallow .lagoon-bubble-column {
+  opacity: calc(0.16 + var(--lagoon-clarity) * 0.14);
+}
+
+.lagoon-scene--deep .lagoon-bubble-column {
+  opacity: calc(0.08 + var(--lagoon-clarity) * 0.08);
 }
 
 .lagoon-bubble-column-left {
@@ -436,6 +565,126 @@
   clip-path: polygon(0 100%, 0 48%, 12% 66%, 24% 36%, 38% 62%, 52% 32%, 68% 58%, 82% 38%, 92% 62%, 100% 48%, 100% 100%);
 }
 
+.lagoon-coral-cluster,
+.lagoon-seagrass-bed {
+  inset: auto;
+  bottom: 2%;
+  pointer-events: none;
+}
+
+.lagoon-coral-cluster {
+  height: 16%;
+  filter: blur(0.8px);
+  opacity: 0.5;
+  background:
+    radial-gradient(circle at 14% 74%, rgba(34, 92, 96, 0.72) 0 10px, transparent 12px),
+    radial-gradient(circle at 28% 58%, rgba(41, 106, 108, 0.66) 0 14px, transparent 16px),
+    radial-gradient(circle at 44% 72%, rgba(22, 72, 77, 0.78) 0 13px, transparent 15px),
+    radial-gradient(circle at 58% 54%, rgba(48, 118, 120, 0.6) 0 15px, transparent 17px),
+    radial-gradient(circle at 76% 70%, rgba(25, 79, 84, 0.72) 0 11px, transparent 13px),
+    radial-gradient(circle at 88% 52%, rgba(40, 101, 105, 0.58) 0 9px, transparent 11px);
+}
+
+.lagoon-scene--shallow .lagoon-coral-cluster {
+  opacity: 0.58;
+}
+
+.lagoon-scene--deep .lagoon-coral-cluster {
+  opacity: 0.34;
+  filter: blur(1.2px);
+}
+
+.lagoon-coral-left {
+  left: 6%;
+  width: 18%;
+}
+
+.lagoon-coral-center {
+  left: 42%;
+  width: 16%;
+  opacity: 0.42;
+}
+
+.lagoon-coral-right {
+  right: 8%;
+  width: 20%;
+  opacity: 0.46;
+}
+
+.lagoon-seagrass-bed {
+  height: 22%;
+  overflow: hidden;
+  opacity: 0.34;
+}
+
+.lagoon-scene--shallow .lagoon-seagrass-bed {
+  opacity: 0.4;
+}
+
+.lagoon-scene--deep .lagoon-seagrass-bed {
+  opacity: 0.24;
+}
+
+.lagoon-seagrass-bed::before,
+.lagoon-seagrass-bed::after {
+  content: "";
+  position: absolute;
+  bottom: -2%;
+  width: 16px;
+  height: 100%;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(180deg, rgba(28, 92, 86, 0), rgba(28, 92, 86, 0.48) 46%, rgba(9, 34, 33, 0.92) 100%);
+  transform-origin: bottom center;
+  animation: lagoon-seagrass-sway calc(10s - var(--lagoon-drift) * 3s) ease-in-out infinite alternate;
+}
+
+.lagoon-seagrass-bed::after {
+  width: 11px;
+  left: 20%;
+  animation-duration: calc(13s - var(--lagoon-drift) * 3s);
+  animation-delay: -3s;
+}
+
+.lagoon-seagrass-left {
+  left: 18%;
+  width: 14%;
+}
+
+.lagoon-seagrass-left::before {
+  left: 6%;
+}
+
+.lagoon-seagrass-left::after {
+  left: 32%;
+}
+
+.lagoon-seagrass-center {
+  left: 56%;
+  width: 12%;
+  opacity: 0.28;
+}
+
+.lagoon-seagrass-center::before {
+  left: 10%;
+}
+
+.lagoon-seagrass-center::after {
+  left: 40%;
+}
+
+.lagoon-seagrass-right {
+  right: 20%;
+  width: 15%;
+}
+
+.lagoon-seagrass-right::before {
+  left: 18%;
+}
+
+.lagoon-seagrass-right::after {
+  left: 48%;
+}
+
 .lagoon-sway {
   inset: auto;
   bottom: -6%;
@@ -463,6 +712,61 @@
   animation: lagoon-kelp-sway calc(14s - var(--lagoon-drift) * 4s) ease-in-out infinite alternate-reverse;
 }
 
+.lagoon-scene--deep .lagoon-sway {
+  opacity: 0.42;
+}
+
+.lagoon-fish-layer {
+  overflow: hidden;
+  opacity: 0.22;
+}
+
+.lagoon-scene--shallow .lagoon-fish-layer {
+  opacity: 0.16;
+}
+
+.lagoon-scene--deep .lagoon-fish-layer {
+  opacity: 0.28;
+}
+
+.lagoon-fish {
+  position: absolute;
+  left: -10%;
+  width: 76px;
+  height: 24px;
+  border-radius: 50% 55% 46% 52%;
+  background: linear-gradient(90deg, rgba(10, 34, 43, 0.06), rgba(8, 25, 34, 0.34) 28%, rgba(6, 18, 24, 0.48) 68%, rgba(5, 15, 21, 0.2) 100%);
+  filter: blur(0.4px);
+  animation-name: lagoon-fish-drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.lagoon-fish::before,
+.lagoon-fish::after {
+  content: "";
+  position: absolute;
+  display: block;
+}
+
+.lagoon-fish::before {
+  right: -14px;
+  top: 5px;
+  width: 18px;
+  height: 14px;
+  background: rgba(7, 20, 28, 0.44);
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+}
+
+.lagoon-fish::after {
+  left: 10px;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(224, 251, 255, 0.18);
+}
+
 .lagoon-particles-layer {
   overflow: hidden;
 }
@@ -477,6 +781,15 @@
   animation-name: lagoon-particle-float;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
+}
+
+.lagoon-scene--shallow .lagoon-particle {
+  opacity: calc(0.28 + var(--lagoon-clarity) * 0.42);
+}
+
+.lagoon-scene--deep .lagoon-particle {
+  opacity: calc(0.14 + var(--lagoon-clarity) * 0.24);
+  filter: blur(0.6px);
 }
 
 @keyframes lagoon-light-drift-a {
@@ -515,6 +828,24 @@
   }
 }
 
+@keyframes lagoon-seagrass-sway {
+  0% {
+    transform: rotate(-6deg);
+  }
+  100% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes lagoon-surface-shimmer {
+  0% {
+    transform: translate3d(-1%, -1%, 0) scaleY(0.98);
+  }
+  100% {
+    transform: translate3d(1.4%, 1.2%, 0) scaleY(1.04);
+  }
+}
+
 @keyframes lagoon-bubble-rise {
   0% {
     transform: translate3d(0, 18px, 0);
@@ -526,6 +857,21 @@
   100% {
     transform: translate3d(calc(var(--lagoon-drift) * 12px), -38px, 0);
     opacity: 0;
+  }
+}
+
+@keyframes lagoon-fish-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scaleX(1);
+  }
+  48% {
+    transform: translate3d(56vw, -12px, 0) scaleX(1);
+  }
+  50% {
+    transform: translate3d(58vw, -13px, 0) scaleX(-1);
+  }
+  100% {
+    transform: translate3d(118vw, 10px, 0) scaleX(-1);
   }
 }
 

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { renderAuroraAmbientTrack } from "../audio/renderAuroraAmbientTrack.js";
+import { renderLagoonAmbientTrack } from "../audio/renderLagoonAmbientTrack.js";
 import { renderNightSkyAmbientTrack } from "../audio/renderNightSkyAmbientTrack.js";
 import { renderRainAmbientTrack } from "../audio/renderRainAmbientTrack.js";
 
 const THEME_RENDERERS = {
   "aurora-night": renderAuroraAmbientTrack,
+  "lagoon-below": renderLagoonAmbientTrack,
   "monsoon-canopy": renderRainAmbientTrack,
   "rain-window": renderRainAmbientTrack
 };
