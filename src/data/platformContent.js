@@ -64,19 +64,19 @@ export const platformThemeCards = [
     href: "/lagoon-below",
     title: {
       en: "Lagoon Below",
-      ko: "에메랄드 라군 아래"
+      ko: "라군 아래의 고요"
     },
     eyebrow: {
       en: "Underwater",
       ko: "수중 테마"
     },
     description: {
-      en: "Clear tropical water, soft descending light, and a slow suspended drift beneath the surface.",
-      ko: "맑은 열대 바다 아래에서 내려오는 빛과 느린 부유감을 조용히 바라보는 물속 테마입니다."
+      en: "Clear tropical water, drifting light, and a slow suspended pause beneath the surface.",
+      ko: "맑은 열대 바다 아래에서 번지는 빛과 느린 부유감 속에 천천히 머무는 물속 테마입니다."
     },
     meta: {
-      en: "Light, drift, blue calm",
-      ko: "빛, 부유감, 푸른 고요"
+      en: "Light, drift, underwater calm",
+      ko: "빛, 부유감, 물속의 고요"
     }
   }
 ];

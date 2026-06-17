@@ -11,6 +11,8 @@ export function LagoonBelowExperience({
   headerSubtitle,
   ambientEnabled,
   toggleAmbientSound,
+  breathEnabled,
+  toggleBreathSound,
   ambientVolume,
   setAmbientVolume,
   toggleFullscreen,
@@ -19,6 +21,8 @@ export function LagoonBelowExperience({
   setLagoonClarity,
   lagoonDrift,
   setLagoonDrift,
+  depthProgress,
+  exhalePulse,
   lagoonPreset,
   applyLagoonPreset,
   showLagoonMoodControls,
@@ -76,7 +80,11 @@ export function LagoonBelowExperience({
       <section
         className={`lagoon-scene lagoon-scene--${lagoonPreset}`}
         data-lagoon-preset={lagoonPreset}
-        style={{ "--lagoon-clarity": lagoonClarity, "--lagoon-drift": lagoonDrift }}
+        style={{
+          "--lagoon-clarity": lagoonClarity,
+          "--lagoon-drift": lagoonDrift,
+          "--lagoon-depth-progress": depthProgress
+        }}
       >
         <div className="lagoon-depth-gradient" />
         <div className="lagoon-surface-glow" />
@@ -100,6 +108,19 @@ export function LagoonBelowExperience({
         <div className="lagoon-seagrass-bed lagoon-seagrass-right" />
         <div className="lagoon-sway lagoon-sway-left" />
         <div className="lagoon-sway lagoon-sway-right" />
+        <div className="lagoon-breath-burst-layer" aria-hidden="true">
+          {Array.from({ length: 7 }, (_, index) => (
+            <span
+              key={`${exhalePulse}-${index}`}
+              className="lagoon-breath-bubble"
+              style={{
+                "--lagoon-burst-left": `${44 + ((index % 3) - 1) * 4 + index * 0.6}%`,
+                "--lagoon-burst-delay": `${index * 0.12}s`,
+                "--lagoon-burst-size": `${10 + (index % 4) * 5}px`
+              }}
+            />
+          ))}
+        </div>
         <div className="lagoon-fish-layer" aria-hidden="true">
           {fishSilhouettes.map((fish) => (
             <span
@@ -109,7 +130,7 @@ export function LagoonBelowExperience({
                 top: fish.top,
                 animationDelay: fish.delay,
                 animationDuration: fish.duration,
-                transform: `scale(${fish.scale})`
+                "--lagoon-fish-scale": fish.scale
               }}
             />
           ))}
@@ -148,13 +169,13 @@ export function LagoonBelowExperience({
             </label>
             <div className="time-jump-row rain-mood-presets">
               <button type="button" className={`focus-chip ${lagoonPreset === "shallow" ? "is-active" : ""}`} onClick={() => applyLagoonPreset("shallow")}>
-                {language === "ko" ? "얕은 수면" : "Shallow"}
+                {language === "ko" ? "햇살 얕은 물결" : "Sunlit shallows"}
               </button>
               <button type="button" className={`focus-chip ${lagoonPreset === "balanced" ? "is-active" : ""}`} onClick={() => applyLagoonPreset("balanced")}>
-                {language === "ko" ? "기본 잠수" : "Balanced"}
+                {language === "ko" ? "고요한 라군" : "Calm lagoon"}
               </button>
               <button type="button" className={`focus-chip ${lagoonPreset === "deep" ? "is-active" : ""}`} onClick={() => applyLagoonPreset("deep")}>
-                {language === "ko" ? "깊은 부유" : "Deep drift"}
+                {language === "ko" ? "푸른 심도" : "Blue depth"}
               </button>
             </div>
           </div>
@@ -170,6 +191,9 @@ export function LagoonBelowExperience({
         <div className="aurora-live-quick-actions immersive-quick-actions">
           <button type="button" className={`overlay-button ${ambientEnabled ? "is-active" : ""}`} onClick={toggleAmbientSound}>
             {ambientEnabled ? (language === "ko" ? "사운드 끄기" : "Sound Off") : language === "ko" ? "사운드 켜기" : "Sound On"}
+          </button>
+          <button type="button" className={`overlay-button ${breathEnabled ? "is-active" : ""}`} onClick={toggleBreathSound}>
+            {breathEnabled ? (language === "ko" ? "호흡 끄기" : "Breath Off") : language === "ko" ? "호흡 켜기" : "Breath On"}
           </button>
           <button type="button" className="overlay-button" onClick={toggleFullscreen}>
             {isFullscreen ? (language === "ko" ? "전체화면 종료" : "Exit fullscreen") : language === "ko" ? "전체화면" : "Fullscreen"}

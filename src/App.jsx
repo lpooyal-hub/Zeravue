@@ -7,6 +7,7 @@ import { NightSkyExperience } from "./components/experiences/NightSkyExperience.
 import { config } from "./config.js";
 import { getInitialLanguage, translations } from "./data/i18n.js";
 import { useAmbientAudio } from "./hooks/useAmbientAudio.js";
+import { useLagoonDiveExperience } from "./hooks/useLagoonDiveExperience.js";
 import { useConstellationCollections } from "./hooks/useConstellationCollections.js";
 import { useFavoriteConstellations } from "./hooks/useFavoriteConstellations.js";
 import { useNightSkyAmbientTrack } from "./hooks/useNightSkyAmbientTrack.js";
@@ -193,6 +194,9 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const auroraWatchLayout = auroraEnabled && currentPage === "watch";
   const rainWatchLayout = rainEnabled && currentPage === "watch";
   const lagoonWatchLayout = lagoonEnabled && currentPage === "watch";
+  const { breathEnabled, toggleBreathSound, depthProgress, exhalePulse } = useLagoonDiveExperience({
+    active: lagoonWatchLayout
+  });
   const effectiveSketchEnabled = immersiveThemeEnabled ? false : sketchEnabled;
   const { eyebrow: headerEyebrow, title: headerTitle, subtitle: headerSubtitle } = useMemo(
     () => getThemeHeaderCopy({ currentThemeId, language, dictionary }),
@@ -839,6 +843,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           headerSubtitle={headerSubtitle}
           ambientEnabled={ambientEnabled}
           toggleAmbientSound={toggleAmbientSound}
+          breathEnabled={breathEnabled}
+          toggleBreathSound={toggleBreathSound}
           ambientVolume={ambientVolume}
           setAmbientVolume={setAmbientVolume}
           toggleFullscreen={toggleFullscreen}
@@ -847,6 +853,8 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           setLagoonClarity={setLagoonClarity}
           lagoonDrift={lagoonDrift}
           setLagoonDrift={setLagoonDrift}
+          depthProgress={depthProgress}
+          exhalePulse={exhalePulse}
           lagoonPreset={lagoonPreset}
           applyLagoonPreset={applyLagoonPreset}
           showLagoonMoodControls={showLagoonMoodControls}

@@ -25,11 +25,11 @@ export function getThemeHeaderCopy({ currentThemeId, language, dictionary }) {
   if (currentThemeId === "lagoon-below") {
     return {
       eyebrow: "Zeravue · Lagoon Below",
-      title: language === "ko" ? "에메랄드빛 물속에 천천히 잠기는 공간입니다." : "A quiet space beneath clear tropical water.",
+      title: language === "ko" ? "라군 아래의 푸른 고요에 천천히 잠기는 공간입니다." : "A quiet space beneath a clear tropical lagoon.",
       subtitle:
         language === "ko"
-          ? "수면 아래로 내려오는 빛과 느린 부유감을 따라, 조용히 머물러 보세요."
-          : "Settle into filtered light, buoyant drift, and a slower underwater rhythm."
+          ? "잔잔하게 내려오는 빛과 느린 물결, 부유하듯 머무는 감각에 천천히 몸을 맡겨보세요."
+          : "Settle into filtered light, slow water drift, and a gentler underwater rhythm."
     };
   }
 

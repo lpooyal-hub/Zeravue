@@ -22,7 +22,7 @@ function themeLabel(themeId, language) {
     return language === "ko" ? "깊은 숲의 비" : "Monsoon Canopy";
   }
   if (themeId === "lagoon-below") {
-    return language === "ko" ? "에메랄드 라군 아래" : "Lagoon Below";
+    return language === "ko" ? "라군 아래의 고요" : "Lagoon Below";
   }
   return themeId || (language === "ko" ? "기타" : "Other");
 }
