@@ -18,6 +18,12 @@ function themeLabel(themeId, language) {
   if (themeId === "aurora-night") {
     return language === "ko" ? "오로라" : "Aurora";
   }
+  if (themeId === "monsoon-canopy") {
+    return language === "ko" ? "깊은 숲의 비" : "Monsoon Canopy";
+  }
+  if (themeId === "lagoon-below") {
+    return language === "ko" ? "에메랄드 라군 아래" : "Lagoon Below";
+  }
   return themeId || (language === "ko" ? "기타" : "Other");
 }
 

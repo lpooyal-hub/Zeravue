@@ -347,7 +347,7 @@ function WatchInspectorPanel({
         ) : viewMode === "observer" ? (
           <p className="helper-copy">{dictionary.viewer.observerConstellationHint}</p>
         ) : (
-          <p className="helper-copy">{language === "ko" ? "눌러서 강조" : "Tap to focus"}</p>
+          <p className="helper-copy">{language === "ko" ? "눌러서 보기" : "Tap to inspect"}</p>
         )}
         <div className="saved-sketch-list constellation-frame-list">
           {currentViewConstellationDetails.map((item) => (
@@ -379,8 +379,8 @@ function WatchInspectorPanel({
           <p className="eyebrow">{language === "ko" ? "오로라 감상" : "Aurora viewing"}</p>
           <p className="helper-copy">
             {language === "ko"
-              ? "오로라 테마는 별자리 분석보다 분위기 감상을 우선합니다."
-              : "Aurora mode prioritizes atmosphere over constellation analysis."}
+              ? "분위기 감상 중심의 화면입니다."
+              : "This scene stays focused on atmosphere."}
           </p>
         </section>
       )}
@@ -457,7 +457,7 @@ function WatchInspectorPanel({
             ) : null}
           </>
         ) : (
-          <p className="helper-copy">{language === "ko" ? "별을 선택해 정보를 확인하세요." : "Select a star to inspect it."}</p>
+          <p className="helper-copy">{language === "ko" ? "별을 고르면 정보가 열립니다." : "Select a star to open its details."}</p>
         )}
       </section>
 

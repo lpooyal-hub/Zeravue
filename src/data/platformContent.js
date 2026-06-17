@@ -58,6 +58,26 @@ export const platformThemeCards = [
       en: "Rain, mist, shelter",
       ko: "비, 안개, 숲의 쉼"
     }
+  },
+  {
+    id: "lagoon-below",
+    href: "/lagoon-below",
+    title: {
+      en: "Lagoon Below",
+      ko: "에메랄드 라군 아래"
+    },
+    eyebrow: {
+      en: "Underwater",
+      ko: "수중 테마"
+    },
+    description: {
+      en: "Clear tropical water, soft descending light, and a slow suspended drift beneath the surface.",
+      ko: "맑은 열대 바다 아래에서 내려오는 빛과 느린 부유감을 조용히 바라보는 물속 테마입니다."
+    },
+    meta: {
+      en: "Light, drift, blue calm",
+      ko: "빛, 부유감, 푸른 고요"
+    }
   }
 ];
 
@@ -87,7 +107,7 @@ export const platformAboutCopy = {
       {
         heading: "Theme structure",
         body:
-          "Each experience is treated as one theme inside a shared platform. Night Sky and Aurora Night are current themes, and future themes follow the same platform rules and interaction principles."
+          "Each experience is treated as one theme inside a shared platform. Night Sky, Aurora Night, Monsoon Canopy, and Lagoon Below are current themes, and future themes follow the same platform rules and interaction principles."
       },
       {
         heading: "How the viewer works",
@@ -125,7 +145,7 @@ export const platformAboutCopy = {
       {
         heading: "테마 구조",
         body:
-          "각 경험은 하나의 테마로 구성되고, 공통 플랫폼 위에서 동작합니다. Night Sky와 Aurora Night는 현재 제공 테마이며, 이후 테마도 같은 플랫폼 규칙과 상호작용 원칙을 따릅니다."
+          "각 경험은 하나의 테마로 구성되고, 공통 플랫폼 위에서 동작합니다. Night Sky, Aurora Night, 깊은 숲의 비, 에메랄드 라군 아래는 현재 제공 테마이며, 이후 테마도 같은 플랫폼 규칙과 상호작용 원칙을 따릅니다."
       },
       {
         heading: "뷰어 동작 방식",

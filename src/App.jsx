@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkyScene } from "./api/backend.js";
 import { AuroraExperience } from "./components/experiences/AuroraExperience.jsx";
+import { LagoonBelowExperience } from "./components/experiences/LagoonBelowExperience.jsx";
 import { MonsoonCanopyExperience } from "./components/experiences/MonsoonCanopyExperience.jsx";
 import { NightSkyExperience } from "./components/experiences/NightSkyExperience.jsx";
 import { config } from "./config.js";
@@ -69,6 +70,10 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const [rainPreset, setRainPreset] = useState("balanced");
   const [rainThunderEnabled, setRainThunderEnabled] = useState(true);
   const [showRainMoodControls, setShowRainMoodControls] = useState(false);
+  const [lagoonClarity, setLagoonClarity] = useState(0.68);
+  const [lagoonDrift, setLagoonDrift] = useState(0.44);
+  const [lagoonPreset, setLagoonPreset] = useState("balanced");
+  const [showLagoonMoodControls, setShowLagoonMoodControls] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [controlsHiddenInFullscreen, setControlsHiddenInFullscreen] = useState(false);
   const { savedSketches, setSavedSketches, sortedSavedSketches } = useSavedSketches();
@@ -84,12 +89,14 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
       ? config.auroraAmbientTrackUrl || config.ambientTrackUrl || auroraAmbientTrackMap[auroraWindProfile] || auroraAmbientTrackMap.cold
       : currentThemeId === "monsoon-canopy" || currentThemeId === "rain-window"
         ? config.rainAmbientTrackUrl || "/audio/monsoon-canopy-rain-loop.wav"
+        : currentThemeId === "lagoon-below"
+          ? config.lagoonAmbientTrackUrl || "/audio/aurora-wind-distant.wav"
         : config.ambientTrackUrl;
   const { ambientTrackUrl, ambientTrackPending, ambientTrackError } = useNightSkyAmbientTrack({
     configuredTrackUrl: configuredAmbientTrackUrl,
     themeId: currentThemeId
   });
-  const ambientOutputGain = currentThemeId === "aurora-night" ? 1.62 : 1.18;
+  const ambientOutputGain = currentThemeId === "aurora-night" ? 1.62 : currentThemeId === "lagoon-below" ? 1.08 : 1.18;
   const { ambientEnabled, ambientVolume, setAmbientVolume, ambientStatus, toggleAmbientSound, wakeAmbient, ensureAmbientOn } = useAmbientAudio({
     trackUrl: ambientTrackUrl,
     isReady: sceneState.status === "ready",
@@ -181,9 +188,11 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
   const sketchEnabled = currentTheme?.features?.sketching !== false;
   const auroraEnabled = currentThemeId === "aurora-night";
   const rainEnabled = currentThemeId === "monsoon-canopy" || currentThemeId === "rain-window";
-  const immersiveThemeEnabled = auroraEnabled || rainEnabled;
+  const lagoonEnabled = currentThemeId === "lagoon-below";
+  const immersiveThemeEnabled = auroraEnabled || rainEnabled || lagoonEnabled;
   const auroraWatchLayout = auroraEnabled && currentPage === "watch";
   const rainWatchLayout = rainEnabled && currentPage === "watch";
+  const lagoonWatchLayout = lagoonEnabled && currentPage === "watch";
   const effectiveSketchEnabled = immersiveThemeEnabled ? false : sketchEnabled;
   const { eyebrow: headerEyebrow, title: headerTitle, subtitle: headerSubtitle } = useMemo(
     () => getThemeHeaderCopy({ currentThemeId, language, dictionary }),
@@ -393,6 +402,13 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     }
     ensureAmbientOn();
   }, [auroraWatchLayout, ensureAmbientOn]);
+
+  useEffect(() => {
+    if (!lagoonWatchLayout) {
+      return;
+    }
+    ensureAmbientOn();
+  }, [ensureAmbientOn, lagoonWatchLayout]);
 
   useEffect(() => {
     const defaultViewMode = currentTheme?.defaultViewMode;
@@ -660,6 +676,28 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     setAmbientVolume(0.9);
   };
 
+  const applyLagoonPreset = (preset) => {
+    setLagoonPreset(preset);
+
+    if (preset === "shallow") {
+      setLagoonClarity(0.82);
+      setLagoonDrift(0.3);
+      setAmbientVolume(0.76);
+      return;
+    }
+
+    if (preset === "deep") {
+      setLagoonClarity(0.46);
+      setLagoonDrift(0.64);
+      setAmbientVolume(0.88);
+      return;
+    }
+
+    setLagoonClarity(0.68);
+    setLagoonDrift(0.44);
+    setAmbientVolume(0.82);
+  };
+
   useEffect(() => {
     const isLight = Math.abs(rainIntensity - 0.4) < 0.015 && Math.abs(rainFlow - 0.32) < 0.015;
     const isBalanced = Math.abs(rainIntensity - 0.56) < 0.015 && Math.abs(rainFlow - 0.42) < 0.015;
@@ -679,6 +717,26 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
     }
     setRainPreset("custom");
   }, [rainFlow, rainIntensity]);
+
+  useEffect(() => {
+    const isShallow = Math.abs(lagoonClarity - 0.82) < 0.015 && Math.abs(lagoonDrift - 0.3) < 0.015;
+    const isBalanced = Math.abs(lagoonClarity - 0.68) < 0.015 && Math.abs(lagoonDrift - 0.44) < 0.015;
+    const isDeep = Math.abs(lagoonClarity - 0.46) < 0.015 && Math.abs(lagoonDrift - 0.64) < 0.015;
+
+    if (isShallow) {
+      setLagoonPreset("shallow");
+      return;
+    }
+    if (isBalanced) {
+      setLagoonPreset("balanced");
+      return;
+    }
+    if (isDeep) {
+      setLagoonPreset("deep");
+      return;
+    }
+    setLagoonPreset("custom");
+  }, [lagoonClarity, lagoonDrift]);
   useEffect(() => {
     if (!importableConstellations.length) {
       setPresetConstellationName("");
@@ -768,6 +826,31 @@ export function App({ forcedLanguage, setForcedLanguage, showThemeSwitcher = tru
           setRainThunderEnabled={setRainThunderEnabled}
           showRainMoodControls={showRainMoodControls}
           setShowRainMoodControls={setShowRainMoodControls}
+          ensureAmbientOn={ensureAmbientOn}
+        />
+      ) : lagoonWatchLayout ? (
+        <LagoonBelowExperience
+          viewerRef={viewerRef}
+          isFullscreen={isFullscreen}
+          language={language}
+          updateLanguage={updateLanguage}
+          headerEyebrow={headerEyebrow}
+          headerTitle={headerTitle}
+          headerSubtitle={headerSubtitle}
+          ambientEnabled={ambientEnabled}
+          toggleAmbientSound={toggleAmbientSound}
+          ambientVolume={ambientVolume}
+          setAmbientVolume={setAmbientVolume}
+          toggleFullscreen={toggleFullscreen}
+          closeLagoonViewer={() => window.location.assign("/")}
+          lagoonClarity={lagoonClarity}
+          setLagoonClarity={setLagoonClarity}
+          lagoonDrift={lagoonDrift}
+          setLagoonDrift={setLagoonDrift}
+          lagoonPreset={lagoonPreset}
+          applyLagoonPreset={applyLagoonPreset}
+          showLagoonMoodControls={showLagoonMoodControls}
+          setShowLagoonMoodControls={setShowLagoonMoodControls}
           ensureAmbientOn={ensureAmbientOn}
         />
       ) : (

@@ -9,6 +9,48 @@ import { getThemeRouteConfig } from "./data/themes/index.js";
 
 const buildLogs = [
   {
+    slug: "2026-06-16",
+    date: "2026-06-16",
+    title: {
+      en: "Lagoon Below first structure and underwater baseline",
+      ko: "Lagoon Below 첫 구조와 물속 테마 기본선 만들기"
+    },
+    summary: {
+      en:
+        "Added the first Lagoon Below theme structure, connected it through home and routing, and set the initial underwater scene direction with calm light shafts, floating particles, and minimal immersive controls.",
+      ko:
+        "새 물속 테마 `Lagoon Below`의 첫 구조를 붙이고 홈/라우팅까지 연결했으며, 내려오는 빛줄기와 부유 입자, 최소 몰입형 조작을 중심으로 수중 장면의 기본 방향을 세웠습니다."
+    },
+    areas: {
+      en: ["New theme", "Underwater direction", "Home updates"],
+      ko: ["신규 테마", "수중 방향 설정", "메인 업데이트 반영"]
+    },
+    highlights: {
+      en: [
+        "Built Lagoon Below as its own theme unit instead of squeezing it into an existing immersive page.",
+        "Connected the new theme through card data, route config, theme copy, and admin labeling so it already behaves like part of the platform.",
+        "Started the underwater scene with tropical blue depth, light shafts, and slow drifting particles instead of overloading it with detail too early."
+      ],
+      ko: [
+        "Lagoon Below를 기존 감상 페이지에 억지로 섞지 않고, 독립 테마 단위로 따로 세웠습니다.",
+        "홈 카드, 라우트 설정, 테마 카피, 관리자 라벨까지 함께 연결해 플랫폼 안의 정식 테마처럼 먼저 동작하게 맞췄습니다.",
+        "처음부터 디테일을 과하게 쌓기보다, 열대 바다 수심감과 내려오는 빛, 느린 부유 입자 같은 핵심 물속 요소부터 잡았습니다."
+      ]
+    },
+    next: {
+      en: [
+        "Push Lagoon Below further toward a clear Southeast Asian underwater mood with better foreground depth.",
+        "Separate more immersive theme layout pieces so future theme additions touch fewer core files.",
+        "Keep tightening the balance between feature density and calm reading on the home page and Night Sky."
+      ],
+      ko: [
+        "Lagoon Below를 더 맑은 동남아 물속 감각으로 밀어가기 위해 전경 깊이와 질감을 더 보강합니다.",
+        "몰입형 테마 공통 레이아웃을 더 분리해서, 다음 테마 추가 때 핵심 파일 수정 범위를 줄입니다.",
+        "메인 홈과 Night Sky에서 기능 밀도와 차분한 읽힘 사이 균형을 계속 맞춥니다."
+      ]
+    }
+  },
+  {
     slug: "2026-06-12",
     date: "2026-06-12",
     title: {
@@ -511,9 +553,16 @@ function HomePage({ language, setLanguage }) {
         <div className="theme-home-updates-list">
           {buildLogs.slice(0, 2).map((item) => (
             <a key={item.slug} className="theme-home-update-card" href={`/updates/${item.slug}`}>
+              <span className="theme-home-update-date">{item.date}</span>
               <strong>{item.title[language] || item.title.en}</strong>
               <small>{item.summary[language] || item.summary.en}</small>
-              <span>{item.date}</span>
+              {item.areas?.[language]?.length ? (
+                <div className="theme-home-update-tags" aria-label={language === "ko" ? "변경 범주" : "Change areas"}>
+                  {item.areas[language].slice(0, 3).map((area) => (
+                    <span key={area}>{area}</span>
+                  ))}
+                </div>
+              ) : null}
             </a>
           ))}
         </div>
@@ -831,11 +880,11 @@ export function RootApp() {
     const seoByPath = {
       "/": {
         title: "Zeravue · Quiet Digital Experiences",
-        description: "Ambient digital themes for calm, immersive night-sky and aurora viewing."
+        description: "Ambient digital themes for calm, immersive night-sky, aurora, rainforest, and underwater viewing."
       },
       "/home": {
         title: "Zeravue · Quiet Digital Experiences",
-        description: "Ambient digital themes for calm, immersive night-sky and aurora viewing."
+        description: "Ambient digital themes for calm, immersive night-sky, aurora, rainforest, and underwater viewing."
       },
       "/night-sky": {
         title: "Night Sky Viewer · Zeravue",
@@ -848,6 +897,10 @@ export function RootApp() {
       "/monsoon-canopy": {
         title: "Monsoon Canopy · Zeravue",
         description: "A calm tropical rainforest scene with dense rainfall, layered foliage, mist, and sheltered observation."
+      },
+      "/lagoon-below": {
+        title: "Lagoon Below · Zeravue",
+        description: "A clear tropical underwater scene with filtered light, suspended drift, and a calm submerged viewing mood."
       },
       "/rain-window": {
         title: "Rain Window · Zeravue",
@@ -881,7 +934,7 @@ export function RootApp() {
       : path.startsWith("/updates/")
         ? seoByPath["/updates"]
         : seoByPath[path] || defaults;
-    const baseUrl = window.location.origin || "https://zeravue.xyz";
+    const canonicalBaseUrl = "https://zeravue.xyz";
 
     document.title = resolved.title;
 
@@ -896,7 +949,7 @@ export function RootApp() {
       canonicalLink.setAttribute("rel", "canonical");
       document.head.appendChild(canonicalLink);
     }
-    canonicalLink.setAttribute("href", `${baseUrl}${path === "/home" ? "/" : path}`);
+    canonicalLink.setAttribute("href", `${canonicalBaseUrl}${path === "/home" ? "/" : path}`);
   }, [path]);
 
   useEffect(() => {

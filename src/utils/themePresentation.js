@@ -22,6 +22,17 @@ export function getThemeHeaderCopy({ currentThemeId, language, dictionary }) {
     };
   }
 
+  if (currentThemeId === "lagoon-below") {
+    return {
+      eyebrow: "Zeravue · Lagoon Below",
+      title: language === "ko" ? "에메랄드빛 물속에 천천히 잠기는 공간입니다." : "A quiet space beneath clear tropical water.",
+      subtitle:
+        language === "ko"
+          ? "수면 아래로 내려오는 빛과 느린 부유감을 따라, 조용히 머물러 보세요."
+          : "Settle into filtered light, buoyant drift, and a slower underwater rhythm."
+    };
+  }
+
   if (currentThemeId === "rain-window") {
     return {
       eyebrow: "Zeravue · Rain Window",

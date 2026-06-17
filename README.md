@@ -13,6 +13,7 @@ Current active themes:
 - Night Sky
 - Aurora Night
 - Monsoon Canopy (`깊은 숲의 비`)
+- Lagoon Below (`에메랄드 라군 아래`)
 
 Upcoming theme direction:
 - underwater
@@ -53,7 +54,12 @@ Aurora and Monsoon Canopy follow the same ambient viewing philosophy with lighte
 - local rain/thunder audio samples
 - minimal mood controls focused on intensity, flow, and distant thunder
 
-5. Analytics/Admin
+5. Lagoon Below theme
+- calm tropical underwater drift
+- light shafts, floating particles, and blue depth layering
+- immersive controls tuned for slow full-screen viewing
+
+6. Analytics/Admin
 - anonymous visitor/session analytics
 - Supabase-backed metrics with local fallback mode
 
